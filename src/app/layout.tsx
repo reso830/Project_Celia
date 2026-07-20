@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Celia",
-  description: "A local-only expense tracker",
+  description: "A local expense-tracking application.",
 };
 
 export default function RootLayout({

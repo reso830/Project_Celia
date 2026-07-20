@@ -3,11 +3,14 @@ import type { Transaction } from "@/domain/transaction";
 
 const rent: Transaction = {
   id: "rent",
+  date: "2026-07-01",
+  memberId: "member-alex",
+  categoryId: "category-rent",
+  type: "expense",
   description: "Rent",
-  category: "Housing",
-  amountMinor: -2500000,
-  currency: "TWD",
-  occurredOn: "2026-07-01",
+  amount: 2500000,
+  recurring: true,
+  currency: "PHP",
 };
 
 describe("InMemoryBudgetRepository", () => {

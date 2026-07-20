@@ -61,7 +61,9 @@ Run:
 $scaffoldDirectory = Join-Path $env:TEMP "celia-next-scaffold"
 Remove-Item -Recurse -Force $scaffoldDirectory -ErrorAction SilentlyContinue
 npx create-next-app@latest $scaffoldDirectory --ts --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm --yes
-Get-ChildItem -Force $scaffoldDirectory | Move-Item -Destination .
+Get-ChildItem -Force $scaffoldDirectory |
+  Where-Object { $_.Name -notin @("README.md", ".git") } |
+  Move-Item -Destination .
 Remove-Item -Recurse -Force $scaffoldDirectory
 ```
 

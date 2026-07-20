@@ -9,15 +9,14 @@ export interface Category {
 }
 
 export function createCategory(input: Category): Readonly<Category> {
-  if (
-    !input.id.trim() ||
-    !input.group.trim() ||
-    !input.name.trim() ||
-    !isCategoryType(input.type)
-  ) {
+  if (!input.id.trim() || !input.group.trim() || !input.name.trim()) {
     throw new DomainValidationError(
-      "Category id, type, group, and name are required.",
+      "Category id, group, and name are required.",
     );
+  }
+
+  if (!isCategoryType(input.type)) {
+    throw new DomainValidationError("Category type must be income or expense.");
   }
 
   return Object.freeze({ ...input });

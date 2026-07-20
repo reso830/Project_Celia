@@ -49,4 +49,15 @@ describe("members and categories", () => {
       }),
     ).toThrow(DomainValidationError);
   });
+
+  it("rejects an unrecognized category type with a precise error", () => {
+    expect(() =>
+      createCategory({
+        id: "category-transfer",
+        type: "transfer" as never,
+        group: "Transfers",
+        name: "Account transfer",
+      }),
+    ).toThrow("Category type must be income or expense.");
+  });
 });

@@ -1,3 +1,3 @@
 export class DomainValidationError extends Error {
-  override readonly name = 'DomainValidationError';
+  override readonly name = "DomainValidationError";
 }

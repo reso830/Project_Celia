@@ -1,5 +1,5 @@
-export type CategoryType = 'income' | 'expense';
+export type CategoryType = "income" | "expense";
 
 export function isCategoryType(value: unknown): value is CategoryType {
-  return value === 'income' || value === 'expense';
+  return value === "income" || value === "expense";
 }

@@ -1,5 +1,5 @@
-import { isCategoryType, type CategoryType } from './category-type.js';
-import { DomainValidationError } from './errors.js';
+import { isCategoryType, type CategoryType } from "./category-type.js";
+import { DomainValidationError } from "./errors.js";
 
 export interface TransactionInput {
   id: string;
@@ -13,7 +13,7 @@ export interface TransactionInput {
 }
 
 export interface Transaction extends TransactionInput {
-  currency: 'PHP';
+  currency: "PHP";
 }
 
 function isIsoDate(value: string): boolean {
@@ -21,30 +21,42 @@ function isIsoDate(value: string): boolean {
     return false;
   }
 
-  const [year, month, day] = value.split('-').map(Number);
+  const [year, month, day] = value.split("-").map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));
 
-  return date.getUTCFullYear() === year
-    && date.getUTCMonth() === month - 1
-    && date.getUTCDate() === day;
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
 }
 
-export function createTransaction(input: TransactionInput): Readonly<Transaction> {
+export function createTransaction(
+  input: TransactionInput,
+): Readonly<Transaction> {
   if (!input.id.trim() || !input.memberId.trim() || !input.categoryId.trim()) {
-    throw new DomainValidationError('Transaction id, memberId, and categoryId are required.');
+    throw new DomainValidationError(
+      "Transaction id, memberId, and categoryId are required.",
+    );
   }
 
   if (!isCategoryType(input.type)) {
-    throw new DomainValidationError('Transaction type must be income or expense.');
+    throw new DomainValidationError(
+      "Transaction type must be income or expense.",
+    );
   }
 
   if (!isIsoDate(input.date)) {
-    throw new DomainValidationError('Transaction date must be a real yyyy-mm-dd date.');
+    throw new DomainValidationError(
+      "Transaction date must be a real yyyy-mm-dd date.",
+    );
   }
 
   if (!Number.isSafeInteger(input.amount) || input.amount <= 0) {
-    throw new DomainValidationError('Transaction amount must be a positive safe integer of PHP minor units.');
+    throw new DomainValidationError(
+      "Transaction amount must be a positive safe integer of PHP minor units.",
+    );
   }
 
-  return Object.freeze({ ...input, currency: 'PHP' as const });
+  return Object.freeze({ ...input, currency: "PHP" as const });
 }

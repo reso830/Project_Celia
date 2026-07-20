@@ -53,15 +53,19 @@
 - Produces: `npm run dev`, `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm run test`, and `npm run build`.
 - Produces: the `@/*` TypeScript path alias used by all source and test imports.
 
-- [ ] **Step 1: Generate the strict TypeScript application**
+- [ ] **Step 1: Generate and import the strict TypeScript application**
 
 Run:
 
 ```powershell
-npx create-next-app@latest . --ts --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm --yes
+$scaffoldDirectory = Join-Path $env:TEMP "celia-next-scaffold"
+Remove-Item -Recurse -Force $scaffoldDirectory -ErrorAction SilentlyContinue
+npx create-next-app@latest $scaffoldDirectory --ts --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm --yes
+Get-ChildItem -Force $scaffoldDirectory | Move-Item -Destination .
+Remove-Item -Recurse -Force $scaffoldDirectory
 ```
 
-Expected: a Next.js project is created in the repository root with `src/app`, Tailwind, ESLint, and strict TypeScript configuration.
+Expected: a Next.js project is imported into the repository root with `src/app`, Tailwind, ESLint, and strict TypeScript configuration while preserving the existing README and approved documents.
 
 - [ ] **Step 2: Install test and formatting dependencies**
 

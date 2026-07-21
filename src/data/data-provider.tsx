@@ -46,6 +46,7 @@ export type DataState =
       transactions: readonly Transaction[];
       bucketColors: readonly BucketColor[];
       bucketGroups: readonly BucketGroup[];
+      saveTransaction(transaction: Transaction): Promise<void>;
       saveCategory(category: Category): Promise<void>;
       saveBucketGroup(bucketGroup: BucketGroup): Promise<void>;
       deleteBucketGroup(id: string): Promise<void>;
@@ -162,6 +163,28 @@ export function DataProvider({
           );
         };
 
+        const saveTransaction = async (transaction: Transaction) => {
+          await repositories.transactions.save(transaction);
+
+          if (!active) {
+            return;
+          }
+
+          setState((current) =>
+            current.status === "ready"
+              ? {
+                  ...current,
+                  transactions: [
+                    ...current.transactions.filter(
+                      ({ id }) => id !== transaction.id,
+                    ),
+                    transaction,
+                  ],
+                }
+              : current,
+          );
+        };
+
         const saveBucketGroup = async (bucketGroup: BucketGroup) => {
           await repositories.bucketGroups.save(bucketGroup);
 
@@ -257,6 +280,7 @@ export function DataProvider({
             transactions,
             bucketColors,
             bucketGroups: [...bucketGroups, ...legacyGroups],
+            saveTransaction,
             saveCategory,
             saveBucketGroup,
             deleteBucketGroup,

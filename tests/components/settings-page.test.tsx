@@ -378,6 +378,41 @@ describe("SettingsPage", () => {
     ).toHaveTextContent("No subcategories yet.");
   });
 
+  it("edits and persists an expense bucket color through picker, hex, and RGB inputs", async () => {
+    const user = userEvent.setup();
+    const saveColor = vi.fn().mockResolvedValue(undefined);
+    const dataRepositories = repositories();
+    dataRepositories.categories.list = vi
+      .fn()
+      .mockResolvedValue([
+        { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+      ]);
+    dataRepositories.bucketGroups.list = vi
+      .fn()
+      .mockResolvedValue([
+        { id: "expense-housing", type: "expense", name: "Housing" },
+      ]);
+    dataRepositories.bucketColors.save = saveColor;
+    renderSettings(dataRepositories);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Edit color for Housing" }),
+    );
+    fireEvent.change(screen.getByLabelText("Bucket color"), {
+      target: { value: "#2463eb" },
+    });
+    expect(screen.getByLabelText("Hex color")).toHaveValue("#2463eb");
+    expect(screen.getByLabelText("Red")).toHaveValue("36");
+    fireEvent.change(screen.getByLabelText("Red"), { target: { value: "256" } });
+    expect(screen.getByRole("button", { name: "Save color" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Hex color"), {
+      target: { value: "#24a6e9" },
+    });
+    expect(screen.getByRole("article", { name: "Expense Housing" })).toHaveTextContent("Color: #24a6e9");
+    await user.click(screen.getByRole("button", { name: "Save color" }));
+    await waitFor(() => expect(saveColor).toHaveBeenCalledWith({ bucket: "expense:housing", color: "#24a6e9" }));
+  });
+
   it("renders the buckets and household empty states", async () => {
     renderSettings();
 

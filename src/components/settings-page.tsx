@@ -6,6 +6,12 @@ import { BucketGroupGrid } from "@/components/bucket-group-grid";
 import {
   createBucketGroup,
   createCategory,
+  expenseBucketColorKey,
+  formatHexColor,
+  formatRgbColor,
+  parseHexColor,
+  parseRgbColor,
+  type BucketColor,
   type BucketGroup,
   type Category,
   type CategoryType,
@@ -14,6 +20,21 @@ import { createMember, type Member } from "@/domain/member";
 import { useData, useDataActions } from "@/data";
 
 const memberColors = ["#2463eb", "#9333ea", "#db2777", "#0f766e"];
+const fallbackBucketColor = "#8a93a3";
+
+interface EditingBucketColor {
+  bucket: string;
+  hex: string;
+  red: string;
+  green: string;
+  blue: string;
+  source: "hex" | "rgb";
+}
+
+function createEditingBucketColor(bucket: string, color: string): EditingBucketColor {
+  const rgb = parseHexColor(color) ?? parseHexColor(fallbackBucketColor)!;
+  return { bucket, hex: formatHexColor(rgb), ...formatRgbColor(rgb), source: "hex" };
+}
 
 function createMemberId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `member-${Date.now()}`;
@@ -44,9 +65,52 @@ export function SettingsPage() {
   const [type, setType] = useState<CategoryType>("expense");
   const [bucketError, setBucketError] = useState("");
   const [isSavingBucket, setIsSavingBucket] = useState(false);
+  const [editingBucketColor, setEditingBucketColor] = useState<EditingBucketColor>();
+  const [colorError, setColorError] = useState("");
+  const [isSavingColor, setIsSavingColor] = useState(false);
   const members = data.status === "ready" ? data.members : [];
   const categories = data.status === "ready" ? data.categories : [];
   const bucketGroups = data.status === "ready" ? data.bucketGroups : [];
+  const bucketColors = data.status === "ready" ? data.bucketColors : [];
+  const parsedEditingColor = editingBucketColor
+    ? editingBucketColor.source === "hex"
+      ? parseHexColor(editingBucketColor.hex)
+      : parseRgbColor(editingBucketColor.red, editingBucketColor.green, editingBucketColor.blue)
+    : undefined;
+  const previewColor = parsedEditingColor ? formatHexColor(parsedEditingColor) : undefined;
+  const displayedBucketColors: readonly BucketColor[] = editingBucketColor && previewColor
+    ? [...bucketColors.filter(({ bucket }) => bucket !== expenseBucketColorKey(editingBucketColor.bucket)), { bucket: expenseBucketColorKey(editingBucketColor.bucket), color: previewColor }]
+    : bucketColors;
+
+  function updateColorFromHex(hex: string) {
+    const rgb = parseHexColor(hex);
+    setColorError("");
+    setEditingBucketColor((current) => current ? { ...current, hex, ...(rgb ? formatRgbColor(rgb) : {}), source: "hex" } : current);
+  }
+
+  function updateRgbColor(channel: "red" | "green" | "blue", value: string) {
+    setColorError("");
+    setEditingBucketColor((current) => {
+      if (!current) return current;
+      const next = { ...current, [channel]: value, source: "rgb" as const };
+      const rgb = parseRgbColor(next.red, next.green, next.blue);
+      return rgb ? { ...next, hex: formatHexColor(rgb) } : next;
+    });
+  }
+
+  async function saveBucketColor() {
+    if (data.status !== "ready" || !editingBucketColor || !previewColor || isSavingColor) return;
+    setIsSavingColor(true);
+    setColorError("");
+    try {
+      await data.saveBucketColor(editingBucketColor.bucket, previewColor);
+      setEditingBucketColor(undefined);
+    } catch {
+      setColorError("Unable to save this color. Please try again.");
+    } finally {
+      setIsSavingColor(false);
+    }
+  }
 
   async function addBucket(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -295,13 +359,28 @@ export function SettingsPage() {
                 Add bucket
               </button>
             </form>
+            {editingBucketColor ? (
+              <div className="mt-4 rounded-xl border border-[#d6dae1] bg-white p-5">
+                <h3 className="text-sm font-semibold text-[#16213f]">Edit color for {editingBucketColor.bucket}</h3>
+                <div className="mt-4 grid gap-4 sm:grid-cols-5">
+                  <label className="grid gap-1 text-sm font-medium text-[#16213f]">Bucket color<input aria-label="Bucket color" className="h-10 w-full rounded-md border border-[#b7bfca] p-1" onChange={(event) => updateColorFromHex(event.target.value)} type="color" value={previewColor ?? fallbackBucketColor} /></label>
+                  <label className="grid gap-1 text-sm font-medium text-[#16213f]">Hex color<input className="rounded-md border border-[#b7bfca] px-3 py-2" onChange={(event) => updateColorFromHex(event.target.value)} value={editingBucketColor.hex} /></label>
+                  {(["red", "green", "blue"] as const).map((channel) => <label className="grid gap-1 text-sm font-medium text-[#16213f]" key={channel}>{channel[0].toUpperCase() + channel.slice(1)}<input className="rounded-md border border-[#b7bfca] px-3 py-2" inputMode="numeric" onChange={(event) => updateRgbColor(channel, event.target.value)} value={editingBucketColor[channel]} /></label>)}
+                </div>
+                <div className="mt-4 flex items-center gap-3 text-sm text-[#16213f]"><span aria-label="Color preview" className="h-8 w-8 rounded-full border border-[#b7bfca]" style={{ backgroundColor: previewColor ?? fallbackBucketColor }} />{previewColor ?? editingBucketColor.hex}</div>
+                {!previewColor ? <p className="mt-3 text-sm text-[#b42318]" role="alert">Enter a valid hex color or RGB values from 0 to 255.</p> : null}
+                {colorError ? <p className="mt-3 text-sm text-[#b42318]" role="alert">{colorError}</p> : null}
+                <div className="mt-4 flex gap-3"><button className="rounded-md bg-[#16213f] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60" disabled={!previewColor || isSavingColor} onClick={() => void saveBucketColor()} type="button">Save color</button><button className="rounded-md border border-[#b7bfca] px-4 py-2 text-sm font-semibold text-[#16213f]" onClick={() => { setEditingBucketColor(undefined); setColorError(""); }} type="button">Cancel color</button></div>
+              </div>
+            ) : null}
             <BucketGroupGrid
-              bucketColors={data.status === "ready" ? data.bucketColors : []}
+              bucketColors={displayedBucketColors}
               bucketGroups={bucketGroups}
               categories={categories}
               emptyMessage="No buckets yet."
               onAddSubcategory={addSubcategory}
               onDeleteSubcategory={deleteSubcategory}
+              onEditColor={(bucket, color) => { setEditingBucketColor(createEditingBucketColor(bucket, color)); setColorError(""); }}
             />
           </section>
 

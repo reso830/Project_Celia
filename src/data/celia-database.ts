@@ -47,5 +47,7 @@ export function openCeliaDatabase(
 
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
+    request.onblocked = () =>
+      reject(new Error("Opening the IndexedDB database was blocked."));
   });
 }

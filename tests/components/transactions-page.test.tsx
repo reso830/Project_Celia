@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { TransactionsPage } from "@/components/transactions-page";
 import { DataProvider, type DataRepositories } from "@/data";
@@ -75,11 +76,15 @@ function repositoriesWith({
 }
 
 function renderTransactions(data: Parameters<typeof repositoriesWith>[0] = {}) {
+  const dataRepositories = repositoriesWith(data);
+
   render(
-    <DataProvider createRepositories={() => repositoriesWith(data)}>
+    <DataProvider createRepositories={() => dataRepositories}>
       <TransactionsPage />
     </DataProvider>,
   );
+
+  return { transactionSave: dataRepositories.transactions.save };
 }
 
 describe("TransactionsPage", () => {
@@ -126,12 +131,90 @@ describe("TransactionsPage", () => {
 
     expect(await screen.findByText("1 transaction")).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "Alex" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("cell", { name: "Groceries" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Groceries" })).toBeInTheDocument();
     expect(
       screen.getByRole("cell", { name: "Weekly groceries" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "₱12.50" })).toBeInTheDocument();
+  });
+
+  it("shows required-field errors without saving", async () => {
+    const user = userEvent.setup();
+    const { transactionSave } = renderTransactions({
+      members: [alex],
+      categories: [groceries],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "+ Add Transaction" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Save transaction" }));
+
+    expect(screen.getByText("Member is required.")).toBeInTheDocument();
+    expect(screen.getByText("Bucket is required.")).toBeInTheDocument();
+    expect(screen.getByText("Subcategory is required.")).toBeInTheDocument();
+    expect(screen.getByText("Amount is required.")).toBeInTheDocument();
+    expect(transactionSave).not.toHaveBeenCalled();
+  });
+
+  it("disables saving when no members exist", async () => {
+    const user = userEvent.setup();
+    renderTransactions({ categories: [groceries] });
+
+    await user.click(
+      await screen.findByRole("button", { name: "+ Add Transaction" }),
+    );
+
+    expect(
+      screen.getByText(
+        "Add a household member in Settings before creating a transaction.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Save transaction" }),
+    ).toBeDisabled();
+  });
+
+  it("saves a valid expense and adds it to the list", async () => {
+    const user = userEvent.setup();
+    const { transactionSave } = renderTransactions({
+      members: [alex],
+      categories: [groceries],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "+ Add Transaction" }),
+    );
+    await user.selectOptions(screen.getByLabelText("Member"), "member-alex");
+    await user.selectOptions(screen.getByLabelText("Bucket"), "Groceries");
+    await user.selectOptions(
+      screen.getByLabelText("Subcategory"),
+      "category-groceries",
+    );
+    await user.type(screen.getByLabelText("Amount"), "12.50");
+    await user.type(screen.getByLabelText("Notes"), "Weekly groceries");
+    await user.click(screen.getByRole("checkbox", { name: "Recurring" }));
+    await user.click(screen.getByRole("button", { name: "Save transaction" }));
+
+    await waitFor(() =>
+      expect(transactionSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+          memberId: "member-alex",
+          categoryId: "category-groceries",
+          type: "expense",
+          amount: 1_250,
+          description: "Weekly groceries",
+          recurring: true,
+          currency: "PHP",
+        }),
+      ),
+    );
+    expect(
+      screen.queryByRole("dialog", { name: "Add Transaction" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("cell", { name: "Weekly groceries" }),
+    ).toBeInTheDocument();
   });
 });

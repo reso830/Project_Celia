@@ -4,12 +4,13 @@ export type AppPage = "dashboard" | "transactions" | "settings";
 
 interface AppHeaderProps {
   activePage: AppPage;
+  onAddTransaction?: () => void;
 }
 
 const navigationItemClassName =
   "rounded-md px-3 py-2 text-[#c3ccd6] hover:bg-[#1a2c4d]";
 
-export function AppHeader({ activePage }: AppHeaderProps) {
+export function AppHeader({ activePage, onAddTransaction }: AppHeaderProps) {
   return (
     <header className="rounded-xl bg-[#12213d] px-5 py-4 text-[#f3f4f6] sm:flex sm:flex-wrap sm:items-center sm:gap-4">
       <p className="text-lg font-semibold">Celia</p>
@@ -57,6 +58,7 @@ export function AppHeader({ activePage }: AppHeaderProps) {
       {activePage === "transactions" ? (
         <button
           className="mt-3 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#12213d] sm:ml-auto sm:mt-0"
+          onClick={onAddTransaction}
           type="button"
         >
           + Add Transaction

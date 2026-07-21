@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -46,6 +47,13 @@ export interface DataProviderProps {
 
 const DataContext = createContext<DataState | undefined>(undefined);
 
+export interface DataActions {
+  saveMember(member: Member): Promise<void>;
+  deleteMember(id: string): Promise<void>;
+}
+
+const DataActionsContext = createContext<DataActions | undefined>(undefined);
+
 function createIndexedDbRepositories(): DataRepositories {
   return {
     members: new IndexedDbMemberRepository(),
@@ -66,6 +74,7 @@ export function DataProvider({
   createRepositories = createIndexedDbRepositories,
 }: DataProviderProps) {
   const [state, setState] = useState<DataState>({ status: "loading" });
+  const repositoriesRef = useRef<DataRepositories | undefined>(undefined);
 
   useEffect(() => {
     let active = true;
@@ -73,6 +82,7 @@ export function DataProvider({
     async function initialize() {
       try {
         const repositories = createRepositories();
+        repositoriesRef.current = repositories;
         const [members, categories, transactions, bucketColors] =
           await Promise.all([
             repositories.members.list(),
@@ -105,7 +115,54 @@ export function DataProvider({
     };
   }, [createRepositories]);
 
-  return <DataContext.Provider value={state}>{children}</DataContext.Provider>;
+  async function saveMember(member: Member): Promise<void> {
+    const repositories = repositoriesRef.current;
+    if (!repositories) {
+      throw new Error("Application data is not ready.");
+    }
+
+    await repositories.members.save(member);
+    setState((current) => {
+      if (current.status !== "ready") {
+        return current;
+      }
+
+      return {
+        ...current,
+        members: [
+          ...current.members.filter(({ id }) => id !== member.id),
+          member,
+        ],
+      };
+    });
+  }
+
+  async function deleteMember(id: string): Promise<void> {
+    const repositories = repositoriesRef.current;
+    if (!repositories) {
+      throw new Error("Application data is not ready.");
+    }
+
+    await repositories.members.delete(id);
+    setState((current) => {
+      if (current.status !== "ready") {
+        return current;
+      }
+
+      return {
+        ...current,
+        members: current.members.filter((member) => member.id !== id),
+      };
+    });
+  }
+
+  const actions: DataActions = { saveMember, deleteMember };
+
+  return (
+    <DataActionsContext.Provider value={actions}>
+      <DataContext.Provider value={state}>{children}</DataContext.Provider>
+    </DataActionsContext.Provider>
+  );
 }
 
 export function useData(): DataState {
@@ -116,4 +173,14 @@ export function useData(): DataState {
   }
 
   return state;
+}
+
+export function useDataActions(): DataActions {
+  const actions = useContext(DataActionsContext);
+
+  if (!actions) {
+    throw new Error("useDataActions must be used within a DataProvider.");
+  }
+
+  return actions;
 }

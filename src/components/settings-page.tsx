@@ -3,7 +3,13 @@
 import { type FormEvent, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { BucketGroupGrid } from "@/components/bucket-group-grid";
-import { createCategory, type CategoryType } from "@/domain";
+import {
+  createBucketGroup,
+  createCategory,
+  type BucketGroup,
+  type Category,
+  type CategoryType,
+} from "@/domain";
 import { createMember, type Member } from "@/domain/member";
 import { useData, useDataActions } from "@/data";
 
@@ -40,6 +46,7 @@ export function SettingsPage() {
   const [isSavingBucket, setIsSavingBucket] = useState(false);
   const members = data.status === "ready" ? data.members : [];
   const categories = data.status === "ready" ? data.categories : [];
+  const bucketGroups = data.status === "ready" ? data.bucketGroups : [];
 
   async function addBucket(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -56,15 +63,16 @@ export function SettingsPage() {
       return;
     }
 
-    const duplicate = categories.find(
-      (category) =>
-        category.type === type &&
-        category.group.trim().toLocaleLowerCase() === group.toLocaleLowerCase(),
+    const duplicate = bucketGroups.find(
+      (bucketGroup) =>
+        bucketGroup.type === type &&
+        bucketGroup.name.trim().toLocaleLowerCase() ===
+          group.toLocaleLowerCase(),
     );
 
     if (duplicate) {
       setBucketError(
-        `An ${type} bucket named ${duplicate.group.trim()} already exists.`,
+        `An ${type} bucket named ${duplicate.name.trim()} already exists.`,
       );
       return;
     }
@@ -74,8 +82,15 @@ export function SettingsPage() {
     }
 
     setIsSavingBucket(true);
+    let createdBucketGroup: BucketGroup | undefined;
 
     try {
+      createdBucketGroup = createBucketGroup({
+        id: crypto.randomUUID(),
+        type,
+        name: group,
+      });
+      await data.saveBucketGroup(createdBucketGroup);
       await data.saveCategory(
         createCategory({
           id: crypto.randomUUID(),
@@ -88,9 +103,77 @@ export function SettingsPage() {
       setSubcategory("");
       setBucketError("");
     } catch {
+      if (createdBucketGroup) {
+        try {
+          await data.deleteBucketGroup(createdBucketGroup.id);
+        } catch {
+          setBucketError("Unable to save this bucket. Please try again.");
+          return;
+        }
+      }
       setBucketError("Unable to save this bucket. Please try again.");
     } finally {
       setIsSavingBucket(false);
+    }
+  }
+
+  async function addSubcategory(
+    bucketGroup: BucketGroup,
+    input: string,
+  ): Promise<boolean> {
+    const name = input.trim();
+
+    if (!name) {
+      setBucketError("Enter a subcategory name.");
+      return false;
+    }
+
+    const duplicate = categories.some(
+      (category) =>
+        category.type === bucketGroup.type &&
+        category.group.trim().toLocaleLowerCase() ===
+          bucketGroup.name.trim().toLocaleLowerCase() &&
+        category.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase(),
+    );
+
+    if (duplicate) {
+      setBucketError(
+        `That subcategory already exists in ${bucketGroup.name.trim()}.`,
+      );
+      return false;
+    }
+
+    if (data.status !== "ready") {
+      return false;
+    }
+
+    try {
+      await data.saveCategory(
+        createCategory({
+          id: crypto.randomUUID(),
+          type: bucketGroup.type,
+          group: bucketGroup.name,
+          name,
+        }),
+      );
+      setBucketError("");
+      return true;
+    } catch {
+      setBucketError("Unable to save this subcategory. Please try again.");
+      return false;
+    }
+  }
+
+  async function deleteSubcategory(category: Category): Promise<void> {
+    if (data.status !== "ready") {
+      return;
+    }
+
+    try {
+      await data.deleteCategory(category.id);
+      setBucketError("");
+    } catch {
+      setBucketError("Unable to delete this subcategory. Please try again.");
     }
   }
 
@@ -214,8 +297,11 @@ export function SettingsPage() {
             </form>
             <BucketGroupGrid
               bucketColors={data.status === "ready" ? data.bucketColors : []}
+              bucketGroups={bucketGroups}
               categories={categories}
               emptyMessage="No buckets yet."
+              onAddSubcategory={addSubcategory}
+              onDeleteSubcategory={deleteSubcategory}
             />
           </section>
 

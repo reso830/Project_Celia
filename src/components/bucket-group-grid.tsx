@@ -1,9 +1,16 @@
-import type { BucketColor, Category } from "@/domain";
+import { useRef, useState } from "react";
+import type { BucketColor, BucketGroup, Category } from "@/domain";
 
 interface BucketGroupGridProps {
   categories: readonly Category[];
+  bucketGroups: readonly BucketGroup[];
   bucketColors: readonly BucketColor[];
   emptyMessage: string;
+  onAddSubcategory?: (
+    bucketGroup: BucketGroup,
+    name: string,
+  ) => Promise<boolean>;
+  onDeleteSubcategory?: (category: Category) => Promise<void>;
 }
 
 const fallbackColor = "#8a93a3";
@@ -14,22 +21,27 @@ function normalize(value: string): string {
 
 export function BucketGroupGrid({
   categories,
+  bucketGroups,
   bucketColors,
   emptyMessage,
+  onAddSubcategory,
+  onDeleteSubcategory,
 }: BucketGroupGridProps) {
+  const [subcategoryNames, setSubcategoryNames] = useState<
+    Record<string, string>
+  >({});
+  const [pendingGroupIds, setPendingGroupIds] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  const [pendingCategoryIds, setPendingCategoryIds] = useState<
+    ReadonlySet<string>
+  >(new Set());
+  const pendingGroupIdsRef = useRef(new Set<string>());
+  const pendingCategoryIdsRef = useRef(new Set<string>());
   const colors = new Map(
     bucketColors.map(({ bucket, color }) => [normalize(bucket), color]),
   );
-  const groups = Array.from(
-    categories.reduce((grouped, category) => {
-      const key = `${category.type}:${normalize(category.group)}`;
-      const current = grouped.get(key) ?? [];
-      grouped.set(key, [...current, category]);
-      return grouped;
-    }, new Map<string, readonly Category[]>()),
-  );
-
-  if (!groups.length) {
+  if (!bucketGroups.length) {
     return (
       <div className="mt-4 rounded-xl border border-[#d6dae1] bg-white p-5 text-sm text-[#8a93a3]">
         {emptyMessage}
@@ -39,17 +51,21 @@ export function BucketGroupGrid({
 
   return (
     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {groups.map(([key, group]) => {
-        const first = group[0];
-        const name = first.group.trim();
-        const type = first.type === "expense" ? "Expense" : "Income";
-        const color = colors.get(normalize(first.group)) ?? fallbackColor;
+      {bucketGroups.map((bucketGroup) => {
+        const group = categories.filter(
+          (category) =>
+            category.type === bucketGroup.type &&
+            normalize(category.group) === normalize(bucketGroup.name),
+        );
+        const name = bucketGroup.name.trim();
+        const type = bucketGroup.type === "expense" ? "Expense" : "Income";
+        const color = colors.get(normalize(bucketGroup.name)) ?? fallbackColor;
 
         return (
           <article
             aria-label={`${type} ${name}`}
             className="rounded-xl border border-[#d6dae1] bg-white p-5"
-            key={key}
+            key={bucketGroup.id}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -65,11 +81,99 @@ export function BucketGroupGrid({
                 Color: {color}
               </span>
             </div>
-            <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-[#16213f]">
-              {group.map((category) => (
-                <li key={category.id}>{category.name}</li>
-              ))}
-            </ul>
+            {group.length ? (
+              <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-[#16213f]">
+                {group.map((category) => (
+                  <li
+                    className="flex items-center justify-between gap-2"
+                    key={category.id}
+                  >
+                    <span>{category.name}</span>
+                    {onDeleteSubcategory ? (
+                      <button
+                        className="text-sm font-medium text-[#b42318] hover:underline"
+                        disabled={pendingCategoryIds.has(category.id)}
+                        onClick={() => {
+                          if (pendingCategoryIdsRef.current.has(category.id)) {
+                            return;
+                          }
+
+                          pendingCategoryIdsRef.current.add(category.id);
+                          setPendingCategoryIds(
+                            new Set(pendingCategoryIdsRef.current),
+                          );
+                          void onDeleteSubcategory(category).finally(() => {
+                            pendingCategoryIdsRef.current.delete(category.id);
+                            setPendingCategoryIds(
+                              new Set(pendingCategoryIdsRef.current),
+                            );
+                          });
+                        }}
+                        type="button"
+                      >
+                        Delete {category.name}
+                      </button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 text-sm text-[#8a93a3]">
+                No subcategories yet.
+              </p>
+            )}
+            {onAddSubcategory ? (
+              <div className="mt-4 flex gap-2">
+                <label
+                  className="sr-only"
+                  htmlFor={`subcategory-${bucketGroup.id}`}
+                >
+                  Add subcategory to {name}
+                </label>
+                <input
+                  className="min-w-0 flex-1 rounded-md border border-[#b7bfca] px-3 py-2 text-sm"
+                  id={`subcategory-${bucketGroup.id}`}
+                  onChange={(event) =>
+                    setSubcategoryNames((current) => ({
+                      ...current,
+                      [bucketGroup.id]: event.target.value,
+                    }))
+                  }
+                  value={subcategoryNames[bucketGroup.id] ?? ""}
+                />
+                <button
+                  className="rounded-md bg-[#16213f] px-3 py-2 text-sm font-semibold text-white"
+                  disabled={pendingGroupIds.has(bucketGroup.id)}
+                  onClick={() => {
+                    if (pendingGroupIdsRef.current.has(bucketGroup.id)) {
+                      return;
+                    }
+
+                    pendingGroupIdsRef.current.add(bucketGroup.id);
+                    setPendingGroupIds(new Set(pendingGroupIdsRef.current));
+                    void onAddSubcategory(
+                      bucketGroup,
+                      subcategoryNames[bucketGroup.id] ?? "",
+                    )
+                      .then((saved) => {
+                        if (saved) {
+                          setSubcategoryNames((current) => ({
+                            ...current,
+                            [bucketGroup.id]: "",
+                          }));
+                        }
+                      })
+                      .finally(() => {
+                        pendingGroupIdsRef.current.delete(bucketGroup.id);
+                        setPendingGroupIds(new Set(pendingGroupIdsRef.current));
+                      });
+                  }}
+                  type="button"
+                >
+                  Add subcategory
+                </button>
+              </div>
+            ) : null}
           </article>
         );
       })}

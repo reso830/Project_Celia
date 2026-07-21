@@ -39,6 +39,7 @@ describe("Celia IndexedDB schema", () => {
     expect(database.version).toBe(CELIA_DATABASE_VERSION);
     expect([...database.objectStoreNames]).toEqual([
       CELIA_STORES.bucketColorOverrides,
+      CELIA_STORES.bucketGroups,
       CELIA_STORES.categories,
       CELIA_STORES.members,
       CELIA_STORES.transactions,

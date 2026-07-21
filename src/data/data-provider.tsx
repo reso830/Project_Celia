@@ -9,12 +9,15 @@ import {
   type ReactNode,
 } from "react";
 import type { BucketColor } from "@/domain/bucket-color";
+import { createBucketGroup, type BucketGroup } from "@/domain/bucket-group";
 import type { Category } from "@/domain/category";
 import type { Member } from "@/domain/member";
 import type { Transaction } from "@/domain/transaction";
 import type { BucketColorRepository } from "./bucket-color-repository";
+import type { BucketGroupRepository } from "./bucket-group-repository";
 import type { CategoryRepository } from "./category-repository";
 import { IndexedDbBucketColorRepository } from "./indexed-db-bucket-color-repository";
+import { IndexedDbBucketGroupRepository } from "./indexed-db-bucket-group-repository";
 import { IndexedDbCategoryRepository } from "./indexed-db-category-repository";
 import { IndexedDbMemberRepository } from "./indexed-db-member-repository";
 import { IndexedDbTransactionRepository } from "./indexed-db-transaction-repository";
@@ -26,6 +29,7 @@ export interface DataRepositories {
   categories: CategoryRepository;
   transactions: TransactionRepository;
   bucketColors: BucketColorRepository;
+  bucketGroups: BucketGroupRepository;
 }
 
 export type DataState =
@@ -37,7 +41,11 @@ export type DataState =
       categories: readonly Category[];
       transactions: readonly Transaction[];
       bucketColors: readonly BucketColor[];
+      bucketGroups: readonly BucketGroup[];
       saveCategory(category: Category): Promise<void>;
+      saveBucketGroup(bucketGroup: BucketGroup): Promise<void>;
+      deleteBucketGroup(id: string): Promise<void>;
+      deleteCategory(id: string): Promise<void>;
     }
   | { status: "error"; error: Error };
 
@@ -61,6 +69,7 @@ function createIndexedDbRepositories(): DataRepositories {
     categories: new IndexedDbCategoryRepository(),
     transactions: new IndexedDbTransactionRepository(),
     bucketColors: new IndexedDbBucketColorRepository(),
+    bucketGroups: new IndexedDbBucketGroupRepository(),
   };
 }
 
@@ -68,6 +77,10 @@ function toError(cause: unknown): Error {
   return cause instanceof Error
     ? cause
     : new Error("Unable to initialize application data.");
+}
+
+function bucketGroupKey(type: string, name: string): string {
+  return `${type}:${name.trim().toLocaleLowerCase()}`;
 }
 
 export function DataProvider({
@@ -84,13 +97,43 @@ export function DataProvider({
       try {
         const repositories = createRepositories();
         repositoriesRef.current = repositories;
-        const [members, categories, transactions, bucketColors] =
+        const [members, categories, transactions, bucketColors, bucketGroups] =
           await Promise.all([
             repositories.members.list(),
             repositories.categories.list(),
             repositories.transactions.list(),
             repositories.bucketColors.list(),
+            repositories.bucketGroups.list(),
           ]);
+
+        const persistedKeys = new Set(
+          bucketGroups.map(({ type, name }) => bucketGroupKey(type, name)),
+        );
+        const legacyGroups = categories.reduce<BucketGroup[]>(
+          (groups, category) => {
+            const key = bucketGroupKey(category.type, category.group);
+            if (persistedKeys.has(key)) {
+              return groups;
+            }
+
+            persistedKeys.add(key);
+            groups.push(
+              createBucketGroup({
+                id: crypto.randomUUID(),
+                type: category.type,
+                name: category.group,
+              }),
+            );
+            return groups;
+          },
+          [],
+        );
+
+        await Promise.all(
+          legacyGroups.map((bucketGroup) =>
+            repositories.bucketGroups.save(bucketGroup),
+          ),
+        );
 
         const saveCategory = async (category: Category) => {
           await repositories.categories.save(category);
@@ -114,6 +157,66 @@ export function DataProvider({
           );
         };
 
+        const saveBucketGroup = async (bucketGroup: BucketGroup) => {
+          await repositories.bucketGroups.save(bucketGroup);
+
+          if (!active) {
+            return;
+          }
+
+          setState((current) =>
+            current.status === "ready"
+              ? {
+                  ...current,
+                  bucketGroups: [
+                    ...current.bucketGroups.filter(
+                      ({ id }) => id !== bucketGroup.id,
+                    ),
+                    bucketGroup,
+                  ],
+                }
+              : current,
+          );
+        };
+
+        const deleteCategory = async (id: string) => {
+          await repositories.categories.delete(id);
+
+          if (!active) {
+            return;
+          }
+
+          setState((current) =>
+            current.status === "ready"
+              ? {
+                  ...current,
+                  categories: current.categories.filter(
+                    (category) => category.id !== id,
+                  ),
+                }
+              : current,
+          );
+        };
+
+        const deleteBucketGroup = async (id: string) => {
+          await repositories.bucketGroups.delete(id);
+
+          if (!active) {
+            return;
+          }
+
+          setState((current) =>
+            current.status === "ready"
+              ? {
+                  ...current,
+                  bucketGroups: current.bucketGroups.filter(
+                    (bucketGroup) => bucketGroup.id !== id,
+                  ),
+                }
+              : current,
+          );
+        };
+
         if (active) {
           setState({
             status: "ready",
@@ -122,7 +225,11 @@ export function DataProvider({
             categories,
             transactions,
             bucketColors,
+            bucketGroups: [...bucketGroups, ...legacyGroups],
             saveCategory,
+            saveBucketGroup,
+            deleteBucketGroup,
+            deleteCategory,
           });
         }
       } catch (cause) {

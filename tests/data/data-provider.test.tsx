@@ -49,6 +49,12 @@ function repositories(
       save: vi.fn(),
       delete: vi.fn(),
     },
+    bucketGroups: {
+      get: vi.fn(),
+      list: vi.fn().mockResolvedValue([]),
+      save: vi.fn(),
+      delete: vi.fn(),
+    },
     ...overrides,
   };
 }
@@ -86,6 +92,26 @@ function CategorySaveProbe() {
         onClick={() => void state.saveCategory(rentCategory)}
       >
         Save category
+      </button>
+      <output>{`categories:${state.categories.length}`}</output>
+    </>
+  );
+}
+
+function CategoryDeleteProbe() {
+  const state = useData();
+
+  if (state.status !== "ready") {
+    return <output>{state.status}</output>;
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void state.deleteCategory("category-rent")}
+      >
+        Delete category
       </button>
       <output>{`categories:${state.categories.length}`}</output>
     </>
@@ -186,6 +212,63 @@ describe("DataProvider", () => {
 
     await waitFor(() => expect(saveCategory).toHaveBeenCalledTimes(2));
     expect(screen.getByText("categories:1")).toBeInTheDocument();
+  });
+
+  it("backfills and persists a legacy bucket group before publishing ready state", async () => {
+    const save = vi.fn().mockResolvedValue(undefined);
+    const bucketGroups: DataRepositories["bucketGroups"] = {
+      get: vi.fn(),
+      list: vi.fn().mockResolvedValue([]),
+      save,
+      delete: vi.fn(),
+    };
+    const categoryRepositories = repositories({
+      categories: {
+        get: vi.fn(),
+        list: vi.fn().mockResolvedValue([rentCategory]),
+        save: vi.fn(),
+        delete: vi.fn(),
+      },
+      bucketGroups,
+    });
+
+    render(
+      <DataProvider createRepositories={() => categoryRepositories}>
+        <StateProbe />
+      </DataProvider>,
+    );
+
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "expense", name: "Housing" }),
+      ),
+    );
+  });
+
+  it("deletes a persisted category and removes it from ready state", async () => {
+    const remove = vi.fn().mockResolvedValue(undefined);
+    const categoryRepositories = repositories({
+      categories: {
+        get: vi.fn(),
+        list: vi.fn().mockResolvedValue([rentCategory]),
+        save: vi.fn(),
+        delete: remove,
+      },
+    });
+
+    render(
+      <DataProvider createRepositories={() => categoryRepositories}>
+        <CategoryDeleteProbe />
+      </DataProvider>,
+    );
+
+    await screen.findByRole("button", { name: "Delete category" });
+    fireEvent.click(screen.getByRole("button", { name: "Delete category" }));
+
+    await waitFor(() => expect(remove).toHaveBeenCalledWith("category-rent"));
+    await waitFor(() =>
+      expect(screen.getByText("categories:0")).toBeInTheDocument(),
+    );
   });
 
   it("publishes an error when initialization fails", async () => {

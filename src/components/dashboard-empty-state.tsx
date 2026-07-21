@@ -8,6 +8,7 @@ export function DashboardEmptyState() {
   const data = useData();
   const categories = data.status === "ready" ? data.categories : [];
   const bucketColors = data.status === "ready" ? data.bucketColors : [];
+  const bucketGroups = data.status === "ready" ? data.bucketGroups : [];
 
   return (
     <main className="min-h-screen bg-[#eef0f3] px-4 py-6 sm:px-6 lg:px-7">
@@ -28,6 +29,7 @@ export function DashboardEmptyState() {
           </h2>
           <BucketGroupGrid
             bucketColors={bucketColors}
+            bucketGroups={bucketGroups}
             categories={categories}
             emptyMessage="No bucket groups yet."
           />

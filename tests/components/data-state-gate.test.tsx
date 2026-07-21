@@ -29,6 +29,12 @@ function repositories(): DataRepositories {
       save: vi.fn(),
       delete: vi.fn(),
     },
+    bucketGroups: {
+      get: vi.fn(),
+      list: vi.fn().mockResolvedValue([]),
+      save: vi.fn(),
+      delete: vi.fn(),
+    },
   };
 }
 

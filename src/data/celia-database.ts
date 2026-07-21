@@ -3,13 +3,14 @@
  * key paths here gives future repository adapters a single migration boundary.
  */
 export const CELIA_DATABASE_NAME = "celia";
-export const CELIA_DATABASE_VERSION = 1;
+export const CELIA_DATABASE_VERSION = 2;
 
 export const CELIA_STORES = {
   members: "members",
   categories: "categories",
   transactions: "transactions",
   bucketColorOverrides: "bucket-color-overrides",
+  bucketGroups: "bucket-groups",
 } as const;
 
 const storeDefinitions: readonly [string, IDBObjectStoreParameters][] = [
@@ -17,6 +18,7 @@ const storeDefinitions: readonly [string, IDBObjectStoreParameters][] = [
   [CELIA_STORES.categories, { keyPath: "id" }],
   [CELIA_STORES.transactions, { keyPath: "id" }],
   [CELIA_STORES.bucketColorOverrides, { keyPath: "bucket" }],
+  [CELIA_STORES.bucketGroups, { keyPath: "id" }],
 ];
 
 /** Opens Celia's local database and creates any stores missing from its schema. */

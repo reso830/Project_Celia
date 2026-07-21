@@ -21,6 +21,12 @@ function repositories(
     save: vi.fn(),
     delete: vi.fn(),
   },
+  bucketGroups: DataRepositories["bucketGroups"] = {
+    get: vi.fn(),
+    list: vi.fn().mockResolvedValue([]),
+    save: vi.fn(),
+    delete: vi.fn(),
+  },
 ): DataRepositories {
   return {
     members,
@@ -37,6 +43,7 @@ function repositories(
       save: vi.fn(),
       delete: vi.fn(),
     },
+    bucketGroups,
   };
 }
 
@@ -44,11 +51,12 @@ function renderSettings(
   memberRepository:
     DataRepositories["members"] | DataRepositories = defaultMemberRepository,
   categories?: DataRepositories["categories"],
+  bucketGroups?: DataRepositories["bucketGroups"],
 ) {
   const dataRepositories =
     "members" in memberRepository
       ? memberRepository
-      : repositories(memberRepository, categories);
+      : repositories(memberRepository, categories, bucketGroups);
 
   return render(
     <DataProvider createRepositories={() => dataRepositories}>
@@ -178,6 +186,9 @@ describe("SettingsPage", () => {
     });
     const addBucket = screen.getByRole("button", { name: "Add bucket" });
     fireEvent.click(addBucket);
+    await waitFor(() =>
+      expect(dataRepositories.categories.save).toHaveBeenCalledTimes(1),
+    );
     fireEvent.click(addBucket);
 
     expect(dataRepositories.categories.save).toHaveBeenCalledTimes(1);
@@ -191,6 +202,8 @@ describe("SettingsPage", () => {
   it("keeps the bucket form values and shows an error when saving fails", async () => {
     const user = userEvent.setup();
     const dataRepositories = repositories();
+    const removeBucketGroup = vi.fn().mockResolvedValue(undefined);
+    dataRepositories.bucketGroups.delete = removeBucketGroup;
     dataRepositories.categories.save = vi
       .fn()
       .mockRejectedValue(new Error("IndexedDB unavailable"));
@@ -205,6 +218,7 @@ describe("SettingsPage", () => {
     );
     expect(screen.getByLabelText("Group name")).toHaveValue("Housing");
     expect(screen.getByLabelText("First subcategory")).toHaveValue("Rent");
+    await waitFor(() => expect(removeBucketGroup).toHaveBeenCalledTimes(1));
   });
 
   it("renders an existing bucket group", async () => {
@@ -241,6 +255,127 @@ describe("SettingsPage", () => {
     });
     expect(card).toHaveTextContent("Rent");
     expect(card).toHaveTextContent("Power");
+  });
+
+  it("adds a trimmed subcategory to a persisted bucket group", async () => {
+    const user = userEvent.setup();
+    const save = vi.fn().mockResolvedValue(undefined);
+    renderSettings(
+      undefined,
+      {
+        get: vi.fn(),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+          ]),
+        save,
+        delete: vi.fn(),
+      },
+      {
+        get: vi.fn(),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "expense-housing", type: "expense", name: "Housing" },
+          ]),
+        save: vi.fn(),
+        delete: vi.fn(),
+      },
+    );
+
+    await user.type(
+      await screen.findByLabelText("Add subcategory to Housing"),
+      " Power ",
+    );
+    await user.click(screen.getByRole("button", { name: "Add subcategory" }));
+
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "expense",
+          group: "Housing",
+          name: "Power",
+        }),
+      ),
+    );
+  });
+
+  it("rejects blank and duplicate subcategory names", async () => {
+    const user = userEvent.setup();
+    const save = vi.fn();
+    renderSettings(
+      undefined,
+      {
+        get: vi.fn(),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+          ]),
+        save,
+        delete: vi.fn(),
+      },
+      {
+        get: vi.fn(),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "expense-housing", type: "expense", name: "Housing" },
+          ]),
+        save: vi.fn(),
+        delete: vi.fn(),
+      },
+    );
+
+    const input = await screen.findByLabelText("Add subcategory to Housing");
+    await user.click(screen.getByRole("button", { name: "Add subcategory" }));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Enter a subcategory name.",
+    );
+    await user.type(input, "rent");
+    await user.click(screen.getByRole("button", { name: "Add subcategory" }));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "That subcategory already exists in Housing.",
+    );
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it("deletes the final subcategory but retains its bucket group", async () => {
+    const user = userEvent.setup();
+    const remove = vi.fn().mockResolvedValue(undefined);
+    renderSettings(
+      undefined,
+      {
+        get: vi.fn(),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+          ]),
+        save: vi.fn(),
+        delete: remove,
+      },
+      {
+        get: vi.fn(),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "expense-housing", type: "expense", name: "Housing" },
+          ]),
+        save: vi.fn(),
+        delete: vi.fn(),
+      },
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: "Delete Rent" }),
+    );
+
+    await waitFor(() => expect(remove).toHaveBeenCalledWith("rent"));
+    expect(
+      screen.getByRole("article", { name: "Expense Housing" }),
+    ).toHaveTextContent("No subcategories yet.");
   });
 
   it("renders the buckets and household empty states", async () => {

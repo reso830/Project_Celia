@@ -15,9 +15,7 @@ describe("BucketGroupGrid", () => {
       />,
     );
 
-    expect(screen.getAllByRole("heading", { name: "Housing" })).toHaveLength(
-      2,
-    );
+    expect(screen.getAllByRole("heading", { name: "Housing" })).toHaveLength(2);
     expect(
       screen.getByRole("article", { name: "Expense Housing" }),
     ).toHaveTextContent("Rent");

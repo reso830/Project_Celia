@@ -18,14 +18,24 @@ function repositories(
       save: vi.fn(),
       delete: vi.fn(),
     },
-    categories: { get: vi.fn(), list: categories, save: vi.fn(), delete: vi.fn() },
+    categories: {
+      get: vi.fn(),
+      list: categories,
+      save: vi.fn(),
+      delete: vi.fn(),
+    },
     transactions: {
       get: vi.fn(),
       list: vi.fn().mockResolvedValue([]),
       save: vi.fn(),
       delete: vi.fn(),
     },
-    bucketColors: { get: vi.fn(), list: bucketColors, save: vi.fn(), delete: vi.fn() },
+    bucketColors: {
+      get: vi.fn(),
+      list: bucketColors,
+      save: vi.fn(),
+      delete: vi.fn(),
+    },
   };
 }
 
@@ -41,7 +51,9 @@ describe("DashboardEmptyState", () => {
   it("renders the Celia dashboard empty state", async () => {
     renderDashboard();
 
-    expect(await screen.findByRole("heading", { name: "Celia" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Celia" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("No bucket groups yet.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute(
       "href",
@@ -52,9 +64,11 @@ describe("DashboardEmptyState", () => {
   it("renders configured bucket groups", async () => {
     renderDashboard(
       repositories(
-        vi.fn().mockResolvedValue([
-          { id: "rent", type: "expense", group: "Housing", name: "Rent" },
-        ]),
+        vi
+          .fn()
+          .mockResolvedValue([
+            { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+          ]),
         vi.fn().mockResolvedValue([{ bucket: "Housing", color: "#2463eb" }]),
       ),
     );

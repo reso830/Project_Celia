@@ -53,9 +53,7 @@ export function BucketGroupGrid({
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-[#16213f]">
-                  {name}
-                </h3>
+                <h3 className="text-sm font-semibold text-[#16213f]">{name}</h3>
                 <p className="mt-1 text-sm text-[#6b7686]">{type}</p>
               </div>
               <span className="flex items-center gap-2 text-xs text-[#6b7686]">

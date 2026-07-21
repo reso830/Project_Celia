@@ -8,7 +8,7 @@ Show configured bucket groups on both the Dashboard and Settings pages so users 
 
 Bucket groups remain derived from `Category` records; no new persistence model is required. Categories are grouped by a normalized composite key of category type and trimmed, case-insensitive group name. This keeps an income group and an expense group with the same name separate while collecting all of each group's subcategories in one card.
 
-Each rendered group uses the trimmed group name and type from its first category. Its subcategory list contains the names from all categories in that group. The group color is resolved from the configured bucket-color data using the same normalized type-and-group identity. If no color is configured, the UI uses a stable neutral fallback rather than hiding the color indicator.
+Each rendered group uses the trimmed group name and type from its first category. Its subcategory list contains the names from all categories in that group. The existing bucket-color store is keyed by normalized group name rather than type, so income and expense groups with the same name share the configured group color. If no color is configured, the UI uses a stable neutral fallback rather than hiding the color indicator.
 
 ## Shared presentation
 

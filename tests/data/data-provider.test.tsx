@@ -1,6 +1,7 @@
 import "fake-indexeddb/auto";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Category } from "@/domain/category";
 import type { Member } from "@/domain/member";
 import {
   CELIA_DATABASE_NAME,
@@ -64,6 +65,33 @@ function StateProbe() {
   return <output>{state.status}</output>;
 }
 
+const rentCategory: Category = {
+  id: "category-rent",
+  type: "expense",
+  group: "Housing",
+  name: "Rent",
+};
+
+function CategorySaveProbe() {
+  const state = useData();
+
+  if (state.status !== "ready") {
+    return <output>{state.status}</output>;
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void state.saveCategory(rentCategory)}
+      >
+        Save category
+      </button>
+      <output>{`categories:${state.categories.length}`}</output>
+    </>
+  );
+}
+
 describe("DataProvider", () => {
   beforeEach(async () => {
     await deleteCeliaDatabase();
@@ -101,6 +129,34 @@ describe("DataProvider", () => {
 
     await waitFor(() =>
       expect(screen.getByText("ready:1:0:0:0")).toBeInTheDocument(),
+    );
+  });
+
+  it("persists a category and adds it to ready-state categories", async () => {
+    const saveCategory = vi.fn().mockResolvedValue(undefined);
+    const categoryRepositories = repositories({
+      categories: {
+        get: vi.fn(),
+        list: vi.fn().mockResolvedValue([]),
+        save: saveCategory,
+        delete: vi.fn(),
+      },
+    });
+
+    render(
+      <DataProvider createRepositories={() => categoryRepositories}>
+        <CategorySaveProbe />
+      </DataProvider>,
+    );
+
+    await screen.findByRole("button", { name: "Save category" });
+    fireEvent.click(screen.getByRole("button", { name: "Save category" }));
+
+    await waitFor(() =>
+      expect(saveCategory).toHaveBeenCalledWith(rentCategory),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("categories:1")).toBeInTheDocument(),
     );
   });
 

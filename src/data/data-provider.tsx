@@ -13,9 +13,7 @@ import type { Member } from "@/domain/member";
 import type { Transaction } from "@/domain/transaction";
 import type { BucketColorRepository } from "./bucket-color-repository";
 import type { CategoryRepository } from "./category-repository";
-import {
-  IndexedDbBucketColorRepository,
-} from "./indexed-db-bucket-color-repository";
+import { IndexedDbBucketColorRepository } from "./indexed-db-bucket-color-repository";
 import { IndexedDbCategoryRepository } from "./indexed-db-category-repository";
 import { IndexedDbMemberRepository } from "./indexed-db-member-repository";
 import { IndexedDbTransactionRepository } from "./indexed-db-transaction-repository";

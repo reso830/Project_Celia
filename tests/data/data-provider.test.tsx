@@ -1,10 +1,7 @@
 import "fake-indexeddb/auto";
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { BucketColor } from "@/domain/bucket-color";
-import type { Category } from "@/domain/category";
 import type { Member } from "@/domain/member";
-import type { Transaction } from "@/domain/transaction";
 import {
   CELIA_DATABASE_NAME,
   DataProvider,
@@ -123,9 +120,7 @@ describe("DataProvider", () => {
       </DataProvider>,
     );
 
-    await waitFor(() =>
-      expect(screen.getByText("error")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("error")).toBeInTheDocument());
   });
 
   it("rejects use outside DataProvider", () => {

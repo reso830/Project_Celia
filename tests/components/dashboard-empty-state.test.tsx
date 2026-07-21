@@ -7,5 +7,9 @@ describe("DashboardEmptyState", () => {
 
     expect(screen.getByRole("heading", { name: "Celia" })).toBeInTheDocument();
     expect(screen.getByText("No expenses yet")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute(
+      "href",
+      "/settings",
+    );
   });
 });

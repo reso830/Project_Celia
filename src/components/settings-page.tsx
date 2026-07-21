@@ -1,27 +1,10 @@
+import { AppHeader } from "@/components/app-header";
+
 export function SettingsPage() {
   return (
     <main className="min-h-screen bg-[#eef0f3] px-4 py-6 sm:px-6 lg:px-7 lg:pb-10">
       <div className="mx-auto w-full max-w-[1100px]">
-        <header className="rounded-xl bg-[#12213d] px-5 py-4 text-[#f3f4f6] sm:flex sm:items-center sm:justify-between">
-          <p className="text-lg font-semibold">Celia</p>
-          <nav
-            aria-label="Primary navigation"
-            className="mt-3 flex flex-wrap gap-2 text-sm font-semibold sm:mt-0"
-          >
-            <span className="rounded-md px-3 py-2 text-[#c3ccd6]">
-              Dashboard
-            </span>
-            <span className="rounded-md px-3 py-2 text-[#c3ccd6]">
-              Transactions
-            </span>
-            <span
-              aria-current="page"
-              className="rounded-md bg-white px-3 py-2 text-[#12213d]"
-            >
-              Settings
-            </span>
-          </nav>
-        </header>
+        <AppHeader activePage="settings" />
 
         <section className="mt-6 space-y-6">
           <h1 className="text-2xl font-semibold text-[#16213f]">Settings</h1>

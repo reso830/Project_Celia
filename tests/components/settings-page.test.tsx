@@ -8,6 +8,10 @@ describe("SettingsPage", () => {
     expect(
       screen.getByRole("heading", { name: "Settings" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+      "href",
+      "/",
+    );
     expect(
       screen.getByRole("heading", { name: "Buckets" }),
     ).toBeInTheDocument();

@@ -1,5 +1,5 @@
-import { isCategoryType, type CategoryType } from "./category-type";
-import { DomainValidationError } from "./errors";
+import { isCategoryType, type CategoryType } from "./category-type.js";
+import { DomainValidationError } from "./errors.js";
 
 export interface TransactionInput {
   id: string;

@@ -1,4 +1,4 @@
-import { DomainValidationError } from "./errors";
+import { DomainValidationError } from "./errors.js";
 
 /** A color customisation for a category bucket group. */
 export interface BucketColor {

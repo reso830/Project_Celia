@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { createMember, type Member } from "@/domain/member";
-import { useData } from "@/data";
+import { useData, useDataActions } from "@/data";
 
 const memberColors = ["#2463eb", "#9333ea", "#db2777", "#0f766e"];
 
@@ -17,14 +17,21 @@ function hasMatchingName(members: readonly Member[], name: string): boolean {
   );
 }
 
+function nextMemberColor(members: readonly Member[]): string {
+  return (
+    memberColors.find(
+      (color) => !members.some((member) => member.color === color),
+    ) ?? memberColors[members.length % memberColors.length]
+  );
+}
+
 export function SettingsPage() {
   const data = useData();
-  const [members, setMembers] = useState<readonly Member[]>(() =>
-    data.status === "ready" ? data.members : [],
-  );
+  const { deleteMember: removeMember, saveMember } = useDataActions();
   const [name, setName] = useState("");
   const [error, setError] = useState<string>();
   const [isSaving, setIsSaving] = useState(false);
+  const members = data.status === "ready" ? data.members : [];
 
   async function addMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,14 +54,13 @@ export function SettingsPage() {
     const member = createMember({
       id: createMemberId(),
       name: normalizedName,
-      color: memberColors[members.length % memberColors.length],
+      color: nextMemberColor(members),
     });
 
     setIsSaving(true);
     setError(undefined);
     try {
-      await data.repositories.members.save(member);
-      setMembers((current) => [...current, member]);
+      await saveMember(member);
       setName("");
     } catch {
       setError("Unable to save this household member. Please try again.");
@@ -70,8 +76,7 @@ export function SettingsPage() {
 
     setError(undefined);
     try {
-      await data.repositories.members.delete(member.id);
-      setMembers((current) => current.filter(({ id }) => id !== member.id));
+      await removeMember(member.id);
     } catch {
       setError("Unable to delete this household member. Please try again.");
     }

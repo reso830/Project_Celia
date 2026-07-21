@@ -26,9 +26,7 @@ describe("color helpers", () => {
   });
 
   it("formats valid RGB values as lowercase hex", () => {
-    expect(formatHexColor(parseRgbColor("36", "166", "233")!)).toBe(
-      "#24a6e9",
-    );
+    expect(formatHexColor(parseRgbColor("36", "166", "233")!)).toBe("#24a6e9");
   });
 
   it("keys overrides by normalized expense bucket name", () => {

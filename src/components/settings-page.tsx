@@ -66,7 +66,8 @@ export function SettingsPage() {
     const duplicate = bucketGroups.find(
       (bucketGroup) =>
         bucketGroup.type === type &&
-        bucketGroup.name.trim().toLocaleLowerCase() === group.toLocaleLowerCase(),
+        bucketGroup.name.trim().toLocaleLowerCase() ===
+          group.toLocaleLowerCase(),
     );
 
     if (duplicate) {

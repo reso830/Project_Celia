@@ -261,17 +261,21 @@ describe("SettingsPage", () => {
       undefined,
       {
         get: vi.fn(),
-        list: vi.fn().mockResolvedValue([
-          { id: "rent", type: "expense", group: "Housing", name: "Rent" },
-        ]),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+          ]),
         save,
         delete: vi.fn(),
       },
       {
         get: vi.fn(),
-        list: vi.fn().mockResolvedValue([
-          { id: "expense-housing", type: "expense", name: "Housing" },
-        ]),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "expense-housing", type: "expense", name: "Housing" },
+          ]),
         save: vi.fn(),
         delete: vi.fn(),
       },
@@ -301,17 +305,21 @@ describe("SettingsPage", () => {
       undefined,
       {
         get: vi.fn(),
-        list: vi.fn().mockResolvedValue([
-          { id: "rent", type: "expense", group: "Housing", name: "Rent" },
-        ]),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+          ]),
         save,
         delete: vi.fn(),
       },
       {
         get: vi.fn(),
-        list: vi.fn().mockResolvedValue([
-          { id: "expense-housing", type: "expense", name: "Housing" },
-        ]),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "expense-housing", type: "expense", name: "Housing" },
+          ]),
         save: vi.fn(),
         delete: vi.fn(),
       },
@@ -337,23 +345,29 @@ describe("SettingsPage", () => {
       undefined,
       {
         get: vi.fn(),
-        list: vi.fn().mockResolvedValue([
-          { id: "rent", type: "expense", group: "Housing", name: "Rent" },
-        ]),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+          ]),
         save: vi.fn(),
         delete: remove,
       },
       {
         get: vi.fn(),
-        list: vi.fn().mockResolvedValue([
-          { id: "expense-housing", type: "expense", name: "Housing" },
-        ]),
+        list: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "expense-housing", type: "expense", name: "Housing" },
+          ]),
         save: vi.fn(),
         delete: vi.fn(),
       },
     );
 
-    await user.click(await screen.findByRole("button", { name: "Delete Rent" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Delete Rent" }),
+    );
 
     await waitFor(() => expect(remove).toHaveBeenCalledWith("rent"));
     expect(

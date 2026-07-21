@@ -77,7 +77,7 @@ describe("DashboardEmptyState", () => {
           .fn()
           .mockResolvedValue([
             { id: "rent", type: "expense", group: "Housing", name: "Rent" },
-        ]),
+          ]),
         vi.fn().mockResolvedValue([{ bucket: "Housing", color: "#2463eb" }]),
         vi
           .fn()

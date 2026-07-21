@@ -9,10 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { BucketColor } from "@/domain/bucket-color";
-import {
-  createBucketGroup,
-  type BucketGroup,
-} from "@/domain/bucket-group";
+import { createBucketGroup, type BucketGroup } from "@/domain/bucket-group";
 import type { Category } from "@/domain/category";
 import type { Member } from "@/domain/member";
 import type { Transaction } from "@/domain/transaction";

@@ -27,9 +27,9 @@ export function BucketGroupGrid({
   onAddSubcategory,
   onDeleteSubcategory,
 }: BucketGroupGridProps) {
-  const [subcategoryNames, setSubcategoryNames] = useState<Record<string, string>>(
-    {},
-  );
+  const [subcategoryNames, setSubcategoryNames] = useState<
+    Record<string, string>
+  >({});
   const colors = new Map(
     bucketColors.map(({ bucket, color }) => [normalize(bucket), color]),
   );
@@ -76,7 +76,10 @@ export function BucketGroupGrid({
             {group.length ? (
               <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-[#16213f]">
                 {group.map((category) => (
-                  <li className="flex items-center justify-between gap-2" key={category.id}>
+                  <li
+                    className="flex items-center justify-between gap-2"
+                    key={category.id}
+                  >
                     <span>{category.name}</span>
                     {onDeleteSubcategory ? (
                       <button
@@ -91,11 +94,16 @@ export function BucketGroupGrid({
                 ))}
               </ul>
             ) : (
-              <p className="mt-4 text-sm text-[#8a93a3]">No subcategories yet.</p>
+              <p className="mt-4 text-sm text-[#8a93a3]">
+                No subcategories yet.
+              </p>
             )}
             {onAddSubcategory ? (
               <div className="mt-4 flex gap-2">
-                <label className="sr-only" htmlFor={`subcategory-${bucketGroup.id}`}>
+                <label
+                  className="sr-only"
+                  htmlFor={`subcategory-${bucketGroup.id}`}
+                >
                   Add subcategory to {name}
                 </label>
                 <input

@@ -7,9 +7,7 @@ export interface BucketGroup {
   name: string;
 }
 
-export function createBucketGroup(
-  input: BucketGroup,
-): Readonly<BucketGroup> {
+export function createBucketGroup(input: BucketGroup): Readonly<BucketGroup> {
   const name = input.name.trim();
 
   if (!input.id.trim() || !name) {

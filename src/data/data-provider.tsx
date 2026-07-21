@@ -37,6 +37,7 @@ export type DataState =
       categories: readonly Category[];
       transactions: readonly Transaction[];
       bucketColors: readonly BucketColor[];
+      saveCategory(category: Category): Promise<void>;
     }
   | { status: "error"; error: Error };
 
@@ -91,6 +92,28 @@ export function DataProvider({
             repositories.bucketColors.list(),
           ]);
 
+        const saveCategory = async (category: Category) => {
+          await repositories.categories.save(category);
+
+          if (!active) {
+            return;
+          }
+
+          setState((current) =>
+            current.status === "ready"
+              ? {
+                  ...current,
+                  categories: [
+                    ...current.categories.filter(
+                      ({ id }) => id !== category.id,
+                    ),
+                    category,
+                  ],
+                }
+              : current,
+          );
+        };
+
         if (active) {
           setState({
             status: "ready",
@@ -99,6 +122,7 @@ export function DataProvider({
             categories,
             transactions,
             bucketColors,
+            saveCategory,
           });
         }
       } catch (cause) {

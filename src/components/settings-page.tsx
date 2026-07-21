@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { AppHeader } from "@/components/app-header";
+import { createCategory, type CategoryType } from "@/domain";
 import { createMember, type Member } from "@/domain/member";
 import { useData, useDataActions } from "@/data";
 
@@ -31,7 +32,74 @@ export function SettingsPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string>();
   const [isSaving, setIsSaving] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [type, setType] = useState<CategoryType>("expense");
+  const [bucketError, setBucketError] = useState("");
+  const [isSavingBucket, setIsSavingBucket] = useState(false);
   const members = data.status === "ready" ? data.members : [];
+  const categories = data.status === "ready" ? data.categories : [];
+  const groups = Array.from(
+    new Map(
+      categories.map((category) => [
+        `${category.type}:${category.group.trim().toLocaleLowerCase()}`,
+        category,
+      ]),
+    ).values(),
+  );
+
+  async function addBucket(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (isSavingBucket) {
+      return;
+    }
+
+    const group = groupName.trim();
+    const categoryName = subcategory.trim();
+
+    if (!group || !categoryName) {
+      setBucketError("Group name and first subcategory are required.");
+      return;
+    }
+
+    const duplicate = categories.find(
+      (category) =>
+        category.type === type &&
+        category.group.trim().toLocaleLowerCase() === group.toLocaleLowerCase(),
+    );
+
+    if (duplicate) {
+      setBucketError(
+        `An ${type} bucket named ${duplicate.group.trim()} already exists.`,
+      );
+      return;
+    }
+
+    if (data.status !== "ready") {
+      return;
+    }
+
+    setIsSavingBucket(true);
+
+    try {
+      await data.saveCategory(
+        createCategory({
+          id: crypto.randomUUID(),
+          type,
+          group,
+          name: categoryName,
+        }),
+      );
+      setGroupName("");
+      setSubcategory("");
+      setBucketError("");
+    } catch {
+      setBucketError("Unable to save this bucket. Please try again.");
+    } finally {
+      setIsSavingBucket(false);
+    }
+  }
 
   async function addMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -100,9 +168,78 @@ export function SettingsPage() {
             <p className="mt-1 text-sm text-[#6b7686]">
               Organize your income and expenses into bucket groups.
             </p>
-            <div className="mt-4 rounded-xl border border-[#d6dae1] bg-white p-5 text-sm text-[#8a93a3]">
-              No buckets yet.
-            </div>
+            <form
+              className="mt-4 rounded-xl border border-[#d6dae1] bg-white p-5"
+              onSubmit={addBucket}
+            >
+              <h3 className="text-sm font-semibold text-[#16213f]">
+                Add bucket
+              </h3>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <label className="grid gap-1 text-sm font-medium text-[#16213f]">
+                  Group name
+                  <input
+                    className="rounded-md border border-[#b7bfca] px-3 py-2"
+                    onChange={(event) => setGroupName(event.target.value)}
+                    value={groupName}
+                  />
+                </label>
+                <label className="grid gap-1 text-sm font-medium text-[#16213f]">
+                  First subcategory
+                  <input
+                    className="rounded-md border border-[#b7bfca] px-3 py-2"
+                    onChange={(event) => setSubcategory(event.target.value)}
+                    value={subcategory}
+                  />
+                </label>
+                <label className="grid gap-1 text-sm font-medium text-[#16213f]">
+                  Type
+                  <select
+                    className="rounded-md border border-[#b7bfca] px-3 py-2"
+                    onChange={(event) =>
+                      setType(event.target.value as CategoryType)
+                    }
+                    value={type}
+                  >
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                  </select>
+                </label>
+              </div>
+              {bucketError ? (
+                <p className="mt-3 text-sm text-red-700" role="alert">
+                  {bucketError}
+                </p>
+              ) : null}
+              <button
+                className="mt-4 rounded-md bg-[#16213f] px-4 py-2 text-sm font-semibold text-white"
+                disabled={isSavingBucket}
+                type="submit"
+              >
+                Add bucket
+              </button>
+            </form>
+            {groups.length ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {groups.map((category) => (
+                  <article
+                    className="rounded-xl border border-[#d6dae1] bg-white p-5"
+                    key={`${category.type}:${category.group.trim().toLocaleLowerCase()}`}
+                  >
+                    <h3 className="text-sm font-semibold text-[#16213f]">
+                      {category.group.trim()}
+                    </h3>
+                    <p className="mt-1 text-sm text-[#6b7686]">
+                      {category.type === "expense" ? "Expense" : "Income"}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-xl border border-[#d6dae1] bg-white p-5 text-sm text-[#8a93a3]">
+                No buckets yet.
+              </div>
+            )}
           </section>
 
           <hr className="border-[#d6dae1]" />

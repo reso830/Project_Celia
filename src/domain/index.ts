@@ -1,3 +1,4 @@
+export * from "./bucket-color.js";
 export * from "./category-type.js";
 export * from "./category.js";
 export * from "./errors.js";

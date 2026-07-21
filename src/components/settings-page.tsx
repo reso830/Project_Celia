@@ -36,6 +36,7 @@ export function SettingsPage() {
   const [subcategory, setSubcategory] = useState("");
   const [type, setType] = useState<CategoryType>("expense");
   const [bucketError, setBucketError] = useState("");
+  const [isSavingBucket, setIsSavingBucket] = useState(false);
   const members = data.status === "ready" ? data.members : [];
   const categories = data.status === "ready" ? data.categories : [];
   const groups = Array.from(
@@ -49,6 +50,10 @@ export function SettingsPage() {
 
   async function addBucket(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSavingBucket) {
+      return;
+    }
 
     const group = groupName.trim();
     const categoryName = subcategory.trim();
@@ -75,6 +80,8 @@ export function SettingsPage() {
       return;
     }
 
+    setIsSavingBucket(true);
+
     try {
       await data.saveCategory(
         createCategory({
@@ -89,6 +96,8 @@ export function SettingsPage() {
       setBucketError("");
     } catch {
       setBucketError("Unable to save this bucket. Please try again.");
+    } finally {
+      setIsSavingBucket(false);
     }
   }
 
@@ -204,6 +213,7 @@ export function SettingsPage() {
               ) : null}
               <button
                 className="mt-4 rounded-md bg-[#16213f] px-4 py-2 text-sm font-semibold text-white"
+                disabled={isSavingBucket}
                 type="submit"
               >
                 Add bucket

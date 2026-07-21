@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { DataStateGate } from "@/components/data-state-gate";
@@ -6,8 +6,15 @@ import { SettingsPage } from "@/components/settings-page";
 import { DataProvider, type DataRepositories } from "@/data";
 import type { MemberRepository } from "@/data/member-repository";
 
+const defaultMemberRepository: MemberRepository = {
+  get: vi.fn(),
+  list: vi.fn().mockResolvedValue([]),
+  save: vi.fn().mockResolvedValue(undefined),
+  delete: vi.fn().mockResolvedValue(undefined),
+};
+
 function repositories(
-  members: MemberRepository,
+  members: MemberRepository = defaultMemberRepository,
   categories: DataRepositories["categories"] = {
     get: vi.fn(),
     list: vi.fn().mockResolvedValue([]),
@@ -34,18 +41,17 @@ function repositories(
 }
 
 function renderSettings(
-  memberRepository: DataRepositories["members"] = {
-    get: vi.fn(),
-    list: vi.fn().mockResolvedValue([]),
-    save: vi.fn().mockResolvedValue(undefined),
-    delete: vi.fn().mockResolvedValue(undefined),
-  },
+  memberRepository:
+    DataRepositories["members"] | DataRepositories = defaultMemberRepository,
   categories?: DataRepositories["categories"],
 ) {
+  const dataRepositories =
+    "members" in memberRepository
+      ? memberRepository
+      : repositories(memberRepository, categories);
+
   return render(
-    <DataProvider
-      createRepositories={() => repositories(memberRepository, categories)}
-    >
+    <DataProvider createRepositories={() => dataRepositories}>
       <DataStateGate>
         <SettingsPage />
       </DataStateGate>
@@ -77,7 +83,9 @@ describe("SettingsPage", () => {
         }),
       ),
     );
-    expect(screen.getByRole("heading", { name: "Housing" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Housing" }),
+    ).toBeInTheDocument();
   });
 
   it("alerts when the bucket form is blank", async () => {
@@ -97,7 +105,12 @@ describe("SettingsPage", () => {
     renderSettings(undefined, {
       get: vi.fn(),
       list: vi.fn().mockResolvedValue([
-        { id: "housing-rent", type: "expense", group: "Housing", name: "Rent" },
+        {
+          id: "housing-rent",
+          type: "expense",
+          group: "Housing",
+          name: "Rent",
+        },
       ]),
       save,
       delete: vi.fn(),
@@ -119,7 +132,12 @@ describe("SettingsPage", () => {
     renderSettings(undefined, {
       get: vi.fn(),
       list: vi.fn().mockResolvedValue([
-        { id: "housing-rent", type: "expense", group: "Housing", name: "Rent" },
+        {
+          id: "housing-rent",
+          type: "expense",
+          group: "Housing",
+          name: "Rent",
+        },
       ]),
       save,
       delete: vi.fn(),
@@ -132,9 +150,79 @@ describe("SettingsPage", () => {
 
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith(
-        expect.objectContaining({ type: "income", group: "Housing", name: "Salary" }),
+        expect.objectContaining({
+          type: "income",
+          group: "Housing",
+          name: "Salary",
+        }),
       ),
     );
+  });
+
+  it("prevents a second bucket save while the first save is pending", async () => {
+    const dataRepositories = repositories();
+    let resolveSave: (() => void) | undefined;
+    dataRepositories.categories.save = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+    renderSettings(dataRepositories);
+
+    fireEvent.change(await screen.findByLabelText("Group name"), {
+      target: { value: "Housing" },
+    });
+    fireEvent.change(screen.getByLabelText("First subcategory"), {
+      target: { value: "Rent" },
+    });
+    const addBucket = screen.getByRole("button", { name: "Add bucket" });
+    fireEvent.click(addBucket);
+    fireEvent.click(addBucket);
+
+    expect(dataRepositories.categories.save).toHaveBeenCalledTimes(1);
+    expect(addBucket).toBeDisabled();
+
+    resolveSave?.();
+
+    await waitFor(() => expect(addBucket).not.toBeDisabled());
+  });
+
+  it("keeps the bucket form values and shows an error when saving fails", async () => {
+    const user = userEvent.setup();
+    const dataRepositories = repositories();
+    dataRepositories.categories.save = vi
+      .fn()
+      .mockRejectedValue(new Error("IndexedDB unavailable"));
+    renderSettings(dataRepositories);
+
+    await user.type(await screen.findByLabelText("Group name"), "Housing");
+    await user.type(screen.getByLabelText("First subcategory"), "Rent");
+    await user.click(screen.getByRole("button", { name: "Add bucket" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Unable to save this bucket. Please try again.",
+    );
+    expect(screen.getByLabelText("Group name")).toHaveValue("Housing");
+    expect(screen.getByLabelText("First subcategory")).toHaveValue("Rent");
+  });
+
+  it("renders an existing bucket group", async () => {
+    const dataRepositories = repositories();
+    dataRepositories.categories.list = vi
+      .fn()
+      .mockResolvedValue([
+        { id: "housing-rent", type: "expense", group: "Housing", name: "Rent" },
+      ]);
+    renderSettings(dataRepositories);
+
+    expect(
+      await screen.findByRole("heading", { name: "Housing" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Housing" }).parentElement,
+    ).toHaveTextContent("Expense");
+    expect(screen.queryByText("No buckets yet.")).not.toBeInTheDocument();
   });
 
   it("renders the buckets and household empty states", async () => {

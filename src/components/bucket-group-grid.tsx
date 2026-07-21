@@ -6,7 +6,10 @@ interface BucketGroupGridProps {
   bucketGroups: readonly BucketGroup[];
   bucketColors: readonly BucketColor[];
   emptyMessage: string;
-  onAddSubcategory?: (bucketGroup: BucketGroup, name: string) => Promise<void>;
+  onAddSubcategory?: (
+    bucketGroup: BucketGroup,
+    name: string,
+  ) => Promise<boolean>;
   onDeleteSubcategory?: (category: Category) => Promise<void>;
 }
 
@@ -112,12 +115,14 @@ export function BucketGroupGrid({
                     void onAddSubcategory(
                       bucketGroup,
                       subcategoryNames[bucketGroup.id] ?? "",
-                    ).then(() =>
-                      setSubcategoryNames((current) => ({
-                        ...current,
-                        [bucketGroup.id]: "",
-                      })),
-                    );
+                    ).then((saved) => {
+                      if (saved) {
+                        setSubcategoryNames((current) => ({
+                          ...current,
+                          [bucketGroup.id]: "",
+                        }));
+                      }
+                    });
                   }}
                   type="button"
                 >

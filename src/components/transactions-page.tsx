@@ -1,6 +1,7 @@
 "use client";
 
 import { AppHeader } from "@/components/app-header";
+import { useData } from "@/data";
 
 const columns = [
   "Date",
@@ -12,6 +13,25 @@ const columns = [
 ];
 
 export function TransactionsPage() {
+  const state = useData();
+  const members = state.status === "ready" ? state.members : [];
+  const categories = state.status === "ready" ? state.categories : [];
+  const transactions = state.status === "ready" ? state.transactions : [];
+
+  function memberName(memberId: string): string {
+    return (
+      members.find((member) => member.id === memberId)?.name ??
+      "Unknown member"
+    );
+  }
+
+  function categoryName(categoryId: string): string {
+    return (
+      categories.find((category) => category.id === categoryId)?.group ??
+      "Unknown bucket"
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#eef0f3] px-4 py-6 sm:px-6 lg:px-7">
       <div className="mx-auto w-full max-w-[1400px]">
@@ -72,7 +92,10 @@ export function TransactionsPage() {
                 <option value="expense">Expense</option>
               </select>
             </label>
-            <p className="pb-2 text-sm text-[#6b7686]">0 transactions</p>
+            <p className="pb-2 text-sm text-[#6b7686]">
+              {transactions.length} transaction
+              {transactions.length === 1 ? "" : "s"}
+            </p>
           </div>
           <div className="mt-4 overflow-x-auto rounded-xl border border-[#d6dae1] bg-white">
             <table className="w-full min-w-[760px] border-collapse text-left text-sm">
@@ -86,14 +109,43 @@ export function TransactionsPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td
-                    className="px-4 py-12 text-center text-[#8a93a3]"
-                    colSpan={columns.length}
-                  >
-                    No transactions match your filters.
-                  </td>
-                </tr>
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td
+                      className="px-4 py-12 text-center text-[#8a93a3]"
+                      colSpan={columns.length}
+                    >
+                      No transactions match your filters.
+                    </td>
+                  </tr>
+                ) : (
+                  transactions.map((transaction) => (
+                    <tr
+                      className="border-t border-[#e5e7eb]"
+                      key={transaction.id}
+                    >
+                      <td className="px-4 py-3">{transaction.date}</td>
+                      <td className="px-4 py-3">
+                        {memberName(transaction.memberId)}
+                      </td>
+                      <td className="px-4 py-3">
+                        {categoryName(transaction.categoryId)}
+                      </td>
+                      <td className="px-4 py-3">
+                        {transaction.description || "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {new Intl.NumberFormat("en-PH", {
+                          style: "currency",
+                          currency: "PHP",
+                        }).format(transaction.amount / 100)}
+                      </td>
+                      <td className="px-4 py-3">
+                        {transaction.recurring ? "Yes" : "No"}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

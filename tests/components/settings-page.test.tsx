@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { DataStateGate } from "@/components/data-state-gate";
@@ -6,15 +6,18 @@ import { SettingsPage } from "@/components/settings-page";
 import { DataProvider, type DataRepositories } from "@/data";
 import type { MemberRepository } from "@/data/member-repository";
 
-function repositories(members: MemberRepository): DataRepositories {
+function repositories(
+  members: MemberRepository,
+  categories: DataRepositories["categories"] = {
+    get: vi.fn(),
+    list: vi.fn().mockResolvedValue([]),
+    save: vi.fn(),
+    delete: vi.fn(),
+  },
+): DataRepositories {
   return {
     members,
-    categories: {
-      get: vi.fn(),
-      list: vi.fn().mockResolvedValue([]),
-      save: vi.fn(),
-      delete: vi.fn(),
-    },
+    categories,
     transactions: {
       get: vi.fn(),
       list: vi.fn().mockResolvedValue([]),
@@ -37,9 +40,12 @@ function renderSettings(
     save: vi.fn().mockResolvedValue(undefined),
     delete: vi.fn().mockResolvedValue(undefined),
   },
+  categories?: DataRepositories["categories"],
 ) {
   return render(
-    <DataProvider createRepositories={() => repositories(memberRepository)}>
+    <DataProvider
+      createRepositories={() => repositories(memberRepository, categories)}
+    >
       <DataStateGate>
         <SettingsPage />
       </DataStateGate>
@@ -48,6 +54,89 @@ function renderSettings(
 }
 
 describe("SettingsPage", () => {
+  it("creates an expense Housing bucket with Rent as its first subcategory", async () => {
+    const user = userEvent.setup();
+    const save = vi.fn().mockResolvedValue(undefined);
+    renderSettings(undefined, {
+      get: vi.fn(),
+      list: vi.fn().mockResolvedValue([]),
+      save,
+      delete: vi.fn(),
+    });
+
+    await user.type(await screen.findByLabelText("Group name"), " Housing ");
+    await user.type(screen.getByLabelText("First subcategory"), " Rent ");
+    await user.click(screen.getByRole("button", { name: "Add bucket" }));
+
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "expense",
+          group: "Housing",
+          name: "Rent",
+        }),
+      ),
+    );
+    expect(screen.getByRole("heading", { name: "Housing" })).toBeInTheDocument();
+  });
+
+  it("alerts when the bucket form is blank", async () => {
+    const user = userEvent.setup();
+    renderSettings();
+
+    await user.click(await screen.findByRole("button", { name: "Add bucket" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Group name and first subcategory are required.",
+    );
+  });
+
+  it("rejects a case-insensitive duplicate expense bucket name", async () => {
+    const user = userEvent.setup();
+    const save = vi.fn();
+    renderSettings(undefined, {
+      get: vi.fn(),
+      list: vi.fn().mockResolvedValue([
+        { id: "housing-rent", type: "expense", group: "Housing", name: "Rent" },
+      ]),
+      save,
+      delete: vi.fn(),
+    });
+
+    await user.type(await screen.findByLabelText("Group name"), "housing");
+    await user.type(screen.getByLabelText("First subcategory"), "Mortgage");
+    await user.click(screen.getByRole("button", { name: "Add bucket" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "An expense bucket named Housing already exists.",
+    );
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it("allows income and expense buckets to share a group name", async () => {
+    const user = userEvent.setup();
+    const save = vi.fn().mockResolvedValue(undefined);
+    renderSettings(undefined, {
+      get: vi.fn(),
+      list: vi.fn().mockResolvedValue([
+        { id: "housing-rent", type: "expense", group: "Housing", name: "Rent" },
+      ]),
+      save,
+      delete: vi.fn(),
+    });
+
+    await user.type(await screen.findByLabelText("Group name"), "Housing");
+    await user.type(screen.getByLabelText("First subcategory"), "Salary");
+    await user.selectOptions(screen.getByLabelText("Type"), "income");
+    await user.click(screen.getByRole("button", { name: "Add bucket" }));
+
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "income", group: "Housing", name: "Salary" }),
+      ),
+    );
+  });
+
   it("renders the buckets and household empty states", async () => {
     renderSettings();
 

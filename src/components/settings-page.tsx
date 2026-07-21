@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState } from "react";
 import { AppHeader } from "@/components/app-header";
+import { BucketGroupGrid } from "@/components/bucket-group-grid";
 import { createCategory, type CategoryType } from "@/domain";
 import { createMember, type Member } from "@/domain/member";
 import { useData, useDataActions } from "@/data";
@@ -39,14 +40,6 @@ export function SettingsPage() {
   const [isSavingBucket, setIsSavingBucket] = useState(false);
   const members = data.status === "ready" ? data.members : [];
   const categories = data.status === "ready" ? data.categories : [];
-  const groups = Array.from(
-    new Map(
-      categories.map((category) => [
-        `${category.type}:${category.group.trim().toLocaleLowerCase()}`,
-        category,
-      ]),
-    ).values(),
-  );
 
   async function addBucket(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -219,27 +212,11 @@ export function SettingsPage() {
                 Add bucket
               </button>
             </form>
-            {groups.length ? (
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {groups.map((category) => (
-                  <article
-                    className="rounded-xl border border-[#d6dae1] bg-white p-5"
-                    key={`${category.type}:${category.group.trim().toLocaleLowerCase()}`}
-                  >
-                    <h3 className="text-sm font-semibold text-[#16213f]">
-                      {category.group.trim()}
-                    </h3>
-                    <p className="mt-1 text-sm text-[#6b7686]">
-                      {category.type === "expense" ? "Expense" : "Income"}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-4 rounded-xl border border-[#d6dae1] bg-white p-5 text-sm text-[#8a93a3]">
-                No buckets yet.
-              </div>
-            )}
+            <BucketGroupGrid
+              bucketColors={data.status === "ready" ? data.bucketColors : []}
+              categories={categories}
+              emptyMessage="No buckets yet."
+            />
           </section>
 
           <hr className="border-[#d6dae1]" />

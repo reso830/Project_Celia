@@ -2,12 +2,29 @@ import { describe, expect, it } from "vitest";
 import {
   DomainValidationError,
   createBucketColor,
+  createBucketGroup,
   createCategory,
   createMember,
   isCategoryType,
 } from "../../src/domain/index.js";
 
 describe("members and categories", () => {
+  it("creates a trimmed expense bucket group", () => {
+    expect(
+      createBucketGroup({
+        id: "bucket-housing",
+        type: "expense",
+        name: " Housing ",
+      }),
+    ).toEqual({ id: "bucket-housing", type: "expense", name: "Housing" });
+  });
+
+  it("rejects a bucket group without a name", () => {
+    expect(() =>
+      createBucketGroup({ id: "bucket-housing", type: "expense", name: " " }),
+    ).toThrow("Bucket group id and name are required.");
+  });
+
   it("creates a member from the prototype fields", () => {
     expect(
       createMember({ id: "member-alex", name: "Alex", color: "#2463eb" }),

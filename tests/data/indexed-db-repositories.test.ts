@@ -1,12 +1,14 @@
 import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { BucketColor } from "@/domain/bucket-color";
+import type { BucketGroup } from "@/domain/bucket-group";
 import type { Category } from "@/domain/category";
 import type { Member } from "@/domain/member";
 import type { Transaction } from "@/domain/transaction";
 import {
   CELIA_DATABASE_NAME,
   IndexedDbBucketColorRepository,
+  IndexedDbBucketGroupRepository,
   IndexedDbCategoryRepository,
   IndexedDbMemberRepository,
   IndexedDbTransactionRepository,
@@ -120,5 +122,13 @@ describe("IndexedDB repositories", () => {
     "Housing",
     { bucket: "Housing", color: "#0ea5e9" },
     { bucket: "Housing", color: "#0284c7" },
+  );
+
+  verifiesCrud<BucketGroup>(
+    "bucket groups",
+    () => new IndexedDbBucketGroupRepository(openCeliaDatabase),
+    "bucket-housing",
+    { id: "bucket-housing", type: "expense", name: "Housing" },
+    { id: "bucket-housing", type: "expense", name: "Home" },
   );
 });

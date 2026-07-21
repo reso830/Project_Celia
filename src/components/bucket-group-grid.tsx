@@ -71,7 +71,7 @@ export function BucketGroupGrid({
             ? (colors.get(expenseBucketColorKey(bucketGroup.name)) ??
               colors.get(normalize(bucketGroup.name)) ??
               fallbackColor)
-            : fallbackColor;
+            : (colors.get(normalize(bucketGroup.name)) ?? fallbackColor);
 
         return (
           <article

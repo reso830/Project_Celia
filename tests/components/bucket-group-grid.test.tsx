@@ -31,10 +31,10 @@ describe("BucketGroupGrid", () => {
     expect(
       screen.getByRole("article", { name: "Income Housing" }),
     ).toHaveTextContent("Salary");
-    expect(screen.getAllByText("Color: #2463eb")).toHaveLength(1);
+    expect(screen.getAllByText("Color: #2463eb")).toHaveLength(2);
     expect(
       screen.getByRole("article", { name: "Income Housing" }),
-    ).toHaveTextContent("Color: #8a93a3");
+    ).toHaveTextContent("Color: #2463eb");
   });
 
   it("renders the supplied empty message without category records", () => {

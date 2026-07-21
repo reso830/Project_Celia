@@ -403,14 +403,23 @@ describe("SettingsPage", () => {
     });
     expect(screen.getByLabelText("Hex color")).toHaveValue("#2463eb");
     expect(screen.getByLabelText("Red")).toHaveValue("36");
-    fireEvent.change(screen.getByLabelText("Red"), { target: { value: "256" } });
+    fireEvent.change(screen.getByLabelText("Red"), {
+      target: { value: "256" },
+    });
     expect(screen.getByRole("button", { name: "Save color" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Hex color"), {
       target: { value: "#24a6e9" },
     });
-    expect(screen.getByRole("article", { name: "Expense Housing" })).toHaveTextContent("Color: #24a6e9");
+    expect(
+      screen.getByRole("article", { name: "Expense Housing" }),
+    ).toHaveTextContent("Color: #24a6e9");
     await user.click(screen.getByRole("button", { name: "Save color" }));
-    await waitFor(() => expect(saveColor).toHaveBeenCalledWith({ bucket: "expense:housing", color: "#24a6e9" }));
+    await waitFor(() =>
+      expect(saveColor).toHaveBeenCalledWith({
+        bucket: "expense:housing",
+        color: "#24a6e9",
+      }),
+    );
   });
 
   it("renders the buckets and household empty states", async () => {

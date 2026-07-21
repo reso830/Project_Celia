@@ -225,6 +225,24 @@ describe("SettingsPage", () => {
     expect(screen.queryByText("No buckets yet.")).not.toBeInTheDocument();
   });
 
+  it("renders every saved subcategory in one configured bucket card", async () => {
+    renderSettings(undefined, {
+      get: vi.fn(),
+      list: vi.fn().mockResolvedValue([
+        { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+        { id: "power", type: "expense", group: "housing", name: "Power" },
+      ]),
+      save: vi.fn(),
+      delete: vi.fn(),
+    });
+
+    const card = await screen.findByRole("article", {
+      name: "Expense Housing",
+    });
+    expect(card).toHaveTextContent("Rent");
+    expect(card).toHaveTextContent("Power");
+  });
+
   it("renders the buckets and household empty states", async () => {
     renderSettings();
 

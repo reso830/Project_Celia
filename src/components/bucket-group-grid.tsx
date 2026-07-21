@@ -186,10 +186,10 @@ export function BucketGroupGrid({
                 </button>
               </div>
             ) : null}
-            {bucketGroup.type === "expense" ? (
+            {bucketGroup.type === "expense" && onEditColor ? (
               <button
                 className="mt-3 text-sm font-medium text-[#2463eb] hover:underline"
-                onClick={() => onEditColor?.(name, color)}
+                onClick={() => onEditColor(name, color)}
                 type="button"
               >
                 Edit color for {name}

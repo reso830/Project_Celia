@@ -35,6 +35,9 @@ describe("BucketGroupGrid", () => {
     expect(
       screen.getByRole("article", { name: "Income Housing" }),
     ).toHaveTextContent("Color: #2463eb");
+    expect(
+      screen.queryByRole("button", { name: "Edit color for Housing" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the supplied empty message without category records", () => {

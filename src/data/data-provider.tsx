@@ -8,7 +8,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { BucketColor } from "@/domain/bucket-color";
+import {
+  createBucketColor,
+  expenseBucketColorKey,
+  type BucketColor,
+} from "@/domain";
 import { createBucketGroup, type BucketGroup } from "@/domain/bucket-group";
 import type { Category } from "@/domain/category";
 import type { Member } from "@/domain/member";
@@ -46,6 +50,7 @@ export type DataState =
       saveBucketGroup(bucketGroup: BucketGroup): Promise<void>;
       deleteBucketGroup(id: string): Promise<void>;
       deleteCategory(id: string): Promise<void>;
+      saveBucketColor(bucket: string, color: string): Promise<void>;
     }
   | { status: "error"; error: Error };
 
@@ -179,6 +184,32 @@ export function DataProvider({
           );
         };
 
+        const saveBucketColor = async (bucket: string, color: string) => {
+          const bucketColor = createBucketColor({
+            bucket: expenseBucketColorKey(bucket),
+            color,
+          });
+          await repositories.bucketColors.save(bucketColor);
+
+          if (!active) {
+            return;
+          }
+
+          setState((current) =>
+            current.status === "ready"
+              ? {
+                  ...current,
+                  bucketColors: [
+                    ...current.bucketColors.filter(
+                      ({ bucket }) => bucket !== bucketColor.bucket,
+                    ),
+                    bucketColor,
+                  ],
+                }
+              : current,
+          );
+        };
+
         const deleteCategory = async (id: string) => {
           await repositories.categories.delete(id);
 
@@ -230,6 +261,7 @@ export function DataProvider({
             saveBucketGroup,
             deleteBucketGroup,
             deleteCategory,
+            saveBucketColor,
           });
         }
       } catch (cause) {

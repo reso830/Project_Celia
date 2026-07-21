@@ -32,6 +32,12 @@ describe("BucketGroupGrid", () => {
       screen.getByRole("article", { name: "Income Housing" }),
     ).toHaveTextContent("Salary");
     expect(screen.getAllByText("Color: #2463eb")).toHaveLength(2);
+    expect(
+      screen.getByRole("article", { name: "Income Housing" }),
+    ).toHaveTextContent("Color: #2463eb");
+    expect(
+      screen.queryByRole("button", { name: "Edit color for Housing" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the supplied empty message without category records", () => {
@@ -46,6 +52,43 @@ describe("BucketGroupGrid", () => {
 
     expect(screen.getByText("No buckets yet.")).toBeInTheDocument();
     expect(screen.queryByRole("article")).not.toBeInTheDocument();
+  });
+
+  it("edits an expense color without applying it to an income bucket with the same name", async () => {
+    const user = userEvent.setup();
+    const onEditColor = vi.fn();
+    render(
+      <BucketGroupGrid
+        bucketColors={[{ bucket: "expense:housing", color: "#2463eb" }]}
+        bucketGroups={[
+          { id: "expense-housing", type: "expense", name: "Housing" },
+          { id: "income-housing", type: "income", name: "Housing" },
+        ]}
+        categories={[
+          { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+          {
+            id: "salary",
+            type: "income",
+            group: "Housing",
+            name: "Salary",
+          },
+        ]}
+        emptyMessage="No bucket groups yet."
+        onEditColor={onEditColor}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Edit color for Housing" }),
+    );
+
+    expect(onEditColor).toHaveBeenCalledWith("Housing", "#2463eb");
+    expect(
+      screen.getByRole("article", { name: "Expense Housing" }),
+    ).toHaveTextContent("Color: #2463eb");
+    expect(
+      screen.getByRole("article", { name: "Income Housing" }),
+    ).toHaveTextContent("Color: #8a93a3");
   });
 
   it("renders a persisted group without subcategories", () => {

@@ -1,5 +1,10 @@
 import { useRef, useState } from "react";
-import type { BucketColor, BucketGroup, Category } from "@/domain";
+import {
+  expenseBucketColorKey,
+  type BucketColor,
+  type BucketGroup,
+  type Category,
+} from "@/domain";
 
 interface BucketGroupGridProps {
   categories: readonly Category[];
@@ -11,6 +16,7 @@ interface BucketGroupGridProps {
     name: string,
   ) => Promise<boolean>;
   onDeleteSubcategory?: (category: Category) => Promise<void>;
+  onEditColor?: (bucket: string, color: string) => void;
 }
 
 const fallbackColor = "#8a93a3";
@@ -26,6 +32,7 @@ export function BucketGroupGrid({
   emptyMessage,
   onAddSubcategory,
   onDeleteSubcategory,
+  onEditColor,
 }: BucketGroupGridProps) {
   const [subcategoryNames, setSubcategoryNames] = useState<
     Record<string, string>
@@ -59,7 +66,12 @@ export function BucketGroupGrid({
         );
         const name = bucketGroup.name.trim();
         const type = bucketGroup.type === "expense" ? "Expense" : "Income";
-        const color = colors.get(normalize(bucketGroup.name)) ?? fallbackColor;
+        const color =
+          bucketGroup.type === "expense"
+            ? (colors.get(expenseBucketColorKey(bucketGroup.name)) ??
+              colors.get(normalize(bucketGroup.name)) ??
+              fallbackColor)
+            : (colors.get(normalize(bucketGroup.name)) ?? fallbackColor);
 
         return (
           <article
@@ -173,6 +185,15 @@ export function BucketGroupGrid({
                   Add subcategory
                 </button>
               </div>
+            ) : null}
+            {bucketGroup.type === "expense" && onEditColor ? (
+              <button
+                className="mt-3 text-sm font-medium text-[#2463eb] hover:underline"
+                onClick={() => onEditColor(name, color)}
+                type="button"
+              >
+                Edit color for {name}
+              </button>
             ) : null}
           </article>
         );

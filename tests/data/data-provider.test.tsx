@@ -118,6 +118,26 @@ function CategoryDeleteProbe() {
   );
 }
 
+function BucketColorSaveProbe() {
+  const state = useData();
+
+  if (state.status !== "ready") {
+    return <output>{state.status}</output>;
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void state.saveBucketColor("Housing", "#24a6e9")}
+      >
+        Save bucket color
+      </button>
+      <output>{`bucket-colors:${state.bucketColors.length}`}</output>
+    </>
+  );
+}
+
 describe("DataProvider", () => {
   beforeEach(async () => {
     await deleteCeliaDatabase();
@@ -269,6 +289,36 @@ describe("DataProvider", () => {
     await waitFor(() =>
       expect(screen.getByText("categories:0")).toBeInTheDocument(),
     );
+  });
+
+  it("persists an expense-specific bucket color and adds it to ready state", async () => {
+    const saveBucketColor = vi.fn().mockResolvedValue(undefined);
+    const dataRepositories = repositories({
+      bucketColors: {
+        get: vi.fn(),
+        list: vi.fn().mockResolvedValue([]),
+        save: saveBucketColor,
+        delete: vi.fn(),
+      },
+    });
+
+    render(
+      <DataProvider createRepositories={() => dataRepositories}>
+        <BucketColorSaveProbe />
+      </DataProvider>,
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Save bucket color" }),
+    );
+
+    await waitFor(() =>
+      expect(saveBucketColor).toHaveBeenCalledWith({
+        bucket: "expense:housing",
+        color: "#24a6e9",
+      }),
+    );
+    expect(screen.getByText("bucket-colors:1")).toBeInTheDocument();
   });
 
   it("publishes an error when initialization fails", async () => {

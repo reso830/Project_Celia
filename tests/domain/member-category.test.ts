@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DomainValidationError,
+  createBucketColor,
   createCategory,
   createMember,
   isCategoryType,
@@ -59,5 +60,21 @@ describe("members and categories", () => {
         name: "Account transfer",
       }),
     ).toThrow("Category type must be income or expense.");
+  });
+
+  it("creates a bucket color for a named bucket", () => {
+    expect(createBucketColor({ bucket: "Housing", color: "#0ea5e9" })).toEqual({
+      bucket: "Housing",
+      color: "#0ea5e9",
+    });
+  });
+
+  it("rejects a bucket color without a bucket name or color", () => {
+    expect(() => createBucketColor({ bucket: " ", color: "#0ea5e9" })).toThrow(
+      DomainValidationError,
+    );
+    expect(() => createBucketColor({ bucket: "Housing", color: " " })).toThrow(
+      DomainValidationError,
+    );
   });
 });

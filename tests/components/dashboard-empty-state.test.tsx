@@ -10,6 +10,9 @@ function repositories(
   bucketColors: DataRepositories["bucketColors"]["list"] = vi
     .fn()
     .mockResolvedValue([]),
+  bucketGroups: DataRepositories["bucketGroups"]["list"] = vi
+    .fn()
+    .mockResolvedValue([]),
 ): DataRepositories {
   return {
     members: {
@@ -33,6 +36,12 @@ function repositories(
     bucketColors: {
       get: vi.fn(),
       list: bucketColors,
+      save: vi.fn(),
+      delete: vi.fn(),
+    },
+    bucketGroups: {
+      get: vi.fn(),
+      list: bucketGroups,
       save: vi.fn(),
       delete: vi.fn(),
     },
@@ -68,8 +77,13 @@ describe("DashboardEmptyState", () => {
           .fn()
           .mockResolvedValue([
             { id: "rent", type: "expense", group: "Housing", name: "Rent" },
-          ]),
+        ]),
         vi.fn().mockResolvedValue([{ bucket: "Housing", color: "#2463eb" }]),
+        vi
+          .fn()
+          .mockResolvedValue([
+            { id: "expense-housing", type: "expense", name: "Housing" },
+          ]),
       ),
     );
 

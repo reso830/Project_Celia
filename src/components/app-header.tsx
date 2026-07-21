@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export type AppPage = "dashboard" | "settings";
+export type AppPage = "dashboard" | "transactions" | "settings";
 
 interface AppHeaderProps {
   activePage: AppPage;
@@ -11,7 +11,7 @@ const navigationItemClassName =
 
 export function AppHeader({ activePage }: AppHeaderProps) {
   return (
-    <header className="rounded-xl bg-[#12213d] px-5 py-4 text-[#f3f4f6] sm:flex sm:items-center sm:justify-between">
+    <header className="rounded-xl bg-[#12213d] px-5 py-4 text-[#f3f4f6] sm:flex sm:flex-wrap sm:items-center sm:gap-4">
       <p className="text-lg font-semibold">Celia</p>
       <nav
         aria-label="Primary navigation"
@@ -29,7 +29,18 @@ export function AppHeader({ activePage }: AppHeaderProps) {
             Dashboard
           </Link>
         )}
-        <span className={navigationItemClassName}>Transactions</span>
+        {activePage === "transactions" ? (
+          <span
+            aria-current="page"
+            className="rounded-md bg-white px-3 py-2 text-[#12213d]"
+          >
+            Transactions
+          </span>
+        ) : (
+          <Link className={navigationItemClassName} href="/transactions">
+            Transactions
+          </Link>
+        )}
         {activePage === "settings" ? (
           <span
             aria-current="page"
@@ -43,6 +54,12 @@ export function AppHeader({ activePage }: AppHeaderProps) {
           </Link>
         )}
       </nav>
+      <button
+        className="mt-3 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#12213d] sm:ml-auto sm:mt-0"
+        type="button"
+      >
+        + Add Transaction
+      </button>
     </header>
   );
 }

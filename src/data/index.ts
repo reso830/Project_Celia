@@ -1,6 +1,7 @@
 export * from "./bucket-color-repository";
 export * from "./category-repository";
 export * from "./celia-database";
+export * from "./data-provider";
 export * from "./indexed-db-bucket-color-repository";
 export * from "./indexed-db-category-repository";
 export * from "./indexed-db-member-repository";

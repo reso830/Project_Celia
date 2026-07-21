@@ -94,9 +94,22 @@ export function DataProvider({
 
         const saveCategory = async (category: Category) => {
           await repositories.categories.save(category);
+
+          if (!active) {
+            return;
+          }
+
           setState((current) =>
             current.status === "ready"
-              ? { ...current, categories: [...current.categories, category] }
+              ? {
+                  ...current,
+                  categories: [
+                    ...current.categories.filter(
+                      ({ id }) => id !== category.id,
+                    ),
+                    category,
+                  ],
+                }
               : current,
           );
         };

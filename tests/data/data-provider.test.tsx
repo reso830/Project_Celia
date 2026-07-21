@@ -160,6 +160,34 @@ describe("DataProvider", () => {
     );
   });
 
+  it("upserts a saved category rather than duplicating its id", async () => {
+    const saveCategory = vi.fn().mockResolvedValue(undefined);
+    const categoryRepositories = repositories({
+      categories: {
+        get: vi.fn(),
+        list: vi.fn().mockResolvedValue([]),
+        save: saveCategory,
+        delete: vi.fn(),
+      },
+    });
+
+    render(
+      <DataProvider createRepositories={() => categoryRepositories}>
+        <CategorySaveProbe />
+      </DataProvider>,
+    );
+
+    const saveButton = await screen.findByRole("button", {
+      name: "Save category",
+    });
+    fireEvent.click(saveButton);
+    await screen.findByText("categories:1");
+    fireEvent.click(saveButton);
+
+    await waitFor(() => expect(saveCategory).toHaveBeenCalledTimes(2));
+    expect(screen.getByText("categories:1")).toBeInTheDocument();
+  });
+
   it("publishes an error when initialization fails", async () => {
     const failingRepositories = repositories({
       members: {

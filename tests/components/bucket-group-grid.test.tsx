@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { BucketGroupGrid } from "@/components/bucket-group-grid";
@@ -90,5 +90,38 @@ describe("BucketGroupGrid", () => {
       group: "Housing",
       name: "Rent",
     });
+  });
+
+  it("prevents another subcategory add while the first is pending", () => {
+    let resolveAdd: (() => void) | undefined;
+    const onAddSubcategory = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveAdd = () => resolve(true);
+        }),
+    );
+    render(
+      <BucketGroupGrid
+        bucketColors={[]}
+        bucketGroups={[
+          { id: "expense-housing", type: "expense", name: "Housing" },
+        ]}
+        categories={[]}
+        emptyMessage="No buckets yet."
+        onAddSubcategory={onAddSubcategory}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Add subcategory to Housing"), {
+      target: { value: "Power" },
+    });
+    const addButton = screen.getByRole("button", { name: "Add subcategory" });
+    fireEvent.click(addButton);
+    fireEvent.click(addButton);
+
+    expect(onAddSubcategory).toHaveBeenCalledTimes(1);
+    expect(addButton).toBeDisabled();
+
+    resolveAdd?.();
   });
 });

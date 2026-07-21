@@ -202,6 +202,8 @@ describe("SettingsPage", () => {
   it("keeps the bucket form values and shows an error when saving fails", async () => {
     const user = userEvent.setup();
     const dataRepositories = repositories();
+    const removeBucketGroup = vi.fn().mockResolvedValue(undefined);
+    dataRepositories.bucketGroups.delete = removeBucketGroup;
     dataRepositories.categories.save = vi
       .fn()
       .mockRejectedValue(new Error("IndexedDB unavailable"));
@@ -216,6 +218,7 @@ describe("SettingsPage", () => {
     );
     expect(screen.getByLabelText("Group name")).toHaveValue("Housing");
     expect(screen.getByLabelText("First subcategory")).toHaveValue("Rent");
+    await waitFor(() => expect(removeBucketGroup).toHaveBeenCalledTimes(1));
   });
 
   it("renders an existing bucket group", async () => {

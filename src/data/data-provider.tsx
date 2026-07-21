@@ -44,6 +44,7 @@ export type DataState =
       bucketGroups: readonly BucketGroup[];
       saveCategory(category: Category): Promise<void>;
       saveBucketGroup(bucketGroup: BucketGroup): Promise<void>;
+      deleteBucketGroup(id: string): Promise<void>;
       deleteCategory(id: string): Promise<void>;
     }
   | { status: "error"; error: Error };
@@ -197,6 +198,25 @@ export function DataProvider({
           );
         };
 
+        const deleteBucketGroup = async (id: string) => {
+          await repositories.bucketGroups.delete(id);
+
+          if (!active) {
+            return;
+          }
+
+          setState((current) =>
+            current.status === "ready"
+              ? {
+                  ...current,
+                  bucketGroups: current.bucketGroups.filter(
+                    (bucketGroup) => bucketGroup.id !== id,
+                  ),
+                }
+              : current,
+          );
+        };
+
         if (active) {
           setState({
             status: "ready",
@@ -208,6 +228,7 @@ export function DataProvider({
             bucketGroups: [...bucketGroups, ...legacyGroups],
             saveCategory,
             saveBucketGroup,
+            deleteBucketGroup,
             deleteCategory,
           });
         }

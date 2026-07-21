@@ -82,15 +82,15 @@ export function SettingsPage() {
     }
 
     setIsSavingBucket(true);
+    let createdBucketGroup: BucketGroup | undefined;
 
     try {
-      await data.saveBucketGroup(
-        createBucketGroup({
-          id: crypto.randomUUID(),
-          type,
-          name: group,
-        }),
-      );
+      createdBucketGroup = createBucketGroup({
+        id: crypto.randomUUID(),
+        type,
+        name: group,
+      });
+      await data.saveBucketGroup(createdBucketGroup);
       await data.saveCategory(
         createCategory({
           id: crypto.randomUUID(),
@@ -103,6 +103,14 @@ export function SettingsPage() {
       setSubcategory("");
       setBucketError("");
     } catch {
+      if (createdBucketGroup) {
+        try {
+          await data.deleteBucketGroup(createdBucketGroup.id);
+        } catch {
+          setBucketError("Unable to save this bucket. Please try again.");
+          return;
+        }
+      }
       setBucketError("Unable to save this bucket. Please try again.");
     } finally {
       setIsSavingBucket(false);

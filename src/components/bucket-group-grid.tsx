@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { BucketColor, BucketGroup, Category } from "@/domain";
 
 interface BucketGroupGridProps {
@@ -30,6 +30,14 @@ export function BucketGroupGrid({
   const [subcategoryNames, setSubcategoryNames] = useState<
     Record<string, string>
   >({});
+  const [pendingGroupIds, setPendingGroupIds] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  const [pendingCategoryIds, setPendingCategoryIds] = useState<
+    ReadonlySet<string>
+  >(new Set());
+  const pendingGroupIdsRef = useRef(new Set<string>());
+  const pendingCategoryIdsRef = useRef(new Set<string>());
   const colors = new Map(
     bucketColors.map(({ bucket, color }) => [normalize(bucket), color]),
   );
@@ -84,7 +92,23 @@ export function BucketGroupGrid({
                     {onDeleteSubcategory ? (
                       <button
                         className="text-sm font-medium text-[#b42318] hover:underline"
-                        onClick={() => void onDeleteSubcategory(category)}
+                        disabled={pendingCategoryIds.has(category.id)}
+                        onClick={() => {
+                          if (pendingCategoryIdsRef.current.has(category.id)) {
+                            return;
+                          }
+
+                          pendingCategoryIdsRef.current.add(category.id);
+                          setPendingCategoryIds(
+                            new Set(pendingCategoryIdsRef.current),
+                          );
+                          void onDeleteSubcategory(category).finally(() => {
+                            pendingCategoryIdsRef.current.delete(category.id);
+                            setPendingCategoryIds(
+                              new Set(pendingCategoryIdsRef.current),
+                            );
+                          });
+                        }}
                         type="button"
                       >
                         Delete {category.name}
@@ -119,18 +143,30 @@ export function BucketGroupGrid({
                 />
                 <button
                   className="rounded-md bg-[#16213f] px-3 py-2 text-sm font-semibold text-white"
+                  disabled={pendingGroupIds.has(bucketGroup.id)}
                   onClick={() => {
+                    if (pendingGroupIdsRef.current.has(bucketGroup.id)) {
+                      return;
+                    }
+
+                    pendingGroupIdsRef.current.add(bucketGroup.id);
+                    setPendingGroupIds(new Set(pendingGroupIdsRef.current));
                     void onAddSubcategory(
                       bucketGroup,
                       subcategoryNames[bucketGroup.id] ?? "",
-                    ).then((saved) => {
-                      if (saved) {
-                        setSubcategoryNames((current) => ({
-                          ...current,
-                          [bucketGroup.id]: "",
-                        }));
-                      }
-                    });
+                    )
+                      .then((saved) => {
+                        if (saved) {
+                          setSubcategoryNames((current) => ({
+                            ...current,
+                            [bucketGroup.id]: "",
+                          }));
+                        }
+                      })
+                      .finally(() => {
+                        pendingGroupIdsRef.current.delete(bucketGroup.id);
+                        setPendingGroupIds(new Set(pendingGroupIdsRef.current));
+                      });
                   }}
                   type="button"
                 >

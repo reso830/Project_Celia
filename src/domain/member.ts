@@ -1,4 +1,4 @@
-import { DomainValidationError } from "./errors.js";
+import { DomainValidationError } from "./errors";
 
 export interface Member {
   id: string;

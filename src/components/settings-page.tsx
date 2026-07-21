@@ -1,6 +1,82 @@
+"use client";
+
+import { FormEvent, useState } from "react";
 import { AppHeader } from "@/components/app-header";
+import { createMember, type Member } from "@/domain/member";
+import { useData } from "@/data";
+
+const memberColors = ["#2463eb", "#9333ea", "#db2777", "#0f766e"];
+
+function createMemberId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `member-${Date.now()}`;
+}
+
+function hasMatchingName(members: readonly Member[], name: string): boolean {
+  return members.some(
+    (member) => member.name.toLocaleLowerCase() === name.toLocaleLowerCase(),
+  );
+}
 
 export function SettingsPage() {
+  const data = useData();
+  const [members, setMembers] = useState<readonly Member[]>(() =>
+    data.status === "ready" ? data.members : [],
+  );
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string>();
+  const [isSaving, setIsSaving] = useState(false);
+
+  async function addMember(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const normalizedName = name.trim();
+
+    if (!normalizedName) {
+      setError("Enter a household member name.");
+      return;
+    }
+
+    if (hasMatchingName(members, normalizedName)) {
+      setError("That household member already exists.");
+      return;
+    }
+
+    if (data.status !== "ready") {
+      return;
+    }
+
+    const member = createMember({
+      id: createMemberId(),
+      name: normalizedName,
+      color: memberColors[members.length % memberColors.length],
+    });
+
+    setIsSaving(true);
+    setError(undefined);
+    try {
+      await data.repositories.members.save(member);
+      setMembers((current) => [...current, member]);
+      setName("");
+    } catch {
+      setError("Unable to save this household member. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function deleteMember(member: Member) {
+    if (data.status !== "ready") {
+      return;
+    }
+
+    setError(undefined);
+    try {
+      await data.repositories.members.delete(member.id);
+      setMembers((current) => current.filter(({ id }) => id !== member.id));
+    } catch {
+      setError("Unable to delete this household member. Please try again.");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#eef0f3] px-4 py-6 sm:px-6 lg:px-7 lg:pb-10">
       <div className="mx-auto w-full max-w-[1100px]">
@@ -40,9 +116,67 @@ export function SettingsPage() {
               <h3 className="text-sm font-semibold text-[#16213f]">
                 Household Members
               </h3>
-              <p className="mt-3 text-sm text-[#8a93a3]">
-                No household members yet.
-              </p>
+              <form
+                className="mt-4 flex flex-col gap-3 sm:flex-row"
+                onSubmit={addMember}
+              >
+                <label className="sr-only" htmlFor="member-name">
+                  Member name
+                </label>
+                <input
+                  id="member-name"
+                  className="min-w-0 flex-1 rounded-lg border border-[#b9c1cd] px-3 py-2 text-sm text-[#16213f] outline-none focus:border-[#2463eb] focus:ring-2 focus:ring-[#2463eb]/20"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="Member name"
+                  disabled={isSaving}
+                />
+                <button
+                  className="rounded-lg bg-[#2463eb] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  type="submit"
+                  disabled={isSaving}
+                >
+                  Add member
+                </button>
+              </form>
+              {error ? (
+                <p className="mt-3 text-sm text-[#b42318]" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              {members.length === 0 ? (
+                <p className="mt-3 text-sm text-[#8a93a3]">
+                  No household members yet.
+                </p>
+              ) : (
+                <ul
+                  className="mt-4 divide-y divide-[#e4e7ec]"
+                  aria-label="Household members"
+                >
+                  {members.map((member) => (
+                    <li
+                      className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                      key={member.id}
+                    >
+                      <span className="flex items-center gap-3 text-sm font-medium text-[#16213f]">
+                        <span
+                          aria-hidden="true"
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: member.color }}
+                        />
+                        {member.name}
+                      </span>
+                      <button
+                        className="text-sm font-medium text-[#b42318] hover:underline"
+                        type="button"
+                        onClick={() => void deleteMember(member)}
+                      >
+                        Delete {member.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </section>
         </section>

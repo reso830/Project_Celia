@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { DashboardEmptyState } from "@/components/dashboard-empty-state";
 import { DataProvider, type DataRepositories } from "@/data";
+import type { Transaction } from "@/domain";
 
 function repositories(
   categories: DataRepositories["categories"]["list"] = vi
@@ -13,6 +14,7 @@ function repositories(
   bucketGroups: DataRepositories["bucketGroups"]["list"] = vi
     .fn()
     .mockResolvedValue([]),
+  transactions: readonly Transaction[] = [],
 ): DataRepositories {
   return {
     members: {
@@ -29,7 +31,7 @@ function repositories(
     },
     transactions: {
       get: vi.fn(),
-      list: vi.fn().mockResolvedValue([]),
+      list: vi.fn().mockResolvedValue(transactions),
       save: vi.fn(),
       delete: vi.fn(),
     },
@@ -57,6 +59,29 @@ function renderDashboard(dataRepositories = repositories()) {
 }
 
 describe("DashboardEmptyState", () => {
+  const summaryTransactions: readonly Transaction[] = [
+    {
+      id: "salary",
+      date: "2026-07-01",
+      memberId: "alex",
+      categoryId: "salary",
+      type: "income",
+      amount: 500_000,
+      recurring: false,
+      currency: "PHP",
+    },
+    {
+      id: "groceries",
+      date: "2026-07-02",
+      memberId: "alex",
+      categoryId: "food",
+      type: "expense",
+      amount: 125_000,
+      recurring: false,
+      currency: "PHP",
+    },
+  ];
+
   it("renders the Celia dashboard empty state", async () => {
     renderDashboard();
 
@@ -91,5 +116,26 @@ describe("DashboardEmptyState", () => {
       await screen.findByRole("article", { name: "Expense Housing" }),
     ).toHaveTextContent("Rent");
     expect(screen.getByText("Color: #2463eb")).toBeInTheDocument();
+  });
+
+  it("renders financial metrics from all persisted transactions", async () => {
+    renderDashboard(repositories(undefined, undefined, undefined, summaryTransactions));
+
+    expect(await screen.findByText("Income")).toBeInTheDocument();
+    expect(screen.getByText("₱5,000.00")).toBeInTheDocument();
+    expect(screen.getByText("Expenses")).toBeInTheDocument();
+    expect(screen.getByText("₱1,250.00")).toBeInTheDocument();
+    expect(screen.getByText("Net")).toBeInTheDocument();
+    expect(screen.getByText("₱3,750.00")).toBeInTheDocument();
+    expect(screen.getByText("Savings Rate")).toBeInTheDocument();
+    expect(screen.getByText("75%")).toBeInTheDocument();
+  });
+
+  it("renders zero financial metrics without transactions", async () => {
+    renderDashboard();
+
+    expect(await screen.findByText("Income")).toBeInTheDocument();
+    expect(screen.getAllByText("₱0.00")).toHaveLength(3);
+    expect(screen.getByText("0%")).toBeInTheDocument();
   });
 });

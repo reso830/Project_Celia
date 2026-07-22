@@ -1,4 +1,5 @@
 export * from "./bucket-color";
+export * from "./bucket-breakdown";
 export * from "./bucket-group";
 export * from "./color";
 export * from "./category-type";

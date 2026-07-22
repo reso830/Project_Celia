@@ -1,9 +1,11 @@
 "use client";
 
 import { AppHeader } from "@/components/app-header";
+import { BucketBreakdownChart } from "@/components/bucket-breakdown-chart";
 import { BucketGroupGrid } from "@/components/bucket-group-grid";
 import { FinancialSummaryCards } from "@/components/financial-summary-cards";
 import { useData } from "@/data";
+import { calculateBucketBreakdown } from "@/domain";
 
 export function DashboardEmptyState() {
   const data = useData();
@@ -11,6 +13,7 @@ export function DashboardEmptyState() {
   const transactions = data.status === "ready" ? data.transactions : [];
   const bucketColors = data.status === "ready" ? data.bucketColors : [];
   const bucketGroups = data.status === "ready" ? data.bucketGroups : [];
+  const breakdown = calculateBucketBreakdown(transactions, categories);
 
   return (
     <main className="min-h-screen bg-[#eef0f3] px-4 py-6 sm:px-6 lg:px-7">
@@ -27,6 +30,10 @@ export function DashboardEmptyState() {
             Celia
           </h1>
           <FinancialSummaryCards transactions={transactions} />
+          <BucketBreakdownChart
+            breakdown={breakdown}
+            bucketColors={bucketColors}
+          />
           <h2 className="mt-6 text-base font-bold text-[#16213f]">
             Bucket groups
           </h2>

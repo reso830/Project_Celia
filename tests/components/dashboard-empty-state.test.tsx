@@ -140,4 +140,43 @@ describe("DashboardEmptyState", () => {
     expect(screen.getAllByText("₱0.00")).toHaveLength(3);
     expect(screen.getByText("0%")).toBeInTheDocument();
   });
+
+  it("renders an expense breakdown using configured bucket colors", async () => {
+    const rent: Transaction = {
+      id: "rent-transaction",
+      date: "2026-07-22",
+      memberId: "alex",
+      categoryId: "rent",
+      type: "expense",
+      amount: 75_000,
+      recurring: false,
+      currency: "PHP",
+    };
+
+    renderDashboard(
+      repositories(
+        vi
+          .fn()
+          .mockResolvedValue([
+            { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+          ]),
+        vi.fn().mockResolvedValue([{ bucket: "Housing", color: "#2463eb" }]),
+        vi
+          .fn()
+          .mockResolvedValue([
+            { id: "expense-housing", type: "expense", name: "Housing" },
+          ]),
+        [rent],
+      ),
+    );
+
+    expect(
+      await screen.findByRole("img", { name: "Expense breakdown" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("₱750.00 · 100%")).toBeInTheDocument();
+    expect(screen.getByTestId("bucket-slice-Housing")).toHaveAttribute(
+      "stroke",
+      "#2463eb",
+    );
+  });
 });

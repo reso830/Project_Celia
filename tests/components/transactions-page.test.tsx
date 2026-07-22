@@ -590,6 +590,100 @@ describe("TransactionsPage", () => {
     expect(restoredDescription).toHaveTextContent("Weekly groceries");
   });
 
+  it("keeps the active cell stable while its save is in flight", async () => {
+    const user = userEvent.setup();
+    let resolveSave: (() => void) | undefined;
+    const onSave = vi.fn(
+      () => new Promise<void>((resolve) => (resolveSave = resolve)),
+    );
+
+    render(
+      <TransactionSpreadsheet
+        bucketName={() => "Groceries"}
+        categories={[groceries]}
+        memberName={() => "Alex"}
+        members={[alex]}
+        onSave={onSave}
+        transactions={[groceryTransaction]}
+      />,
+    );
+
+    await user.dblClick(
+      screen.getByRole("button", { name: "Description: Weekly groceries" }),
+    );
+    await user.keyboard("{End} updated{Enter}");
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+
+    await user.dblClick(
+      screen.getByRole("button", { name: "Date: 2026-07-22" }),
+    );
+    expect(screen.queryByLabelText("Date")).not.toBeInTheDocument();
+    resolveSave?.();
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", {
+          name: "Description: Weekly groceries",
+        }),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole("button", { name: "Date: 2026-07-22" }),
+    ).toBeInTheDocument();
+  });
+
+  it("saves inline member, bucket, and recurring edits", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <TransactionSpreadsheet
+        bucketName={(categoryId) =>
+          categoryId === housing.id ? "Housing" : "Groceries"
+        }
+        categories={[groceries, housing]}
+        memberName={(memberId) => (memberId === sam.id ? "Sam" : "Alex")}
+        members={[alex, sam]}
+        onSave={onSave}
+        transactions={[groceryTransaction]}
+      />,
+    );
+
+    await user.dblClick(screen.getByRole("button", { name: "Member: Alex" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Member" }),
+      sam.id,
+    );
+    await user.keyboard("{Enter}");
+
+    await user.dblClick(
+      screen.getByRole("button", { name: "Bucket: Groceries" }),
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Bucket" }),
+      housing.id,
+    );
+    await user.keyboard("{Enter}");
+
+    await user.dblClick(screen.getByRole("button", { name: "Recurring: No" }));
+    await user.click(screen.getByRole("checkbox", { name: "Recurring" }));
+    await user.keyboard("{Enter}");
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(3));
+    expect(onSave).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ memberId: sam.id }),
+    );
+    expect(onSave).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ categoryId: housing.id }),
+    );
+    expect(onSave).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({ recurring: true }),
+    );
+  });
+
   it("shows required-field errors without saving", async () => {
     const user = userEvent.setup();
     const { transactionSave } = renderTransactions({

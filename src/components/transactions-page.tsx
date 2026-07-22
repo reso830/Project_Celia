@@ -14,6 +14,7 @@ import { TransactionSpreadsheet } from "@/components/transaction-spreadsheet";
 import { useData } from "@/data";
 import {
   createTransaction,
+  parsePhpAmount,
   type Category,
   type CategoryType,
   type Member,
@@ -97,17 +98,6 @@ export function filterTransactions(
 
 function today(): string {
   return new Date().toLocaleDateString("en-CA");
-}
-
-function parsePhpAmount(value: string): number | undefined {
-  if (!/^\d+(?:\.\d{1,2})?$/.test(value)) {
-    return undefined;
-  }
-
-  const [pesos, centavos = ""] = value.split(".");
-  const amount = Number(pesos) * 100 + Number(centavos.padEnd(2, "0"));
-
-  return Number.isSafeInteger(amount) && amount > 0 ? amount : undefined;
 }
 
 export function TransactionsPage() {

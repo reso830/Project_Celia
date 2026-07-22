@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DomainValidationError,
   createTransaction,
+  parsePhpAmount,
 } from "../../src/domain/index.js";
 
 const income = {
@@ -16,6 +17,21 @@ const income = {
 };
 
 describe("transactions", () => {
+  it.each([
+    ["12", 1_200],
+    ["12.5", 1_250],
+    ["12.50", 1_250],
+  ])("parses PHP decimal amount %s into minor units", (value, expected) => {
+    expect(parsePhpAmount(value)).toBe(expected);
+  });
+
+  it.each(["", "0", "12.345", "-1", "abc"])(
+    "rejects invalid PHP decimal amount %s",
+    (value) => {
+      expect(parsePhpAmount(value)).toBeUndefined();
+    },
+  );
+
   it("creates an income transaction with a positive PHP minor-unit amount", () => {
     expect(createTransaction(income)).toEqual({ ...income, currency: "PHP" });
   });

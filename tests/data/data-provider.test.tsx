@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Category } from "@/domain/category";
 import type { Member } from "@/domain/member";
+import type { Transaction } from "@/domain/transaction";
 import {
   CELIA_DATABASE_NAME,
   DataProvider,
@@ -77,6 +78,38 @@ const rentCategory: Category = {
   group: "Housing",
   name: "Rent",
 };
+
+const groceryTransaction: Transaction = {
+  id: "transaction-grocery",
+  date: "2026-07-22",
+  memberId: "member-alex",
+  categoryId: "category-groceries",
+  type: "expense",
+  amount: 1_250,
+  description: "Weekly groceries",
+  recurring: false,
+  currency: "PHP",
+};
+
+function TransactionSaveProbe() {
+  const state = useData();
+
+  if (state.status !== "ready") {
+    return <output>{state.status}</output>;
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void state.saveTransaction(groceryTransaction)}
+      >
+        Save transaction
+      </button>
+      <output>{`transactions:${state.transactions.length}`}</output>
+    </>
+  );
+}
 
 function CategorySaveProbe() {
   const state = useData();
@@ -319,6 +352,33 @@ describe("DataProvider", () => {
       }),
     );
     expect(screen.getByText("bucket-colors:1")).toBeInTheDocument();
+  });
+
+  it("persists a transaction and adds it to ready-state transactions", async () => {
+    const saveTransaction = vi.fn().mockResolvedValue(undefined);
+    const dataRepositories = repositories({
+      transactions: {
+        get: vi.fn(),
+        list: vi.fn().mockResolvedValue([]),
+        save: saveTransaction,
+        delete: vi.fn(),
+      },
+    });
+
+    render(
+      <DataProvider createRepositories={() => dataRepositories}>
+        <TransactionSaveProbe />
+      </DataProvider>,
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Save transaction" }),
+    );
+
+    await waitFor(() =>
+      expect(saveTransaction).toHaveBeenCalledWith(groceryTransaction),
+    );
+    expect(screen.getByText("transactions:1")).toBeInTheDocument();
   });
 
   it("publishes an error when initialization fails", async () => {

@@ -111,6 +111,26 @@ function TransactionSaveProbe() {
   );
 }
 
+function TransactionDeleteProbe() {
+  const state = useData();
+
+  if (state.status !== "ready") {
+    return <output>{state.status}</output>;
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => void state.deleteTransaction("transaction-grocery")}
+      >
+        Delete transaction
+      </button>
+      <output>{`transactions:${state.transactions.length}`}</output>
+    </>
+  );
+}
+
 function CategorySaveProbe() {
   const state = useData();
 
@@ -379,6 +399,33 @@ describe("DataProvider", () => {
       expect(saveTransaction).toHaveBeenCalledWith(groceryTransaction),
     );
     expect(screen.getByText("transactions:1")).toBeInTheDocument();
+  });
+
+  it("deletes a persisted transaction and removes it from ready state", async () => {
+    const remove = vi.fn().mockResolvedValue(undefined);
+    const dataRepositories = repositories({
+      transactions: {
+        get: vi.fn(),
+        list: vi.fn().mockResolvedValue([groceryTransaction]),
+        save: vi.fn(),
+        delete: remove,
+      },
+    });
+
+    render(
+      <DataProvider createRepositories={() => dataRepositories}>
+        <TransactionDeleteProbe />
+      </DataProvider>,
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Delete transaction" }),
+    );
+
+    await waitFor(() =>
+      expect(remove).toHaveBeenCalledWith("transaction-grocery"),
+    );
+    expect(screen.getByText("transactions:0")).toBeInTheDocument();
   });
 
   it("publishes an error when initialization fails", async () => {

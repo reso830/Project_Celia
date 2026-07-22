@@ -13,6 +13,6 @@ describe("ForecastPlaceholder", () => {
     expect(callout).toHaveTextContent(
       "forecasting projected balances from your recurring income and expenses.",
     );
-    expect(callout).toHaveClass("border-dashed", "border-[#c3ccd6]");
+    expect(callout).toHaveClass("mt-6", "border-dashed", "border-[#c3ccd6]");
   });
 });

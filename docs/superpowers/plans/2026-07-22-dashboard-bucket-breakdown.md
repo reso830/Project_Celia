@@ -206,4 +206,3 @@ Expected: all tests and the production build pass.
 Run: `git diff HEAD~3..HEAD --check; git status --short`
 
 Expected: no whitespace errors and no unintended uncommitted files.
-

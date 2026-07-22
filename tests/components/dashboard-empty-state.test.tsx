@@ -89,10 +89,88 @@ describe("DashboardEmptyState", () => {
       await screen.findByRole("heading", { name: "Celia" }),
     ).toBeInTheDocument();
     expect(screen.getByText("No bucket groups yet.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "No transactions yet. Add transactions to see your monthly income and expenses.",
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute(
       "href",
       "/settings",
     );
+  });
+
+  it("renders monthly income and expense chart data", async () => {
+    const transactions: readonly Transaction[] = [
+      {
+        id: "salary",
+        date: "2026-07-01",
+        memberId: "alex",
+        categoryId: "salary",
+        type: "income",
+        amount: 500_000,
+        recurring: false,
+        currency: "PHP",
+      },
+      {
+        id: "food",
+        date: "2026-07-12",
+        memberId: "alex",
+        categoryId: "food",
+        type: "expense",
+        amount: 12_500,
+        recurring: false,
+        currency: "PHP",
+      },
+    ];
+
+    renderDashboard(
+      repositories(undefined, undefined, undefined, transactions),
+    );
+
+    expect(
+      await screen.findByRole("region", { name: "Income vs expenses" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Jul 2026")).toBeInTheDocument();
+    expect(
+      screen.getByText("Jul 2026: Income: ₱5,000.00. Expenses: ₱125.00."),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps adjacent monthly chart bar groups from overlapping", async () => {
+    const transactions: readonly Transaction[] = Array.from(
+      { length: 20 },
+      (_, index): Transaction => ({
+        id: `transaction-${index}`,
+        date: `${2025 + Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}-01`,
+        memberId: "alex",
+        categoryId: "salary",
+        type: index % 2 === 0 ? "income" : "expense",
+        amount: 10_000,
+        recurring: false,
+        currency: "PHP",
+      }),
+    );
+    const { container } = renderDashboard(
+      repositories(undefined, undefined, undefined, transactions),
+    );
+
+    await screen.findByRole("region", { name: "Income vs expenses" });
+    const bars = Array.from(container.querySelectorAll("svg rect")).map(
+      (bar) => ({
+        x: Number(bar.getAttribute("x")),
+        width: Number(bar.getAttribute("width")),
+      }),
+    );
+
+    for (let month = 0; month < 19; month += 1) {
+      const currentExpense = bars[month * 2 + 1];
+      const nextIncome = bars[(month + 1) * 2];
+
+      expect(currentExpense.x + currentExpense.width).toBeLessThanOrEqual(
+        nextIncome.x,
+      );
+    }
   });
 
   it("renders configured bucket groups", async () => {
@@ -124,8 +202,10 @@ describe("DashboardEmptyState", () => {
     );
 
     expect(await screen.findByText("₱5,000.00")).toBeInTheDocument();
-    expect(screen.getByText("Income")).toBeInTheDocument();
-    expect(screen.getByText("Expenses")).toBeInTheDocument();
+    expect(screen.getByText("Income", { selector: "dt" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Expenses", { selector: "dt" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("₱1,250.00")).toBeInTheDocument();
     expect(screen.getByText("Net")).toBeInTheDocument();
     expect(screen.getByText("₱3,750.00")).toBeInTheDocument();
@@ -136,7 +216,9 @@ describe("DashboardEmptyState", () => {
   it("renders zero financial metrics without transactions", async () => {
     renderDashboard();
 
-    expect(await screen.findByText("Income")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Income", { selector: "dt" }),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("₱0.00")).toHaveLength(3);
     expect(screen.getByText("0%")).toBeInTheDocument();
   });

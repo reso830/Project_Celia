@@ -3,6 +3,7 @@
 import { AppHeader } from "@/components/app-header";
 import { BucketGroupGrid } from "@/components/bucket-group-grid";
 import { FinancialSummaryCards } from "@/components/financial-summary-cards";
+import { IncomeExpenseChart } from "@/components/income-expense-chart";
 import { useData } from "@/data";
 
 export function DashboardEmptyState() {
@@ -26,6 +27,7 @@ export function DashboardEmptyState() {
           >
             Celia
           </h1>
+          <IncomeExpenseChart transactions={transactions} />
           <FinancialSummaryCards transactions={transactions} />
           <h2 className="mt-6 text-base font-bold text-[#16213f]">
             Bucket groups

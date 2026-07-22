@@ -89,10 +89,57 @@ describe("DashboardEmptyState", () => {
       await screen.findByRole("heading", { name: "Celia" }),
     ).toBeInTheDocument();
     expect(screen.getByText("No bucket groups yet.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "No transactions yet. Add transactions to see your monthly income and expenses.",
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute(
       "href",
       "/settings",
     );
+  });
+
+  it("renders monthly income and expense chart data", async () => {
+    const transactions: readonly Transaction[] = [
+      {
+        id: "salary",
+        date: "2026-07-01",
+        memberId: "alex",
+        categoryId: "salary",
+        type: "income",
+        amount: 500_000,
+        recurring: false,
+        currency: "PHP",
+      },
+      {
+        id: "food",
+        date: "2026-07-12",
+        memberId: "alex",
+        categoryId: "food",
+        type: "expense",
+        amount: 12_500,
+        recurring: false,
+        currency: "PHP",
+      },
+    ];
+
+    renderDashboard(
+      repositories(
+        undefined,
+        undefined,
+        undefined,
+        transactions,
+      ),
+    );
+
+    expect(
+      await screen.findByRole("region", { name: "Income vs expenses" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Jul 2026")).toBeInTheDocument();
+    expect(
+      screen.getByText("Jul 2026: Income: ₱5,000.00. Expenses: ₱125.00."),
+    ).toBeInTheDocument();
   });
 
   it("renders configured bucket groups", async () => {

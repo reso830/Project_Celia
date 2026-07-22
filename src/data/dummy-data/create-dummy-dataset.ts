@@ -111,7 +111,7 @@ export function createDummyDataset({
     ),
     ...Object.keys(expenseGroups).map((name) =>
       createBucketGroup({
-        id: `expense-${name}`.toLocaleLowerCase(),
+        id: `expense-${name}`.toLocaleLowerCase().replaceAll(" ", "-"),
         type: "expense",
         name,
       }),
@@ -155,13 +155,17 @@ export function createDummyDataset({
     recurring: boolean,
     description: string,
   ) => {
+    if (day > maxDay) {
+      return;
+    }
+
     const [year, month] = monthKey.split("-").map(Number);
     transactions.push(
       createTransaction({
         id: `transaction-${monthKey}-${name}-${memberId}-${transactions.length + 1}`
           .toLocaleLowerCase()
           .replaceAll(" ", "-"),
-        date: isoDate(year, month, Math.min(day, maxDay)),
+        date: isoDate(year, month, day),
         memberId,
         categoryId: categoryId(type, group, name),
         type,

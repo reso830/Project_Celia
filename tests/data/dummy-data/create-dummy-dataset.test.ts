@@ -48,4 +48,13 @@ describe("createDummyDataset", () => {
       ),
     ).toBe(true);
   });
+
+  it("omits current-month transactions scheduled after the reference day", () => {
+    const transactions = createDummyDataset({
+      referenceDate: "2026-07-03",
+    }).transactions.filter(({ date }) => date.startsWith("2026-07-"));
+
+    expect(transactions.map(({ date }) => date)).not.toContain("2026-07-03");
+    expect(transactions).toHaveLength(3);
+  });
 });

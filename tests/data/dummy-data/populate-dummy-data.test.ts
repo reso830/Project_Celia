@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createDummyDataset,
   clearCeliaData,
@@ -40,7 +40,10 @@ function sortedByBucket<TEntity extends { bucket: string }>(
 
 describe("dummy data population", () => {
   beforeEach(deleteCeliaDatabase);
-  afterEach(deleteCeliaDatabase);
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await deleteCeliaDatabase();
+  });
 
   it("replaces all existing records with the generated dataset", async () => {
     await new IndexedDbMemberRepository().save({
@@ -87,5 +90,24 @@ describe("dummy data population", () => {
     await expect(new IndexedDbTransactionRepository().list()).resolves.toEqual(
       [],
     );
+  });
+
+  it("preserves existing records when a write fails", async () => {
+    const member = {
+      id: "existing-member",
+      name: "Existing",
+      color: "#000000",
+    };
+    await new IndexedDbMemberRepository().save(member);
+    vi.spyOn(IDBObjectStore.prototype, "put").mockImplementationOnce(() => {
+      throw new Error("Injected write failure");
+    });
+
+    await expect(
+      replaceWithDummyData({ referenceDate: "2026-07-22" }),
+    ).rejects.toThrow("Injected write failure");
+    await expect(new IndexedDbMemberRepository().list()).resolves.toEqual([
+      member,
+    ]);
   });
 });

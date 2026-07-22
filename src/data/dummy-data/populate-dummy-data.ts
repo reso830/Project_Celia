@@ -40,13 +40,21 @@ async function replaceAll(
         transaction.objectStore(name),
       ]),
     ) as Record<keyof typeof CELIA_STORES, IDBObjectStore>;
+    const completion = waitForTransaction(transaction);
 
-    for (const store of Object.values(stores)) {
-      requestFailureAborts(transaction, store.clear());
+    try {
+      for (const store of Object.values(stores)) {
+        requestFailureAborts(transaction, store.clear());
+      }
+
+      writeRecords(stores);
+    } catch (cause) {
+      transaction.abort();
+      await completion.catch(() => undefined);
+      throw cause;
     }
 
-    writeRecords(stores);
-    await waitForTransaction(transaction);
+    await completion;
   } finally {
     database.close();
   }

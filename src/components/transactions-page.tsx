@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -284,17 +285,31 @@ export function TransactionsPage() {
     );
   }
 
-  const filteredTransactions = filterTransactions(
-    transactions,
-    {
-      search,
-      memberId: filterMemberId,
-      type: filterType,
-      bucket: filterBucket,
+  const filteredTransactions = useMemo(
+    () =>
+      filterTransactions(
+        transactions,
+        {
+          search,
+          memberId: filterMemberId,
+          type: filterType,
+          bucket: filterBucket,
+          fromDate,
+          toDate,
+        },
+        { memberName, bucketName, categoryName },
+      ),
+    [
+      categories,
+      filterBucket,
+      filterMemberId,
+      filterType,
       fromDate,
+      members,
+      search,
       toDate,
-    },
-    { memberName, bucketName, categoryName },
+      transactions,
+    ],
   );
   const filterBuckets = [
     ...new Set(categories.map((category) => category.group)),

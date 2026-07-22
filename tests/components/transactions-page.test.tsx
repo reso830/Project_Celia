@@ -148,7 +148,10 @@ function renderTransactions(data: Parameters<typeof repositoriesWith>[0] = {}) {
     </DataProvider>,
   );
 
-  return { transactionSave: dataRepositories.transactions.save };
+  return {
+    transactionDelete: dataRepositories.transactions.delete,
+    transactionSave: dataRepositories.transactions.save,
+  };
 }
 
 async function completeExpenseForm(user: ReturnType<typeof userEvent.setup>) {
@@ -229,6 +232,74 @@ describe("TransactionsPage", () => {
       screen.getByRole("cell", { name: "Weekly groceries" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "₱12.50" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit Weekly groceries" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete Weekly groceries" }),
+    ).toBeInTheDocument();
+  });
+
+  it("edits a transaction using the prefilled transaction dialog", async () => {
+    const user = userEvent.setup();
+    const { transactionSave } = renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "Edit Weekly groceries" }),
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: "Edit Transaction" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Date")).toHaveValue("2026-07-22");
+    expect(screen.getByLabelText("Member")).toHaveValue("member-alex");
+    expect(screen.getByLabelText("Amount")).toHaveValue("12.50");
+
+    await user.clear(screen.getByLabelText("Amount"));
+    await user.type(screen.getByLabelText("Amount"), "24.75");
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() =>
+      expect(transactionSave).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "transaction-grocery", amount: 2_475 }),
+      ),
+    );
+    expect(screen.getByRole("cell", { name: "₱24.75" })).toBeInTheDocument();
+  });
+
+  it("requires confirmation before deleting a transaction", async () => {
+    const user = userEvent.setup();
+    const { transactionDelete } = renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+
+    const deleteButton = await screen.findByRole("button", {
+      name: "Delete Weekly groceries",
+    });
+    await user.click(deleteButton);
+    expect(
+      screen.getByRole("dialog", { name: "Delete transaction?" }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(transactionDelete).not.toHaveBeenCalled();
+    expect(screen.getByRole("cell", { name: "Weekly groceries" })).toBeInTheDocument();
+
+    await user.click(deleteButton);
+    await user.click(screen.getByRole("button", { name: "Delete transaction" }));
+
+    await waitFor(() =>
+      expect(transactionDelete).toHaveBeenCalledWith("transaction-grocery"),
+    );
+    expect(
+      screen.queryByRole("cell", { name: "Weekly groceries" }),
+    ).not.toBeInTheDocument();
   });
 
   it("searches transactions and applies member, type, bucket, and date filters", async () => {

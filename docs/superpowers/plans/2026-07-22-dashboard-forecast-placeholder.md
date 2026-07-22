@@ -47,7 +47,9 @@ describe("ForecastPlaceholder", () => {
   it("renders the prototype roadmap callout", () => {
     render(<ForecastPlaceholder />);
 
-    const callout = screen.getByRole("note", { name: "Forecast roadmap" });
+    const callout = screen.getByRole("complementary", {
+      name: "Forecast roadmap",
+    });
 
     expect(callout).toHaveTextContent("Coming soon —");
     expect(callout).toHaveTextContent(
@@ -123,7 +125,7 @@ expect(forecastCallout).toHaveTextContent(
 
 Run: `npm test -- tests/components/dashboard-empty-state.test.tsx -t "renders the Celia dashboard empty state"`
 
-Expected: FAIL because the dashboard does not yet render a `Forecast roadmap` note.
+Expected: FAIL because the dashboard does not yet render a `Forecast roadmap` complementary landmark.
 
 - [ ] **Step 3: Render the component after cash flow**
 

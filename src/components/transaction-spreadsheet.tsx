@@ -397,7 +397,7 @@ export function TransactionSpreadsheet({
             .filter((category) => category.type === transaction.type)
             .map((category) => (
               <option key={category.id} value={category.id}>
-                {category.group}
+                {category.group} — {category.name}
               </option>
             ))}
         </select>

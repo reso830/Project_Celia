@@ -684,6 +684,37 @@ describe("TransactionsPage", () => {
     );
   });
 
+  it("labels inline bucket options with their category names", async () => {
+    const user = userEvent.setup();
+    const produce: Category = {
+      id: "category-produce",
+      type: "expense",
+      group: "Groceries",
+      name: "Produce",
+    };
+
+    render(
+      <TransactionSpreadsheet
+        bucketName={() => "Groceries"}
+        categories={[groceries, produce]}
+        memberName={() => "Alex"}
+        members={[alex]}
+        transactions={[groceryTransaction]}
+      />,
+    );
+
+    await user.dblClick(
+      screen.getByRole("button", { name: "Bucket: Groceries" }),
+    );
+
+    expect(
+      screen.getByRole("option", { name: "Groceries — Food" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "Groceries — Produce" }),
+    ).toBeInTheDocument();
+  });
+
   it("shows required-field errors without saving", async () => {
     const user = userEvent.setup();
     const { transactionSave } = renderTransactions({

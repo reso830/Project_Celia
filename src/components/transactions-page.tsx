@@ -539,9 +539,29 @@ export function TransactionsPage() {
             >
               <TransactionSpreadsheet
                 bucketName={bucketName}
+                categories={categories}
                 memberName={memberName}
+                members={members}
                 onDelete={openDeleteDialog}
                 onEdit={openEditDialog}
+                onSave={async (transaction) => {
+                  if (state.status !== "ready") {
+                    throw new Error("Transaction data is not ready.");
+                  }
+
+                  await state.saveTransaction(
+                    createTransaction({
+                      id: transaction.id,
+                      date: transaction.date,
+                      memberId: transaction.memberId,
+                      categoryId: transaction.categoryId,
+                      type: transaction.type,
+                      amount: transaction.amount,
+                      description: transaction.description,
+                      recurring: transaction.recurring,
+                    }),
+                  );
+                }}
                 transactions={filteredTransactions}
               />
             </div>

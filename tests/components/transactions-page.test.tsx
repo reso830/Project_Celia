@@ -498,6 +498,98 @@ describe("TransactionsPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("enters a visible spreadsheet cell with Enter or double click", async () => {
+    const user = userEvent.setup();
+    renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "Spreadsheet" }),
+    );
+
+    const description = screen.getByRole("button", {
+      name: "Description: Weekly groceries",
+    });
+    description.focus();
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByRole("textbox", { name: "Description" })).toHaveValue(
+      "Weekly groceries",
+    );
+
+    await user.dblClick(
+      screen.getByRole("button", { name: "Date: 2026-07-22" }),
+    );
+    expect(screen.getByLabelText("Date")).toHaveValue("2026-07-22");
+  });
+
+  it("saves inline amount edits and moves down to the same column", async () => {
+    const user = userEvent.setup();
+    const { transactionSave } = renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction, juneGroceries],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "Spreadsheet" }),
+    );
+    await user.dblClick(
+      screen.getAllByRole("button", { name: "Expense: ₱12.50" })[0],
+    );
+    await user.clear(screen.getByRole("textbox", { name: "Expense" }));
+    await user.type(screen.getByRole("textbox", { name: "Expense" }), "24.75");
+    await user.keyboard("{Enter}");
+
+    await waitFor(() =>
+      expect(transactionSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: groceryTransaction.id,
+          amount: 2_475,
+        }),
+      ),
+    );
+    expect(
+      screen.getByRole("button", { name: "Expense: ₱24.75" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Expense: ₱25.00" }),
+    ).toHaveFocus();
+  });
+
+  it("cancels inline edits and keeps the original value", async () => {
+    const user = userEvent.setup();
+    const { transactionSave } = renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "Spreadsheet" }),
+    );
+    const description = screen.getByRole("button", {
+      name: "Description: Weekly groceries",
+    });
+    await user.dblClick(description);
+    await user.clear(screen.getByRole("textbox", { name: "Description" }));
+    await user.type(
+      screen.getByRole("textbox", { name: "Description" }),
+      "Market run",
+    );
+    await user.keyboard("{Escape}");
+
+    const restoredDescription = screen.getByRole("button", {
+      name: "Description: Weekly groceries",
+    });
+    expect(transactionSave).not.toHaveBeenCalled();
+    expect(restoredDescription).toHaveFocus();
+    expect(restoredDescription).toHaveTextContent("Weekly groceries");
+  });
+
   it("shows required-field errors without saving", async () => {
     const user = userEvent.setup();
     const { transactionSave } = renderTransactions({

@@ -1,0 +1,51 @@
+# CELIA-012 - Add Transaction
+
+## Epic
+
+Transactions
+
+## Goal
+
+Allow users to create new transactions.
+
+## User Story
+
+As a user,
+I want to record income and expenses
+so that I can track my finances.
+
+## Scope
+
+Implement the Add Transaction modal.
+
+Fields:
+
+- Date
+- Member
+- Income / Expense
+- Bucket
+- Subcategory
+- Amount
+- Notes
+- Recurring toggle
+
+Persist the transaction.
+
+## Acceptance Criteria
+
+- [ ] Transaction modal implemented
+- [ ] Validation for required fields
+- [ ] Transaction saved
+- [ ] Persistence verified
+- [ ] Transaction appears in list
+- [ ] Tests added
+- [ ] Verification pipeline passes
+
+## Dependencies
+
+- CELIA-011
+
+## Out of Scope
+
+- Editing
+- Spreadsheet

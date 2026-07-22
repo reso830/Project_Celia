@@ -141,6 +141,8 @@ export function TransactionsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const deleteDialogRef = useRef<HTMLDivElement>(null);
+  const deleteCancelRef = useRef<HTMLButtonElement>(null);
   const isSavingRef = useRef(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const members = state.status === "ready" ? state.members : emptyMembers;
@@ -240,12 +242,23 @@ export function TransactionsPage() {
     };
   }, [isDialogOpen]);
 
-  function trapDialogFocus(event: KeyboardEvent<HTMLDivElement>) {
+  useEffect(() => {
+    if (!transactionPendingDeletion) {
+      return;
+    }
+
+    deleteCancelRef.current?.focus();
+  }, [transactionPendingDeletion]);
+
+  function trapDialogFocus(
+    event: KeyboardEvent<HTMLDivElement>,
+    focusContainer = dialogRef,
+  ) {
     if (event.key !== "Tab") {
       return;
     }
 
-    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+    const focusable = focusContainer.current?.querySelectorAll<HTMLElement>(
       "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])",
     );
     if (!focusable?.length) {
@@ -330,7 +343,7 @@ export function TransactionsPage() {
     setDeleteError("");
     try {
       await state.deleteTransaction(transactionPendingDeletion.id);
-      setTransactionPendingDeletion(undefined);
+      closeDeleteDialog();
     } catch {
       setDeleteError("Unable to delete this transaction. Please try again.");
     } finally {
@@ -797,6 +810,8 @@ export function TransactionsPage() {
               aria-labelledby="delete-transaction-title"
               aria-modal="true"
               className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+              onKeyDown={(event) => trapDialogFocus(event, deleteDialogRef)}
+              ref={deleteDialogRef}
               role="dialog"
             >
               <h2
@@ -821,6 +836,7 @@ export function TransactionsPage() {
                   className="rounded-lg border border-[#d6dae1] px-3 py-2 text-sm font-semibold text-[#3a4459]"
                   disabled={isDeleting}
                   onClick={closeDeleteDialog}
+                  ref={deleteCancelRef}
                   type="button"
                 >
                   Cancel

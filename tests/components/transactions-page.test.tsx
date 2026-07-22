@@ -306,6 +306,62 @@ describe("TransactionsPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("moves focus into the delete confirmation and traps it", async () => {
+    const user = userEvent.setup();
+    renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "Delete Weekly groceries" }),
+    );
+
+    expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(
+      screen.getByRole("button", { name: "Delete transaction" }),
+    ).toHaveFocus();
+  });
+
+  it("keeps the delete confirmation open when deletion fails", async () => {
+    const user = userEvent.setup();
+    const dataRepositories = repositoriesWith({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+    dataRepositories.transactions.delete = vi
+      .fn()
+      .mockRejectedValue(new Error("IndexedDB unavailable"));
+
+    render(
+      <DataProvider createRepositories={() => dataRepositories}>
+        <TransactionsPage />
+      </DataProvider>,
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: "Delete Weekly groceries" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Delete transaction" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Unable to delete this transaction. Please try again.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Delete transaction?" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("cell", { name: "Weekly groceries" }),
+    ).toBeInTheDocument();
+  });
+
   it("searches transactions and applies member, type, bucket, and date filters", async () => {
     const user = userEvent.setup();
     renderTransactions({

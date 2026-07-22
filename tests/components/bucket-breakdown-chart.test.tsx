@@ -31,10 +31,11 @@ describe("BucketBreakdownChart", () => {
   it("renders an empty state without a chart when no expense totals exist", () => {
     render(<BucketBreakdownChart breakdown={[]} bucketColors={[]} />);
 
-    expect(screen.getByText("No expense transactions yet.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No expense transactions yet."),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("img", { name: "Expense breakdown" }),
     ).not.toBeInTheDocument();
   });
 });
-

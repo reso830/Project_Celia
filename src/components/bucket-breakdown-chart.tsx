@@ -46,7 +46,14 @@ export function BucketBreakdownChart({
   const colors = new Map(
     bucketColors.map(({ bucket, color }) => [normalize(bucket), color]),
   );
-  let offset = 0;
+  const slices = breakdown.map(({ bucket, amount }, index) => ({
+    bucket,
+    amount,
+    percentage: (amount / total) * 100,
+    offset: breakdown
+      .slice(0, index)
+      .reduce((sum, item) => sum + (item.amount / total) * 100, 0),
+  }));
 
   return (
     <section
@@ -74,8 +81,7 @@ export function BucketBreakdownChart({
             stroke="#eef0f3"
             strokeWidth="20"
           />
-          {breakdown.map(({ bucket, amount }) => {
-            const percentage = (amount / total) * 100;
+          {slices.map(({ bucket, percentage, offset }) => {
             const color =
               colors.get(normalize(expenseBucketColorKey(bucket))) ??
               colors.get(normalize(bucket)) ??
@@ -96,7 +102,6 @@ export function BucketBreakdownChart({
                 transform="rotate(-90 60 60)"
               />
             );
-            offset += percentage;
             return slice;
           })}
           <text
@@ -109,13 +114,7 @@ export function BucketBreakdownChart({
           >
             Expenses
           </text>
-          <text
-            fill="#6b7686"
-            fontSize="10"
-            textAnchor="middle"
-            x="60"
-            y="71"
-          >
+          <text fill="#6b7686" fontSize="10" textAnchor="middle" x="60" y="71">
             {currencyFormatter.format(total / 100)}
           </text>
         </svg>
@@ -128,7 +127,10 @@ export function BucketBreakdownChart({
               fallbackColor;
 
             return (
-              <li className="flex items-center justify-between gap-3" key={bucket}>
+              <li
+                className="flex items-center justify-between gap-3"
+                key={bucket}
+              >
                 <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-[#16213f]">
                   <span
                     aria-hidden="true"

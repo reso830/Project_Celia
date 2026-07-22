@@ -73,4 +73,3 @@ describe("calculateBucketBreakdown", () => {
     expect(calculateBucketBreakdown([], categories)).toEqual([]);
   });
 });
-

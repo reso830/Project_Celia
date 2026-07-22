@@ -46,4 +46,3 @@ export function calculateBucketBreakdown(
       right.amount - left.amount || left.bucket.localeCompare(right.bucket),
   );
 }
-

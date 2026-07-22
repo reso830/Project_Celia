@@ -5,4 +5,5 @@ export * from "./category-type";
 export * from "./category";
 export * from "./errors";
 export * from "./member";
+export * from "./php-amount";
 export * from "./transaction";

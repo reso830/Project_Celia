@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import type { Transaction } from "@/domain";
 
 const columns = [
@@ -83,7 +83,10 @@ export function TransactionSpreadsheet({
   memberName,
   bucketName,
 }: TransactionSpreadsheetProps) {
-  const monthGroups = groupTransactionsByMonth(transactions);
+  const monthGroups = useMemo(
+    () => groupTransactionsByMonth(transactions),
+    [transactions],
+  );
 
   return (
     <table className="w-full min-w-[900px] border-collapse text-left text-sm">

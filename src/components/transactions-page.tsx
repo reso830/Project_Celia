@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
 import { AppHeader } from "@/components/app-header";
 import { useData } from "@/data";
 import { createTransaction, type CategoryType } from "@/domain";
@@ -47,6 +53,10 @@ export function TransactionsPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const isSavingRef = useRef(false);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const members = state.status === "ready" ? state.members : [];
   const categories = state.status === "ready" ? state.categories : [];
   const transactions = state.status === "ready" ? state.transactions : [];
@@ -80,6 +90,10 @@ export function TransactionsPage() {
   }
 
   function openDialog() {
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     resetForm();
     setIsDialogOpen(true);
   }
@@ -89,8 +103,48 @@ export function TransactionsPage() {
     resetForm();
   }
 
+  useEffect(() => {
+    if (!isDialogOpen) {
+      return;
+    }
+
+    dateInputRef.current?.focus();
+
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, [isDialogOpen]);
+
+  function trapDialogFocus(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+      "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])",
+    );
+    if (!focusable?.length) {
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   async function saveTransaction(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSavingRef.current) {
+      return;
+    }
+
     const parsedAmount = parsePhpAmount(amount);
     const nextErrors: FormErrors = {};
 
@@ -118,6 +172,7 @@ export function TransactionsPage() {
       return;
     }
 
+    isSavingRef.current = true;
     setIsSaving(true);
     try {
       await state.saveTransaction(
@@ -136,6 +191,7 @@ export function TransactionsPage() {
     } catch {
       setSubmitError("Unable to save this transaction. Please try again.");
     } finally {
+      isSavingRef.current = false;
       setIsSaving(false);
     }
   }
@@ -146,7 +202,7 @@ export function TransactionsPage() {
     );
   }
 
-  function categoryName(categoryId: string): string {
+  function bucketName(categoryId: string): string {
     return (
       categories.find((category) => category.id === categoryId)?.group ??
       "Unknown bucket"
@@ -250,7 +306,7 @@ export function TransactionsPage() {
                         {memberName(transaction.memberId)}
                       </td>
                       <td className="px-4 py-3">
-                        {categoryName(transaction.categoryId)}
+                        {bucketName(transaction.categoryId)}
                       </td>
                       <td className="px-4 py-3">
                         {transaction.description || "—"}
@@ -277,6 +333,8 @@ export function TransactionsPage() {
               aria-labelledby="add-transaction-title"
               aria-modal="true"
               className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl"
+              onKeyDown={trapDialogFocus}
+              ref={dialogRef}
               role="dialog"
             >
               <div className="flex items-center justify-between gap-4">
@@ -312,6 +370,7 @@ export function TransactionsPage() {
                     <input
                       className="mt-1 w-full rounded-lg border border-[#d6dae1] px-3 py-2"
                       onChange={(event) => setDate(event.target.value)}
+                      ref={dateInputRef}
                       type="date"
                       value={date}
                     />

@@ -1,4 +1,10 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { TransactionsPage } from "@/components/transactions-page";
@@ -85,6 +91,16 @@ function renderTransactions(data: Parameters<typeof repositoriesWith>[0] = {}) {
   );
 
   return { transactionSave: dataRepositories.transactions.save };
+}
+
+async function completeExpenseForm(user: ReturnType<typeof userEvent.setup>) {
+  await user.selectOptions(screen.getByLabelText("Member"), "member-alex");
+  await user.selectOptions(screen.getByLabelText("Bucket"), "Groceries");
+  await user.selectOptions(
+    screen.getByLabelText("Subcategory"),
+    "category-groceries",
+  );
+  await user.type(screen.getByLabelText("Amount"), "12.50");
 }
 
 describe("TransactionsPage", () => {
@@ -185,13 +201,7 @@ describe("TransactionsPage", () => {
     await user.click(
       await screen.findByRole("button", { name: "+ Add Transaction" }),
     );
-    await user.selectOptions(screen.getByLabelText("Member"), "member-alex");
-    await user.selectOptions(screen.getByLabelText("Bucket"), "Groceries");
-    await user.selectOptions(
-      screen.getByLabelText("Subcategory"),
-      "category-groceries",
-    );
-    await user.type(screen.getByLabelText("Amount"), "12.50");
+    await completeExpenseForm(user);
     await user.type(screen.getByLabelText("Notes"), "Weekly groceries");
     await user.click(screen.getByRole("checkbox", { name: "Recurring" }));
     await user.click(screen.getByRole("button", { name: "Save transaction" }));
@@ -216,5 +226,61 @@ describe("TransactionsPage", () => {
     expect(
       screen.getByRole("cell", { name: "Weekly groceries" }),
     ).toBeInTheDocument();
+  });
+
+  it("saves an in-flight transaction only once", async () => {
+    const user = userEvent.setup();
+    let resolveSave: (() => void) | undefined;
+    const dataRepositories = repositoriesWith({
+      members: [alex],
+      categories: [groceries],
+    });
+    const transactionSave = vi.fn(
+      () => new Promise<void>((resolve) => (resolveSave = resolve)),
+    );
+    dataRepositories.transactions.save = transactionSave;
+
+    render(
+      <DataProvider createRepositories={() => dataRepositories}>
+        <TransactionsPage />
+      </DataProvider>,
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: "+ Add Transaction" }),
+    );
+    await completeExpenseForm(user);
+    const form = (
+      screen.getByRole("button", {
+        name: "Save transaction",
+      }) as HTMLButtonElement
+    ).form as HTMLFormElement;
+
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    await waitFor(() => expect(transactionSave).toHaveBeenCalledTimes(1));
+    resolveSave?.();
+  });
+
+  it("moves focus into the dialog, traps it, and restores it on close", async () => {
+    const user = userEvent.setup();
+    renderTransactions({ members: [alex], categories: [groceries] });
+
+    const trigger = await screen.findByRole("button", {
+      name: "+ Add Transaction",
+    });
+    await user.click(trigger);
+
+    expect(screen.getByLabelText("Date")).toHaveFocus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(screen.getByRole("button", { name: "Close" })).toHaveFocus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(
+      screen.getByRole("button", { name: "Save transaction" }),
+    ).toHaveFocus();
+
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(trigger).toHaveFocus();
   });
 });

@@ -116,8 +116,9 @@ export function TransactionsPage() {
   const [editingTransaction, setEditingTransaction] = useState<
     Transaction | undefined
   >(undefined);
-  const [transactionPendingDeletion, setTransactionPendingDeletion] =
-    useState<Transaction | undefined>(undefined);
+  const [transactionPendingDeletion, setTransactionPendingDeletion] = useState<
+    Transaction | undefined
+  >(undefined);
   const [deleteError, setDeleteError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [view, setView] = useState<TransactionView>("list");
@@ -321,11 +322,7 @@ export function TransactionsPage() {
   }
 
   async function confirmDelete() {
-    if (
-      !transactionPendingDeletion ||
-      state.status !== "ready" ||
-      isDeleting
-    ) {
+    if (!transactionPendingDeletion || state.status !== "ready" || isDeleting) {
       return;
     }
 
@@ -809,9 +806,10 @@ export function TransactionsPage() {
                 Delete transaction?
               </h2>
               <p className="mt-3 text-sm text-[#3a4459]">
-                Delete {transactionPendingDeletion.date}: {" "}
+                Delete {transactionPendingDeletion.date}:{" "}
                 {transactionPendingDeletion.description ||
-                  bucketName(transactionPendingDeletion.categoryId)}?
+                  bucketName(transactionPendingDeletion.categoryId)}
+                ?
               </p>
               {deleteError ? (
                 <p className="mt-3 rounded-lg bg-[#fef2f2] p-3 text-sm text-[#b42318]">

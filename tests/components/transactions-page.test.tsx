@@ -289,10 +289,14 @@ describe("TransactionsPage", () => {
 
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(transactionDelete).not.toHaveBeenCalled();
-    expect(screen.getByRole("cell", { name: "Weekly groceries" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("cell", { name: "Weekly groceries" }),
+    ).toBeInTheDocument();
 
     await user.click(deleteButton);
-    await user.click(screen.getByRole("button", { name: "Delete transaction" }));
+    await user.click(
+      screen.getByRole("button", { name: "Delete transaction" }),
+    );
 
     await waitFor(() =>
       expect(transactionDelete).toHaveBeenCalledWith("transaction-grocery"),

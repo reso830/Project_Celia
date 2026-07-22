@@ -72,4 +72,24 @@ describe("calculateBucketBreakdown", () => {
   it("returns no buckets when there are no matching expense transactions", () => {
     expect(calculateBucketBreakdown([], categories)).toEqual([]);
   });
+
+  it("merges transactions from distinct categories with the same normalized bucket", () => {
+    const housingCategories: readonly Category[] = [
+      { id: "rent", type: "expense", group: "Housing", name: "Rent" },
+      {
+        id: "utilities",
+        type: "expense",
+        group: "housing",
+        name: "Utilities",
+      },
+    ];
+    const housingTransactions: readonly Transaction[] = [
+      { ...transactions[0], categoryId: "rent", amount: 2_000 },
+      { ...transactions[1], categoryId: "utilities", amount: 1_000 },
+    ];
+
+    expect(
+      calculateBucketBreakdown(housingTransactions, housingCategories),
+    ).toEqual([{ bucket: "Housing", amount: 3_000 }]);
+  });
 });

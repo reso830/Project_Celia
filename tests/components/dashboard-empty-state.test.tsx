@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { DashboardEmptyState } from "@/components/dashboard-empty-state";
 import { DataProvider, type DataRepositories } from "@/data";
@@ -208,8 +208,9 @@ describe("DashboardEmptyState", () => {
       screen.getByText("Expenses", { selector: "dt" }),
     ).toBeInTheDocument();
     expect(screen.getByText("₱1,250.00")).toBeInTheDocument();
-    expect(screen.getByText("Net")).toBeInTheDocument();
-    expect(screen.getByText("₱3,750.00")).toBeInTheDocument();
+    const netCard = screen.getByText("Net").parentElement;
+    expect(netCard).not.toBeNull();
+    expect(within(netCard!).getByText("₱3,750.00")).toBeInTheDocument();
     expect(screen.getByText("Savings Rate")).toBeInTheDocument();
     expect(screen.getByText("75%")).toBeInTheDocument();
   });

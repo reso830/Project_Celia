@@ -55,9 +55,7 @@ describe("CashFlowChart", () => {
   it("renders the current balance and one point label per calendar date", () => {
     render(<CashFlowChart transactions={[income, expense, earlierExpense]} />);
 
-    expect(
-      screen.getByRole("img", { name: "Cash flow" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Cash flow" })).toBeInTheDocument();
     expect(screen.getByText("₱65.00")).toBeInTheDocument();
     expect(screen.getByText("2026-07-01: -₱10.00")).toBeInTheDocument();
     expect(screen.getByText("2026-07-03: ₱65.00")).toBeInTheDocument();

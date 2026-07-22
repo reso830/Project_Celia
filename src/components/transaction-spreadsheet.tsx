@@ -9,6 +9,7 @@ const columns = [
   "Income",
   "Expense",
   "Recurring",
+  "Actions",
 ];
 
 const currencyFormatter = new Intl.NumberFormat("en-PH", {
@@ -20,6 +21,8 @@ type TransactionSpreadsheetProps = {
   transactions: readonly Transaction[];
   memberName: (memberId: string) => string;
   bucketName: (categoryId: string) => string;
+  onEdit?: (transaction: Transaction) => void;
+  onDelete?: (transaction: Transaction) => void;
 };
 
 type TransactionMonthGroup = {
@@ -82,6 +85,8 @@ export function TransactionSpreadsheet({
   transactions,
   memberName,
   bucketName,
+  onEdit = () => undefined,
+  onDelete = () => undefined,
 }: TransactionSpreadsheetProps) {
   const monthGroups = useMemo(
     () => groupTransactionsByMonth(transactions),
@@ -152,6 +157,26 @@ export function TransactionSpreadsheet({
                   <td className="border border-[#d6dae1] px-3 py-2.5">
                     {transaction.recurring ? "Yes" : "No"}
                   </td>
+                  <td className="border border-[#d6dae1] px-3 py-2.5">
+                    <div className="flex gap-2">
+                      <button
+                        aria-label={`Edit ${transaction.description || bucketName(transaction.categoryId)}`}
+                        className="font-semibold text-[#16213f]"
+                        onClick={() => onEdit(transaction)}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        aria-label={`Delete ${transaction.description || bucketName(transaction.categoryId)}`}
+                        className="font-semibold text-[#b42318]"
+                        onClick={() => onDelete(transaction)}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
               <tr className="bg-[#f7f9fb] font-semibold text-[#16213f]">
@@ -169,6 +194,7 @@ export function TransactionSpreadsheet({
                 <td className="border border-[#d6dae1] px-3 py-2.5 text-right tabular-nums">
                   {formatAmount(group.expense)}
                 </td>
+                <td className="border border-[#d6dae1] px-3 py-2.5" />
                 <td className="border border-[#d6dae1] px-3 py-2.5" />
               </tr>
             </Fragment>

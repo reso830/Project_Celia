@@ -7,6 +7,7 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
+import { TransactionSpreadsheet } from "@/components/transaction-spreadsheet";
 import { TransactionsPage } from "@/components/transactions-page";
 import { DataProvider, type DataRepositories } from "@/data";
 import type { Category } from "@/domain/category";
@@ -147,7 +148,10 @@ function renderTransactions(data: Parameters<typeof repositoriesWith>[0] = {}) {
     </DataProvider>,
   );
 
-  return { transactionSave: dataRepositories.transactions.save };
+  return {
+    transactionDelete: dataRepositories.transactions.delete,
+    transactionSave: dataRepositories.transactions.save,
+  };
 }
 
 async function completeExpenseForm(user: ReturnType<typeof userEvent.setup>) {
@@ -161,6 +165,25 @@ async function completeExpenseForm(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("TransactionsPage", () => {
+  it("exposes edit and delete actions for spreadsheet transactions", () => {
+    render(
+      <TransactionSpreadsheet
+        bucketName={() => "Groceries"}
+        memberName={() => "Alex"}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        transactions={[groceryTransaction]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Edit Weekly groceries" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete Weekly groceries" }),
+    ).toBeInTheDocument();
+  });
+
   it("renders the transactions controls and empty table", async () => {
     renderTransactions();
 
@@ -209,6 +232,134 @@ describe("TransactionsPage", () => {
       screen.getByRole("cell", { name: "Weekly groceries" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "₱12.50" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit Weekly groceries" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete Weekly groceries" }),
+    ).toBeInTheDocument();
+  });
+
+  it("edits a transaction using the prefilled transaction dialog", async () => {
+    const user = userEvent.setup();
+    const { transactionSave } = renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "Edit Weekly groceries" }),
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: "Edit Transaction" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Date")).toHaveValue("2026-07-22");
+    expect(screen.getByLabelText("Member")).toHaveValue("member-alex");
+    expect(screen.getByLabelText("Amount")).toHaveValue("12.50");
+
+    await user.clear(screen.getByLabelText("Amount"));
+    await user.type(screen.getByLabelText("Amount"), "24.75");
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+    await waitFor(() =>
+      expect(transactionSave).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "transaction-grocery", amount: 2_475 }),
+      ),
+    );
+    expect(screen.getByRole("cell", { name: "₱24.75" })).toBeInTheDocument();
+  });
+
+  it("requires confirmation before deleting a transaction", async () => {
+    const user = userEvent.setup();
+    const { transactionDelete } = renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+
+    const deleteButton = await screen.findByRole("button", {
+      name: "Delete Weekly groceries",
+    });
+    await user.click(deleteButton);
+    expect(
+      screen.getByRole("dialog", { name: "Delete transaction?" }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(transactionDelete).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("cell", { name: "Weekly groceries" }),
+    ).toBeInTheDocument();
+
+    await user.click(deleteButton);
+    await user.click(
+      screen.getByRole("button", { name: "Delete transaction" }),
+    );
+
+    await waitFor(() =>
+      expect(transactionDelete).toHaveBeenCalledWith("transaction-grocery"),
+    );
+    expect(
+      screen.queryByRole("cell", { name: "Weekly groceries" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("moves focus into the delete confirmation and traps it", async () => {
+    const user = userEvent.setup();
+    renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "Delete Weekly groceries" }),
+    );
+
+    expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+    await user.keyboard("{Shift>}{Tab}{/Shift}");
+    expect(
+      screen.getByRole("button", { name: "Delete transaction" }),
+    ).toHaveFocus();
+  });
+
+  it("keeps the delete confirmation open when deletion fails", async () => {
+    const user = userEvent.setup();
+    const dataRepositories = repositoriesWith({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+    dataRepositories.transactions.delete = vi
+      .fn()
+      .mockRejectedValue(new Error("IndexedDB unavailable"));
+
+    render(
+      <DataProvider createRepositories={() => dataRepositories}>
+        <TransactionsPage />
+      </DataProvider>,
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: "Delete Weekly groceries" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Delete transaction" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Unable to delete this transaction. Please try again.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "Delete transaction?" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("cell", { name: "Weekly groceries" }),
+    ).toBeInTheDocument();
   });
 
   it("searches transactions and applies member, type, bucket, and date filters", async () => {

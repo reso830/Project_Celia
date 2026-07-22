@@ -27,6 +27,7 @@ const columns = [
   "Description",
   "Amount",
   "Recurring",
+  "Actions",
 ];
 
 const emptyMembers: readonly Member[] = [];
@@ -112,6 +113,14 @@ function parsePhpAmount(value: string): number | undefined {
 export function TransactionsPage() {
   const state = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<
+    Transaction | undefined
+  >(undefined);
+  const [transactionPendingDeletion, setTransactionPendingDeletion] = useState<
+    Transaction | undefined
+  >(undefined);
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [view, setView] = useState<TransactionView>("list");
   const [search, setSearch] = useState("");
   const [filterMemberId, setFilterMemberId] = useState("");
@@ -132,6 +141,8 @@ export function TransactionsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const deleteDialogRef = useRef<HTMLDivElement>(null);
+  const deleteCancelRef = useRef<HTMLButtonElement>(null);
   const isSavingRef = useRef(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const members = state.status === "ready" ? state.members : emptyMembers;
@@ -168,18 +179,55 @@ export function TransactionsPage() {
     setSubmitError("");
   }
 
-  function openDialog() {
+  function saveCurrentFocus() {
     previousFocusRef.current =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
+  }
+
+  function openDialog() {
+    saveCurrentFocus();
     resetForm();
+    setEditingTransaction(undefined);
+    setIsDialogOpen(true);
+  }
+
+  function openEditDialog(transaction: Transaction) {
+    saveCurrentFocus();
+    const category = categories.find(
+      (entry) => entry.id === transaction.categoryId,
+    );
+    setDate(transaction.date);
+    setMemberId(transaction.memberId);
+    setType(transaction.type);
+    setBucket(category?.group ?? "");
+    setCategoryId(transaction.categoryId);
+    setAmount((transaction.amount / 100).toFixed(2));
+    setNotes(transaction.description ?? "");
+    setRecurring(transaction.recurring);
+    setErrors({});
+    setSubmitError("");
+    setEditingTransaction(transaction);
     setIsDialogOpen(true);
   }
 
   function closeDialog() {
     setIsDialogOpen(false);
+    setEditingTransaction(undefined);
     resetForm();
+  }
+
+  function openDeleteDialog(transaction: Transaction) {
+    saveCurrentFocus();
+    setDeleteError("");
+    setTransactionPendingDeletion(transaction);
+  }
+
+  function closeDeleteDialog() {
+    setTransactionPendingDeletion(undefined);
+    setDeleteError("");
+    previousFocusRef.current?.focus();
   }
 
   useEffect(() => {
@@ -194,12 +242,23 @@ export function TransactionsPage() {
     };
   }, [isDialogOpen]);
 
-  function trapDialogFocus(event: KeyboardEvent<HTMLDivElement>) {
+  useEffect(() => {
+    if (!transactionPendingDeletion) {
+      return;
+    }
+
+    deleteCancelRef.current?.focus();
+  }, [transactionPendingDeletion]);
+
+  function trapDialogFocus(
+    event: KeyboardEvent<HTMLDivElement>,
+    focusContainer = dialogRef,
+  ) {
     if (event.key !== "Tab") {
       return;
     }
 
-    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+    const focusable = focusContainer.current?.querySelectorAll<HTMLElement>(
       "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])",
     );
     if (!focusable?.length) {
@@ -256,7 +315,7 @@ export function TransactionsPage() {
     try {
       await state.saveTransaction(
         createTransaction({
-          id: crypto.randomUUID(),
+          id: editingTransaction?.id ?? crypto.randomUUID(),
           date,
           memberId,
           categoryId: category.id,
@@ -272,6 +331,23 @@ export function TransactionsPage() {
     } finally {
       isSavingRef.current = false;
       setIsSaving(false);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!transactionPendingDeletion || state.status !== "ready" || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      await state.deleteTransaction(transactionPendingDeletion.id);
+      closeDeleteDialog();
+    } catch {
+      setDeleteError("Unable to delete this transaction. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -464,6 +540,8 @@ export function TransactionsPage() {
               <TransactionSpreadsheet
                 bucketName={bucketName}
                 memberName={memberName}
+                onDelete={openDeleteDialog}
+                onEdit={openEditDialog}
                 transactions={filteredTransactions}
               />
             </div>
@@ -514,6 +592,26 @@ export function TransactionsPage() {
                         <td className="px-4 py-3">
                           {transaction.recurring ? "Yes" : "No"}
                         </td>
+                        <td className="px-4 py-3">
+                          <div className="flex gap-2">
+                            <button
+                              aria-label={`Edit ${transaction.description || bucketName(transaction.categoryId)}`}
+                              className="font-semibold text-[#16213f]"
+                              onClick={() => openEditDialog(transaction)}
+                              type="button"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              aria-label={`Delete ${transaction.description || bucketName(transaction.categoryId)}`}
+                              className="font-semibold text-[#b42318]"
+                              onClick={() => openDeleteDialog(transaction)}
+                              type="button"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -525,7 +623,7 @@ export function TransactionsPage() {
         {isDialogOpen ? (
           <div className="fixed inset-0 z-10 flex items-center justify-center bg-[#12213d]/40 p-4">
             <div
-              aria-labelledby="add-transaction-title"
+              aria-labelledby="transaction-dialog-title"
               aria-modal="true"
               className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl"
               onKeyDown={trapDialogFocus}
@@ -535,9 +633,9 @@ export function TransactionsPage() {
               <div className="flex items-center justify-between gap-4">
                 <h2
                   className="text-xl font-semibold text-[#16213f]"
-                  id="add-transaction-title"
+                  id="transaction-dialog-title"
                 >
-                  Add Transaction
+                  {editingTransaction ? "Edit Transaction" : "Add Transaction"}
                 </h2>
                 <button
                   aria-label="Close"
@@ -699,10 +797,59 @@ export function TransactionsPage() {
                     disabled={Boolean(setupError) || isSaving}
                     type="submit"
                   >
-                    Save transaction
+                    {editingTransaction ? "Save changes" : "Save transaction"}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        ) : null}
+        {transactionPendingDeletion ? (
+          <div className="fixed inset-0 z-20 flex items-center justify-center bg-[#12213d]/40 p-4">
+            <div
+              aria-labelledby="delete-transaction-title"
+              aria-modal="true"
+              className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+              onKeyDown={(event) => trapDialogFocus(event, deleteDialogRef)}
+              ref={deleteDialogRef}
+              role="dialog"
+            >
+              <h2
+                className="text-xl font-semibold text-[#16213f]"
+                id="delete-transaction-title"
+              >
+                Delete transaction?
+              </h2>
+              <p className="mt-3 text-sm text-[#3a4459]">
+                Delete {transactionPendingDeletion.date}:{" "}
+                {transactionPendingDeletion.description ||
+                  bucketName(transactionPendingDeletion.categoryId)}
+                ?
+              </p>
+              {deleteError ? (
+                <p className="mt-3 rounded-lg bg-[#fef2f2] p-3 text-sm text-[#b42318]">
+                  {deleteError}
+                </p>
+              ) : null}
+              <div className="mt-5 flex justify-end gap-3">
+                <button
+                  className="rounded-lg border border-[#d6dae1] px-3 py-2 text-sm font-semibold text-[#3a4459]"
+                  disabled={isDeleting}
+                  onClick={closeDeleteDialog}
+                  ref={deleteCancelRef}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="rounded-lg bg-[#b42318] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  disabled={isDeleting}
+                  onClick={() => void confirmDelete()}
+                  type="button"
+                >
+                  Delete transaction
+                </button>
+              </div>
             </div>
           </div>
         ) : null}

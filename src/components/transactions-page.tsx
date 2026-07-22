@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { AppHeader } from "@/components/app-header";
+import { TransactionSpreadsheet } from "@/components/transaction-spreadsheet";
 import { useData } from "@/data";
 import { createTransaction, type CategoryType } from "@/domain";
 
@@ -23,6 +24,8 @@ const columns = [
 type FormErrors = Partial<
   Record<"date" | "member" | "bucket" | "subcategory" | "amount", string>
 >;
+
+type TransactionView = "list" | "spreadsheet";
 
 function today(): string {
   return new Date().toLocaleDateString("en-CA");
@@ -42,6 +45,7 @@ function parsePhpAmount(value: string): number | undefined {
 export function TransactionsPage() {
   const state = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [view, setView] = useState<TransactionView>("list");
   const [date, setDate] = useState(today);
   const [memberId, setMemberId] = useState("");
   const [type, setType] = useState<CategoryType>("expense");
@@ -232,15 +236,23 @@ export function TransactionsPage() {
               className="flex rounded-lg bg-[#e2e6eb] p-1"
             >
               <button
-                aria-pressed="true"
-                className="rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-[#12213d]"
+                aria-pressed={view === "list"}
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold ${
+                  view === "list" ? "bg-white text-[#12213d]" : "text-[#3a4459]"
+                }`}
+                onClick={() => setView("list")}
                 type="button"
               >
                 List
               </button>
               <button
-                aria-pressed="false"
-                className="rounded-md px-3 py-1.5 text-sm font-semibold text-[#3a4459]"
+                aria-pressed={view === "spreadsheet"}
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold ${
+                  view === "spreadsheet"
+                    ? "bg-white text-[#12213d]"
+                    : "text-[#3a4459]"
+                }`}
+                onClick={() => setView("spreadsheet")}
                 type="button"
               >
                 Spreadsheet
@@ -274,58 +286,71 @@ export function TransactionsPage() {
               {transactions.length === 1 ? "" : "s"}
             </p>
           </div>
-          <div className="mt-4 overflow-x-auto rounded-xl border border-[#d6dae1] bg-white">
-            <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-              <thead className="bg-[#f4f5f7] text-xs font-semibold uppercase tracking-wide text-[#6b7686]">
-                <tr>
-                  {columns.map((column) => (
-                    <th className="px-4 py-3" key={column} scope="col">
-                      {column}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.length === 0 ? (
+          {view === "spreadsheet" ? (
+            <div
+              className="mt-4 overflow-x-auto rounded-xl border border-[#d6dae1] bg-white"
+              data-testid="transaction-spreadsheet-scroll"
+            >
+              <TransactionSpreadsheet
+                bucketName={bucketName}
+                memberName={memberName}
+                transactions={transactions}
+              />
+            </div>
+          ) : (
+            <div className="mt-4 overflow-x-auto rounded-xl border border-[#d6dae1] bg-white">
+              <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+                <thead className="bg-[#f4f5f7] text-xs font-semibold uppercase tracking-wide text-[#6b7686]">
                   <tr>
-                    <td
-                      className="px-4 py-12 text-center text-[#8a93a3]"
-                      colSpan={columns.length}
-                    >
-                      No transactions match your filters.
-                    </td>
+                    {columns.map((column) => (
+                      <th className="px-4 py-3" key={column} scope="col">
+                        {column}
+                      </th>
+                    ))}
                   </tr>
-                ) : (
-                  transactions.map((transaction) => (
-                    <tr
-                      className="border-t border-[#e5e7eb]"
-                      key={transaction.id}
-                    >
-                      <td className="px-4 py-3">{transaction.date}</td>
-                      <td className="px-4 py-3">
-                        {memberName(transaction.memberId)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {bucketName(transaction.categoryId)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {transaction.description || "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        {new Intl.NumberFormat("en-PH", {
-                          style: "currency",
-                          currency: "PHP",
-                        }).format(transaction.amount / 100)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {transaction.recurring ? "Yes" : "No"}
+                </thead>
+                <tbody>
+                  {transactions.length === 0 ? (
+                    <tr>
+                      <td
+                        className="px-4 py-12 text-center text-[#8a93a3]"
+                        colSpan={columns.length}
+                      >
+                        No transactions match your filters.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ) : (
+                    transactions.map((transaction) => (
+                      <tr
+                        className="border-t border-[#e5e7eb]"
+                        key={transaction.id}
+                      >
+                        <td className="px-4 py-3">{transaction.date}</td>
+                        <td className="px-4 py-3">
+                          {memberName(transaction.memberId)}
+                        </td>
+                        <td className="px-4 py-3">
+                          {bucketName(transaction.categoryId)}
+                        </td>
+                        <td className="px-4 py-3">
+                          {transaction.description || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          {new Intl.NumberFormat("en-PH", {
+                            style: "currency",
+                            currency: "PHP",
+                          }).format(transaction.amount / 100)}
+                        </td>
+                        <td className="px-4 py-3">
+                          {transaction.recurring ? "Yes" : "No"}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
         {isDialogOpen ? (
           <div className="fixed inset-0 z-10 flex items-center justify-center bg-[#12213d]/40 p-4">

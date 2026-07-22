@@ -60,4 +60,10 @@ describe("CashFlowChart", () => {
     expect(screen.getByText("2026-07-01: -₱10.00")).toBeInTheDocument();
     expect(screen.getByText("2026-07-03: ₱65.00")).toBeInTheDocument();
   });
+
+  it("renders a visible marker for a single-day series", () => {
+    const { container } = render(<CashFlowChart transactions={[income]} />);
+
+    expect(container.querySelector("svg circle")).toBeInTheDocument();
+  });
 });

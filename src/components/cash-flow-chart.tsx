@@ -88,6 +88,14 @@ export function CashFlowChart({
         viewBox={`0 0 ${width} ${height}`}
       >
         <polyline fill="none" points={line} stroke="#2463eb" strokeWidth="4" />
+        {points.length === 1 ? (
+          <circle
+            cx={width / 2}
+            cy={height - ((points[0].balance - minimum) / range) * height}
+            fill="#2463eb"
+            r="6"
+          />
+        ) : null}
       </svg>
       <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#6b7686]">
         {points.map((point) => (

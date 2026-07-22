@@ -119,7 +119,9 @@ describe("DashboardEmptyState", () => {
   });
 
   it("renders financial metrics from all persisted transactions", async () => {
-    renderDashboard(repositories(undefined, undefined, undefined, summaryTransactions));
+    renderDashboard(
+      repositories(undefined, undefined, undefined, summaryTransactions),
+    );
 
     expect(await screen.findByText("Income")).toBeInTheDocument();
     expect(screen.getByText("₱5,000.00")).toBeInTheDocument();

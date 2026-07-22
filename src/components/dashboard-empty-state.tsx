@@ -5,6 +5,7 @@ import { BucketBreakdownChart } from "@/components/bucket-breakdown-chart";
 import { BucketGroupGrid } from "@/components/bucket-group-grid";
 import { CashFlowChart } from "@/components/cash-flow-chart";
 import { FinancialSummaryCards } from "@/components/financial-summary-cards";
+import { HouseholdComparisonChart } from "@/components/household-comparison-chart";
 import { IncomeExpenseChart } from "@/components/income-expense-chart";
 import { useData } from "@/data";
 import { calculateBucketBreakdown } from "@/domain";
@@ -12,6 +13,7 @@ import { calculateBucketBreakdown } from "@/domain";
 export function DashboardEmptyState() {
   const data = useData();
   const categories = data.status === "ready" ? data.categories : [];
+  const members = data.status === "ready" ? data.members : [];
   const transactions = data.status === "ready" ? data.transactions : [];
   const bucketColors = data.status === "ready" ? data.bucketColors : [];
   const bucketGroups = data.status === "ready" ? data.bucketGroups : [];
@@ -37,6 +39,10 @@ export function DashboardEmptyState() {
           <BucketBreakdownChart
             breakdown={breakdown}
             bucketColors={bucketColors}
+          />
+          <HouseholdComparisonChart
+            members={members}
+            transactions={transactions}
           />
           <h2 className="mt-6 text-base font-bold text-[#16213f]">
             Bucket groups

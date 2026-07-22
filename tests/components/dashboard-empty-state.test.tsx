@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import { DashboardEmptyState } from "@/components/dashboard-empty-state";
 import { DataProvider, type DataRepositories } from "@/data";
-import type { Transaction } from "@/domain";
+import type { Member, Transaction } from "@/domain";
 
 function repositories(
   categories: DataRepositories["categories"]["list"] = vi
@@ -15,11 +15,12 @@ function repositories(
     .fn()
     .mockResolvedValue([]),
   transactions: readonly Transaction[] = [],
+  members: readonly Member[] = [],
 ): DataRepositories {
   return {
     members: {
       get: vi.fn(),
-      list: vi.fn().mockResolvedValue([]),
+      list: vi.fn().mockResolvedValue(members),
       save: vi.fn(),
       delete: vi.fn(),
     },
@@ -136,6 +137,118 @@ describe("DashboardEmptyState", () => {
     expect(
       screen.getByText("Jul 2026: Income: ₱5,000.00. Expenses: ₱125.00."),
     ).toBeInTheDocument();
+  });
+
+  it("renders member comparisons for household contributions", async () => {
+    const members: readonly Member[] = [
+      { id: "alex", name: "Alex", color: "#2563eb" },
+      { id: "sam", name: "Sam", color: "#db2777" },
+    ];
+    const transactions: readonly Transaction[] = [
+      {
+        id: "alex-salary",
+        date: "2026-07-01",
+        memberId: "alex",
+        categoryId: "salary",
+        type: "income",
+        amount: 500_000,
+        recurring: false,
+        currency: "PHP",
+      },
+      {
+        id: "alex-food",
+        date: "2026-07-02",
+        memberId: "alex",
+        categoryId: "food",
+        type: "expense",
+        amount: 125_000,
+        recurring: false,
+        currency: "PHP",
+      },
+      {
+        id: "sam-salary",
+        date: "2026-07-03",
+        memberId: "sam",
+        categoryId: "salary",
+        type: "income",
+        amount: 250_000,
+        recurring: false,
+        currency: "PHP",
+      },
+      {
+        id: "sam-rent",
+        date: "2026-07-04",
+        memberId: "sam",
+        categoryId: "rent",
+        type: "expense",
+        amount: 75_000,
+        recurring: false,
+        currency: "PHP",
+      },
+    ];
+
+    renderDashboard(
+      repositories(undefined, undefined, undefined, transactions, members),
+    );
+
+    expect(
+      await screen.findByRole("region", { name: "Household contributions" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Alex: Income: ₱5,000.00. Expenses: ₱1,250.00."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Sam: Income: ₱2,500.00. Expenses: ₱750.00."),
+    ).toBeInTheDocument();
+  });
+
+  it("renders finite household contribution bar geometry for zero-valued transactions", async () => {
+    const members: readonly Member[] = [
+      { id: "alex", name: "Alex", color: "#2563eb" },
+    ];
+    const transactions: readonly Transaction[] = [
+      {
+        id: "zero-income",
+        date: "2026-07-01",
+        memberId: "alex",
+        categoryId: "salary",
+        type: "income",
+        amount: 0,
+        recurring: false,
+        currency: "PHP",
+      },
+    ];
+
+    renderDashboard(
+      repositories(undefined, undefined, undefined, transactions, members),
+    );
+
+    const comparison = await screen.findByRole("region", {
+      name: "Household contributions",
+    });
+    const bars = Array.from(comparison.querySelectorAll("svg rect"));
+
+    expect(bars).not.toHaveLength(0);
+    for (const bar of bars) {
+      for (const attribute of ["x", "y", "height", "width"]) {
+        const value = bar.getAttribute(attribute);
+
+        expect(value).not.toBeNull();
+        expect(Number(value)).toSatisfy(Number.isFinite);
+      }
+    }
+  });
+
+  it("renders an empty household contributions state without comparisons", async () => {
+    renderDashboard();
+    const comparison = await screen.findByRole("region", {
+      name: "Household contributions",
+    });
+
+    expect(comparison).toHaveTextContent(
+      "No member comparisons yet. Add transactions to compare household contributions.",
+    );
+    expect(comparison.querySelector("svg")).toBeNull();
   });
 
   it("keeps adjacent monthly chart bar groups from overlapping", async () => {

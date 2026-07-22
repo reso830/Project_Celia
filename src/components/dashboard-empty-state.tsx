@@ -3,6 +3,7 @@
 import { AppHeader } from "@/components/app-header";
 import { BucketBreakdownChart } from "@/components/bucket-breakdown-chart";
 import { BucketGroupGrid } from "@/components/bucket-group-grid";
+import { CashFlowChart } from "@/components/cash-flow-chart";
 import { FinancialSummaryCards } from "@/components/financial-summary-cards";
 import { IncomeExpenseChart } from "@/components/income-expense-chart";
 import { useData } from "@/data";
@@ -32,6 +33,7 @@ export function DashboardEmptyState() {
           </h1>
           <IncomeExpenseChart transactions={transactions} />
           <FinancialSummaryCards transactions={transactions} />
+          <CashFlowChart transactions={transactions} />
           <BucketBreakdownChart
             breakdown={breakdown}
             bucketColors={bucketColors}

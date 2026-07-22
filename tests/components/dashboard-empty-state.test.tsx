@@ -90,6 +90,11 @@ describe("DashboardEmptyState", () => {
       await screen.findByRole("heading", { name: "Celia" }),
     ).toBeInTheDocument();
     expect(screen.getByText("No cash flow data yet.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("complementary", { name: "Forecast roadmap" }),
+    ).toHaveTextContent(
+      "Coming soon — forecasting projected balances from your recurring income and expenses.",
+    );
     expect(screen.getByText("No bucket groups yet.")).toBeInTheDocument();
     expect(
       screen.getByText(

@@ -4,6 +4,7 @@ export * from "./color";
 export * from "./category-type";
 export * from "./category";
 export * from "./errors";
+export * from "./financial-summary";
 export * from "./member";
 export * from "./php-amount";
 export * from "./transaction";

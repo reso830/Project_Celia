@@ -2,11 +2,13 @@
 
 import { AppHeader } from "@/components/app-header";
 import { BucketGroupGrid } from "@/components/bucket-group-grid";
+import { FinancialSummaryCards } from "@/components/financial-summary-cards";
 import { useData } from "@/data";
 
 export function DashboardEmptyState() {
   const data = useData();
   const categories = data.status === "ready" ? data.categories : [];
+  const transactions = data.status === "ready" ? data.transactions : [];
   const bucketColors = data.status === "ready" ? data.bucketColors : [];
   const bucketGroups = data.status === "ready" ? data.bucketGroups : [];
 
@@ -24,6 +26,7 @@ export function DashboardEmptyState() {
           >
             Celia
           </h1>
+          <FinancialSummaryCards transactions={transactions} />
           <h2 className="mt-6 text-base font-bold text-[#16213f]">
             Bucket groups
           </h2>

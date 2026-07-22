@@ -19,6 +19,12 @@ const alex: Member = {
   color: "#2463eb",
 };
 
+const sam: Member = {
+  id: "member-sam",
+  name: "Sam",
+  color: "#b45309",
+};
+
 const groceries: Category = {
   id: "category-groceries",
   type: "expense",
@@ -31,6 +37,13 @@ const salary: Category = {
   type: "income",
   group: "Income",
   name: "Salary",
+};
+
+const housing: Category = {
+  id: "category-housing",
+  type: "expense",
+  group: "Housing",
+  name: "Rent",
 };
 
 const groceryTransaction: Transaction = {
@@ -68,6 +81,18 @@ const juneGroceries: Transaction = {
   id: "transaction-grocery-june",
   date: "2026-06-20",
   amount: 2_500,
+};
+
+const augustRent: Transaction = {
+  id: "transaction-rent-august",
+  date: "2026-08-01",
+  memberId: "member-sam",
+  categoryId: "category-housing",
+  type: "expense",
+  amount: 25_000,
+  description: "August rent",
+  recurring: true,
+  currency: "PHP",
 };
 
 function repositoriesWith({
@@ -184,6 +209,84 @@ describe("TransactionsPage", () => {
       screen.getByRole("cell", { name: "Weekly groceries" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "₱12.50" })).toBeInTheDocument();
+  });
+
+  it("searches transactions and applies member, type, bucket, and date filters", async () => {
+    const user = userEvent.setup();
+    renderTransactions({
+      members: [alex, sam],
+      categories: [groceries, salary, housing],
+      transactions: [groceryTransaction, julySalary, augustRent],
+    });
+
+    await screen.findByText("3 transactions");
+
+    await user.type(screen.getByLabelText("Search transactions"), "salary");
+    expect(screen.getByText("July salary")).toBeInTheDocument();
+    expect(screen.queryByText("Weekly groceries")).not.toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText("Search transactions"));
+    await user.selectOptions(
+      screen.getByLabelText("Filter by member"),
+      "member-sam",
+    );
+    expect(screen.getByText("August rent")).toBeInTheDocument();
+    expect(screen.queryByText("July salary")).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Filter by member"), "");
+    await user.selectOptions(
+      screen.getByLabelText("Transaction type"),
+      "income",
+    );
+    expect(screen.getByText("July salary")).toBeInTheDocument();
+    expect(screen.queryByText("August rent")).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Transaction type"), "all");
+    await user.selectOptions(
+      screen.getByLabelText("Filter by bucket"),
+      "Housing",
+    );
+    expect(screen.getByText("August rent")).toBeInTheDocument();
+    expect(screen.queryByText("Weekly groceries")).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Filter by bucket"), "");
+    await user.type(screen.getByLabelText("From date"), "2026-08-01");
+    expect(screen.getByText("August rent")).toBeInTheDocument();
+    expect(screen.queryByText("July salary")).not.toBeInTheDocument();
+  });
+
+  it("combines filters and shows the empty search state when nothing matches", async () => {
+    const user = userEvent.setup();
+    renderTransactions({
+      members: [alex, sam],
+      categories: [groceries, salary, housing],
+      transactions: [groceryTransaction, julySalary, augustRent],
+    });
+
+    await screen.findByText("3 transactions");
+    await user.selectOptions(
+      screen.getByLabelText("Filter by member"),
+      "member-alex",
+    );
+    await user.selectOptions(
+      screen.getByLabelText("Transaction type"),
+      "expense",
+    );
+    await user.selectOptions(
+      screen.getByLabelText("Filter by bucket"),
+      "Groceries",
+    );
+    await user.type(screen.getByLabelText("From date"), "2026-07-01");
+    await user.type(screen.getByLabelText("To date"), "2026-07-31");
+
+    expect(screen.getByText("Weekly groceries")).toBeInTheDocument();
+    expect(screen.getByText("1 transaction")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Search transactions"), "coffee");
+    expect(screen.getByText("0 transactions")).toBeInTheDocument();
+    expect(
+      screen.getByText("No transactions match your filters."),
+    ).toBeInTheDocument();
   });
 
   it("groups spreadsheet transactions by month and displays monthly totals", async () => {

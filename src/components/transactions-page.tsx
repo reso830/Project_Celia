@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -10,7 +12,13 @@ import {
 import { AppHeader } from "@/components/app-header";
 import { TransactionSpreadsheet } from "@/components/transaction-spreadsheet";
 import { useData } from "@/data";
-import { createTransaction, type CategoryType } from "@/domain";
+import {
+  createTransaction,
+  type Category,
+  type CategoryType,
+  type Member,
+  type Transaction,
+} from "@/domain";
 
 const columns = [
   "Date",
@@ -21,11 +29,70 @@ const columns = [
   "Recurring",
 ];
 
+const emptyMembers: readonly Member[] = [];
+const emptyCategories: readonly Category[] = [];
+const emptyTransactions: readonly Transaction[] = [];
+
 type FormErrors = Partial<
   Record<"date" | "member" | "bucket" | "subcategory" | "amount", string>
 >;
 
 type TransactionView = "list" | "spreadsheet";
+
+export type TransactionFilters = {
+  search: string;
+  memberId: string;
+  type: "all" | CategoryType;
+  bucket: string;
+  fromDate: string;
+  toDate: string;
+};
+
+type TransactionSearchData = {
+  memberName: (memberId: string) => string;
+  bucketName: (categoryId: string) => string;
+  categoryName: (categoryId: string) => string;
+};
+
+export function filterTransactions(
+  transactions: readonly Transaction[],
+  filters: TransactionFilters,
+  names: TransactionSearchData,
+): readonly Transaction[] {
+  const search = filters.search.trim().toLocaleLowerCase();
+
+  return transactions.filter((transaction) => {
+    if (filters.memberId && transaction.memberId !== filters.memberId) {
+      return false;
+    }
+    if (filters.type !== "all" && transaction.type !== filters.type) {
+      return false;
+    }
+    if (
+      filters.bucket &&
+      names.bucketName(transaction.categoryId) !== filters.bucket
+    ) {
+      return false;
+    }
+    if (filters.fromDate && transaction.date < filters.fromDate) {
+      return false;
+    }
+    if (filters.toDate && transaction.date > filters.toDate) {
+      return false;
+    }
+    if (!search) {
+      return true;
+    }
+
+    return [
+      transaction.date,
+      transaction.description ?? "",
+      names.memberName(transaction.memberId),
+      names.bucketName(transaction.categoryId),
+      names.categoryName(transaction.categoryId),
+    ].some((value) => value.toLocaleLowerCase().includes(search));
+  });
+}
 
 function today(): string {
   return new Date().toLocaleDateString("en-CA");
@@ -46,6 +113,12 @@ export function TransactionsPage() {
   const state = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [view, setView] = useState<TransactionView>("list");
+  const [search, setSearch] = useState("");
+  const [filterMemberId, setFilterMemberId] = useState("");
+  const [filterType, setFilterType] = useState<"all" | CategoryType>("all");
+  const [filterBucket, setFilterBucket] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [date, setDate] = useState(today);
   const [memberId, setMemberId] = useState("");
   const [type, setType] = useState<CategoryType>("expense");
@@ -61,9 +134,11 @@ export function TransactionsPage() {
   const dialogRef = useRef<HTMLDivElement>(null);
   const isSavingRef = useRef(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
-  const members = state.status === "ready" ? state.members : [];
-  const categories = state.status === "ready" ? state.categories : [];
-  const transactions = state.status === "ready" ? state.transactions : [];
+  const members = state.status === "ready" ? state.members : emptyMembers;
+  const categories =
+    state.status === "ready" ? state.categories : emptyCategories;
+  const transactions =
+    state.status === "ready" ? state.transactions : emptyTransactions;
   const typedCategories = categories.filter(
     (category) => category.type === type,
   );
@@ -200,18 +275,56 @@ export function TransactionsPage() {
     }
   }
 
-  function memberName(memberId: string): string {
-    return (
-      members.find((member) => member.id === memberId)?.name ?? "Unknown member"
-    );
-  }
+  const memberName = useCallback(
+    (memberId: string): string =>
+      members.find((member) => member.id === memberId)?.name ??
+      "Unknown member",
+    [members],
+  );
 
-  function bucketName(categoryId: string): string {
-    return (
+  const bucketName = useCallback(
+    (categoryId: string): string =>
       categories.find((category) => category.id === categoryId)?.group ??
-      "Unknown bucket"
-    );
-  }
+      "Unknown bucket",
+    [categories],
+  );
+
+  const categoryName = useCallback(
+    (categoryId: string): string =>
+      categories.find((category) => category.id === categoryId)?.name ?? "",
+    [categories],
+  );
+
+  const filteredTransactions = useMemo(
+    () =>
+      filterTransactions(
+        transactions,
+        {
+          search,
+          memberId: filterMemberId,
+          type: filterType,
+          bucket: filterBucket,
+          fromDate,
+          toDate,
+        },
+        { memberName, bucketName, categoryName },
+      ),
+    [
+      bucketName,
+      categoryName,
+      filterBucket,
+      filterMemberId,
+      filterType,
+      fromDate,
+      memberName,
+      search,
+      toDate,
+      transactions,
+    ],
+  );
+  const filterBuckets = [
+    ...new Set(categories.map((category) => category.group)),
+  ];
 
   return (
     <main className="min-h-screen bg-[#eef0f3] px-4 py-6 sm:px-6 lg:px-7">
@@ -265,25 +378,82 @@ export function TransactionsPage() {
               <input
                 aria-label="Search transactions"
                 className="mt-1 w-full rounded-lg border border-[#d6dae1] bg-white px-3 py-2 text-[#16213f]"
-                placeholder="Search descriptions"
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search descriptions, members, or buckets"
                 type="search"
+                value={search}
               />
+            </label>
+            <label className="text-sm font-medium text-[#3a4459]">
+              Filter member
+              <select
+                aria-label="Filter by member"
+                className="mt-1 block rounded-lg border border-[#d6dae1] bg-white px-3 py-2 text-[#16213f]"
+                onChange={(event) => setFilterMemberId(event.target.value)}
+                value={filterMemberId}
+              >
+                <option value="">All members</option>
+                {members.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="text-sm font-medium text-[#3a4459]">
               Transaction type
               <select
                 aria-label="Transaction type"
                 className="mt-1 block rounded-lg border border-[#d6dae1] bg-white px-3 py-2 text-[#16213f]"
-                defaultValue="all"
+                onChange={(event) =>
+                  setFilterType(event.target.value as "all" | CategoryType)
+                }
+                value={filterType}
               >
                 <option value="all">All types</option>
                 <option value="income">Income</option>
                 <option value="expense">Expense</option>
               </select>
             </label>
+            <label className="text-sm font-medium text-[#3a4459]">
+              Filter bucket
+              <select
+                aria-label="Filter by bucket"
+                className="mt-1 block rounded-lg border border-[#d6dae1] bg-white px-3 py-2 text-[#16213f]"
+                onChange={(event) => setFilterBucket(event.target.value)}
+                value={filterBucket}
+              >
+                <option value="">All buckets</option>
+                {filterBuckets.map((entry) => (
+                  <option key={entry} value={entry}>
+                    {entry}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm font-medium text-[#3a4459]">
+              From date
+              <input
+                aria-label="From date"
+                className="mt-1 block rounded-lg border border-[#d6dae1] bg-white px-3 py-2 text-[#16213f]"
+                onChange={(event) => setFromDate(event.target.value)}
+                type="date"
+                value={fromDate}
+              />
+            </label>
+            <label className="text-sm font-medium text-[#3a4459]">
+              To date
+              <input
+                aria-label="To date"
+                className="mt-1 block rounded-lg border border-[#d6dae1] bg-white px-3 py-2 text-[#16213f]"
+                onChange={(event) => setToDate(event.target.value)}
+                type="date"
+                value={toDate}
+              />
+            </label>
             <p className="pb-2 text-sm text-[#6b7686]">
-              {transactions.length} transaction
-              {transactions.length === 1 ? "" : "s"}
+              {filteredTransactions.length} transaction
+              {filteredTransactions.length === 1 ? "" : "s"}
             </p>
           </div>
           {view === "spreadsheet" ? (
@@ -294,7 +464,7 @@ export function TransactionsPage() {
               <TransactionSpreadsheet
                 bucketName={bucketName}
                 memberName={memberName}
-                transactions={transactions}
+                transactions={filteredTransactions}
               />
             </div>
           ) : (
@@ -310,7 +480,7 @@ export function TransactionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.length === 0 ? (
+                  {filteredTransactions.length === 0 ? (
                     <tr>
                       <td
                         className="px-4 py-12 text-center text-[#8a93a3]"
@@ -320,7 +490,7 @@ export function TransactionsPage() {
                       </td>
                     </tr>
                   ) : (
-                    transactions.map((transaction) => (
+                    filteredTransactions.map((transaction) => (
                       <tr
                         className="border-t border-[#e5e7eb]"
                         key={transaction.id}

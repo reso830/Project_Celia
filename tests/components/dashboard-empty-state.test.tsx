@@ -137,6 +137,42 @@ describe("DashboardEmptyState", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps adjacent monthly chart bar groups from overlapping", async () => {
+    const transactions: readonly Transaction[] = Array.from(
+      { length: 20 },
+      (_, index): Transaction => ({
+        id: `transaction-${index}`,
+        date: `${2025 + Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}-01`,
+        memberId: "alex",
+        categoryId: "salary",
+        type: index % 2 === 0 ? "income" : "expense",
+        amount: 10_000,
+        recurring: false,
+        currency: "PHP",
+      }),
+    );
+    const { container } = renderDashboard(
+      repositories(undefined, undefined, undefined, transactions),
+    );
+
+    await screen.findByRole("region", { name: "Income vs expenses" });
+    const bars = Array.from(container.querySelectorAll("svg rect")).map(
+      (bar) => ({
+        x: Number(bar.getAttribute("x")),
+        width: Number(bar.getAttribute("width")),
+      }),
+    );
+
+    for (let month = 0; month < 19; month += 1) {
+      const currentExpense = bars[month * 2 + 1];
+      const nextIncome = bars[(month + 1) * 2];
+
+      expect(currentExpense.x + currentExpense.width).toBeLessThanOrEqual(
+        nextIncome.x,
+      );
+    }
+  });
+
   it("renders configured bucket groups", async () => {
     renderDashboard(
       repositories(

@@ -17,8 +17,8 @@ const chartBaseline = 190;
 const chartBarHeight = 150;
 const chartLeft = 54;
 const chartRight = 28;
-const barWidth = 18;
-const barGap = 6;
+const maximumBarWidth = 18;
+const maximumBarGap = 6;
 
 function formatAmount(amount: number): string {
   return currency.format(amount / 100);
@@ -34,6 +34,11 @@ function ChartGraphic({
   );
   const availableWidth = chartWidth - chartLeft - chartRight;
   const groupWidth = availableWidth / totals.length;
+  const barGap = Math.min(maximumBarGap, groupWidth * 0.15);
+  const barWidth = Math.min(
+    maximumBarWidth,
+    Math.max(0, (groupWidth - barGap - 1) / 2),
+  );
   const barHeight = (amount: number) => (amount / maximum) * chartBarHeight;
 
   return (

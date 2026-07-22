@@ -26,6 +26,13 @@ const groceries: Category = {
   name: "Food",
 };
 
+const salary: Category = {
+  id: "category-salary",
+  type: "income",
+  group: "Income",
+  name: "Salary",
+};
+
 const groceryTransaction: Transaction = {
   id: "transaction-grocery",
   date: "2026-07-22",
@@ -36,6 +43,31 @@ const groceryTransaction: Transaction = {
   description: "Weekly groceries",
   recurring: false,
   currency: "PHP",
+};
+
+const julySalary: Transaction = {
+  id: "transaction-salary-july",
+  date: "2026-07-15",
+  memberId: "member-alex",
+  categoryId: "category-salary",
+  type: "income",
+  amount: 500_000,
+  description: "July salary",
+  recurring: true,
+  currency: "PHP",
+};
+
+const julyGroceries: Transaction = {
+  ...groceryTransaction,
+  id: "transaction-grocery-july",
+  amount: 125_000,
+};
+
+const juneGroceries: Transaction = {
+  ...groceryTransaction,
+  id: "transaction-grocery-june",
+  date: "2026-06-20",
+  amount: 2_500,
 };
 
 function repositoriesWith({
@@ -152,6 +184,64 @@ describe("TransactionsPage", () => {
       screen.getByRole("cell", { name: "Weekly groceries" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "₱12.50" })).toBeInTheDocument();
+  });
+
+  it("groups spreadsheet transactions by month and displays monthly totals", async () => {
+    const user = userEvent.setup();
+    renderTransactions({
+      members: [alex],
+      categories: [groceries, salary],
+      transactions: [juneGroceries, julySalary, julyGroceries],
+    });
+
+    await user.click(
+      await screen.findByRole("button", { name: "Spreadsheet" }),
+    );
+
+    expect(
+      screen.getByRole("rowheader", { name: "July 2026" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("rowheader", { name: "June 2026" }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("cell", { name: "₱5,000.00" })).toHaveLength(2);
+    expect(screen.getAllByRole("cell", { name: "₱1,250.00" })).toHaveLength(2);
+    expect(
+      screen.getByRole("rowheader", {
+        name: "Monthly total · Net ₱3,750.00",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("switches between the list and responsive read-only spreadsheet views", async () => {
+    const user = userEvent.setup();
+    renderTransactions({
+      members: [alex],
+      categories: [groceries],
+      transactions: [groceryTransaction],
+    });
+
+    const spreadsheetButton = await screen.findByRole("button", {
+      name: "Spreadsheet",
+    });
+    await user.click(spreadsheetButton);
+
+    expect(spreadsheetButton).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "List" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(screen.getByTestId("transaction-spreadsheet-scroll")).toHaveClass(
+      "overflow-x-auto",
+    );
+    expect(
+      screen.getByRole("columnheader", { name: "Income" }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "List" }));
+    expect(
+      screen.getByRole("columnheader", { name: "Amount" }),
+    ).toBeInTheDocument();
   });
 
   it("shows required-field errors without saving", async () => {

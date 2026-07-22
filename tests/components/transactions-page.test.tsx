@@ -7,6 +7,7 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
+import { TransactionSpreadsheet } from "@/components/transaction-spreadsheet";
 import { TransactionsPage } from "@/components/transactions-page";
 import { DataProvider, type DataRepositories } from "@/data";
 import type { Category } from "@/domain/category";
@@ -161,6 +162,25 @@ async function completeExpenseForm(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("TransactionsPage", () => {
+  it("exposes edit and delete actions for spreadsheet transactions", () => {
+    render(
+      <TransactionSpreadsheet
+        bucketName={() => "Groceries"}
+        memberName={() => "Alex"}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        transactions={[groceryTransaction]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Edit Weekly groceries" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete Weekly groceries" }),
+    ).toBeInTheDocument();
+  });
+
   it("renders the transactions controls and empty table", async () => {
     renderTransactions();
 

@@ -16,7 +16,9 @@ describe("DevDataControls", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Populate dummy data" }));
+    await user.click(
+      screen.getByRole("button", { name: "Populate dummy data" }),
+    );
     expect(populate).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Confirm populate" }));
 

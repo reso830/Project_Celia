@@ -19,9 +19,19 @@ describe("createDummyDataset", () => {
     expect(dataset.transactions.map(({ date }) => date)).toEqual(
       expect.arrayContaining(["2026-01-01", "2026-07-01"]),
     );
-    expect(dataset.transactions.every(({ memberId }) => memberIds.has(memberId))).toBe(true);
-    expect(dataset.transactions.every(({ categoryId }) => categoryIds.has(categoryId))).toBe(true);
-    expect(dataset.transactions.every(({ amount }) => Number.isSafeInteger(amount) && amount > 0)).toBe(true);
+    expect(
+      dataset.transactions.every(({ memberId }) => memberIds.has(memberId)),
+    ).toBe(true);
+    expect(
+      dataset.transactions.every(({ categoryId }) =>
+        categoryIds.has(categoryId),
+      ),
+    ).toBe(true);
+    expect(
+      dataset.transactions.every(
+        ({ amount }) => Number.isSafeInteger(amount) && amount > 0,
+      ),
+    ).toBe(true);
     expect(dataset.transactions.some(({ recurring }) => recurring)).toBe(true);
     expect(dataset.transactions.some(({ recurring }) => !recurring)).toBe(true);
   });
@@ -32,6 +42,10 @@ describe("createDummyDataset", () => {
     expect(dataset.transactions.map(({ date }) => date)).toEqual(
       expect.arrayContaining(["2023-08-01", "2024-02-01"]),
     );
-    expect(dataset.transactions.every(({ date }) => date >= "2023-08-01" && date <= "2024-02-01")).toBe(true);
+    expect(
+      dataset.transactions.every(
+        ({ date }) => date >= "2023-08-01" && date <= "2024-02-01",
+      ),
+    ).toBe(true);
   });
 });

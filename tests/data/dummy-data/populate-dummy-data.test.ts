@@ -1,6 +1,10 @@
 import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createDummyDataset, clearCeliaData, replaceWithDummyData } from "@/data/dummy-data";
+import {
+  createDummyDataset,
+  clearCeliaData,
+  replaceWithDummyData,
+} from "@/data/dummy-data";
 import {
   CELIA_DATABASE_NAME,
   IndexedDbBucketColorRepository,
@@ -18,12 +22,20 @@ function deleteCeliaDatabase(): Promise<void> {
   });
 }
 
-function sortedById<TEntity extends { id: string }>(entities: readonly TEntity[]): TEntity[] {
-  return [...entities].sort(({ id: left }, { id: right }) => left.localeCompare(right));
+function sortedById<TEntity extends { id: string }>(
+  entities: readonly TEntity[],
+): TEntity[] {
+  return [...entities].sort(({ id: left }, { id: right }) =>
+    left.localeCompare(right),
+  );
 }
 
-function sortedByBucket<TEntity extends { bucket: string }>(entities: readonly TEntity[]): TEntity[] {
-  return [...entities].sort(({ bucket: left }, { bucket: right }) => left.localeCompare(right));
+function sortedByBucket<TEntity extends { bucket: string }>(
+  entities: readonly TEntity[],
+): TEntity[] {
+  return [...entities].sort(({ bucket: left }, { bucket: right }) =>
+    left.localeCompare(right),
+  );
 }
 
 describe("dummy data population", () => {
@@ -40,12 +52,24 @@ describe("dummy data population", () => {
     await replaceWithDummyData({ referenceDate: "2026-07-22" });
 
     const dataset = createDummyDataset({ referenceDate: "2026-07-22" });
-    await expect(new IndexedDbMemberRepository().get("old-member")).resolves.toBeUndefined();
-    await expect(new IndexedDbMemberRepository().list()).resolves.toEqual(sortedById(dataset.members));
-    await expect(new IndexedDbBucketGroupRepository().list()).resolves.toEqual(sortedById(dataset.bucketGroups));
-    await expect(new IndexedDbCategoryRepository().list()).resolves.toEqual(sortedById(dataset.categories));
-    await expect(new IndexedDbBucketColorRepository().list()).resolves.toEqual(sortedByBucket(dataset.bucketColors));
-    await expect(new IndexedDbTransactionRepository().list()).resolves.toEqual(sortedById(dataset.transactions));
+    await expect(
+      new IndexedDbMemberRepository().get("old-member"),
+    ).resolves.toBeUndefined();
+    await expect(new IndexedDbMemberRepository().list()).resolves.toEqual(
+      sortedById(dataset.members),
+    );
+    await expect(new IndexedDbBucketGroupRepository().list()).resolves.toEqual(
+      sortedById(dataset.bucketGroups),
+    );
+    await expect(new IndexedDbCategoryRepository().list()).resolves.toEqual(
+      sortedById(dataset.categories),
+    );
+    await expect(new IndexedDbBucketColorRepository().list()).resolves.toEqual(
+      sortedByBucket(dataset.bucketColors),
+    );
+    await expect(new IndexedDbTransactionRepository().list()).resolves.toEqual(
+      sortedById(dataset.transactions),
+    );
   });
 
   it("clears every Celia store", async () => {
@@ -53,9 +77,15 @@ describe("dummy data population", () => {
     await clearCeliaData();
 
     await expect(new IndexedDbMemberRepository().list()).resolves.toEqual([]);
-    await expect(new IndexedDbBucketGroupRepository().list()).resolves.toEqual([]);
+    await expect(new IndexedDbBucketGroupRepository().list()).resolves.toEqual(
+      [],
+    );
     await expect(new IndexedDbCategoryRepository().list()).resolves.toEqual([]);
-    await expect(new IndexedDbBucketColorRepository().list()).resolves.toEqual([]);
-    await expect(new IndexedDbTransactionRepository().list()).resolves.toEqual([]);
+    await expect(new IndexedDbBucketColorRepository().list()).resolves.toEqual(
+      [],
+    );
+    await expect(new IndexedDbTransactionRepository().list()).resolves.toEqual(
+      [],
+    );
   });
 });

@@ -8,18 +8,25 @@ function waitForTransaction(transaction: IDBTransaction): Promise<void> {
     transaction.onerror = () =>
       reject(transaction.error ?? new Error("Database transaction failed."));
     transaction.onabort = () =>
-      reject(transaction.error ?? new Error("Database transaction was aborted."));
+      reject(
+        transaction.error ?? new Error("Database transaction was aborted."),
+      );
   });
 }
 
-function requestFailureAborts(transaction: IDBTransaction, request: IDBRequest): void {
+function requestFailureAborts(
+  transaction: IDBTransaction,
+  request: IDBRequest,
+): void {
   request.onerror = () => {
     transaction.abort();
   };
 }
 
 async function replaceAll(
-  writeRecords: (stores: Record<keyof typeof CELIA_STORES, IDBObjectStore>) => void,
+  writeRecords: (
+    stores: Record<keyof typeof CELIA_STORES, IDBObjectStore>,
+  ) => void,
   databaseOpener: DatabaseOpener,
 ): Promise<void> {
   const database = await databaseOpener();
@@ -28,7 +35,10 @@ async function replaceAll(
   try {
     const transaction = database.transaction(storeNames, "readwrite");
     const stores = Object.fromEntries(
-      Object.entries(CELIA_STORES).map(([key, name]) => [key, transaction.objectStore(name)]),
+      Object.entries(CELIA_STORES).map(([key, name]) => [
+        key,
+        transaction.objectStore(name),
+      ]),
     ) as Record<keyof typeof CELIA_STORES, IDBObjectStore>;
 
     for (const store of Object.values(stores)) {

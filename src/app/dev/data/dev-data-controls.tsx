@@ -115,7 +115,9 @@ export function DevDataControls({
           </div>
         </div>
       ) : null}
-      {message ? <p className="mt-4 text-sm text-[#067647]">{message}</p> : null}
+      {message ? (
+        <p className="mt-4 text-sm text-[#067647]">{message}</p>
+      ) : null}
       {error ? (
         <p className="mt-4 text-sm text-[#b42318]" role="alert">
           {error}

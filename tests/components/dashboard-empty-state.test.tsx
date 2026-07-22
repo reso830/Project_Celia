@@ -125,12 +125,7 @@ describe("DashboardEmptyState", () => {
     ];
 
     renderDashboard(
-      repositories(
-        undefined,
-        undefined,
-        undefined,
-        transactions,
-      ),
+      repositories(undefined, undefined, undefined, transactions),
     );
 
     expect(
@@ -171,8 +166,10 @@ describe("DashboardEmptyState", () => {
     );
 
     expect(await screen.findByText("₱5,000.00")).toBeInTheDocument();
-    expect(screen.getByText("Income")).toBeInTheDocument();
-    expect(screen.getByText("Expenses")).toBeInTheDocument();
+    expect(screen.getByText("Income", { selector: "dt" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Expenses", { selector: "dt" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("₱1,250.00")).toBeInTheDocument();
     expect(screen.getByText("Net")).toBeInTheDocument();
     expect(screen.getByText("₱3,750.00")).toBeInTheDocument();
@@ -183,7 +180,9 @@ describe("DashboardEmptyState", () => {
   it("renders zero financial metrics without transactions", async () => {
     renderDashboard();
 
-    expect(await screen.findByText("Income")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Income", { selector: "dt" }),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("₱0.00")).toHaveLength(3);
     expect(screen.getByText("0%")).toBeInTheDocument();
   });

@@ -123,8 +123,8 @@ describe("DashboardEmptyState", () => {
       repositories(undefined, undefined, undefined, summaryTransactions),
     );
 
-    expect(await screen.findByText("Income")).toBeInTheDocument();
-    expect(screen.getByText("₱5,000.00")).toBeInTheDocument();
+    expect(await screen.findByText("₱5,000.00")).toBeInTheDocument();
+    expect(screen.getByText("Income")).toBeInTheDocument();
     expect(screen.getByText("Expenses")).toBeInTheDocument();
     expect(screen.getByText("₱1,250.00")).toBeInTheDocument();
     expect(screen.getByText("Net")).toBeInTheDocument();

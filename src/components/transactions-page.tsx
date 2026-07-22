@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -13,7 +14,9 @@ import { TransactionSpreadsheet } from "@/components/transaction-spreadsheet";
 import { useData } from "@/data";
 import {
   createTransaction,
+  type Category,
   type CategoryType,
+  type Member,
   type Transaction,
 } from "@/domain";
 
@@ -25,6 +28,10 @@ const columns = [
   "Amount",
   "Recurring",
 ];
+
+const emptyMembers: readonly Member[] = [];
+const emptyCategories: readonly Category[] = [];
+const emptyTransactions: readonly Transaction[] = [];
 
 type FormErrors = Partial<
   Record<"date" | "member" | "bucket" | "subcategory" | "amount", string>
@@ -127,9 +134,11 @@ export function TransactionsPage() {
   const dialogRef = useRef<HTMLDivElement>(null);
   const isSavingRef = useRef(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
-  const members = state.status === "ready" ? state.members : [];
-  const categories = state.status === "ready" ? state.categories : [];
-  const transactions = state.status === "ready" ? state.transactions : [];
+  const members = state.status === "ready" ? state.members : emptyMembers;
+  const categories =
+    state.status === "ready" ? state.categories : emptyCategories;
+  const transactions =
+    state.status === "ready" ? state.transactions : emptyTransactions;
   const typedCategories = categories.filter(
     (category) => category.type === type,
   );
@@ -266,24 +275,25 @@ export function TransactionsPage() {
     }
   }
 
-  function memberName(memberId: string): string {
-    return (
-      members.find((member) => member.id === memberId)?.name ?? "Unknown member"
-    );
-  }
+  const memberName = useCallback(
+    (memberId: string): string =>
+      members.find((member) => member.id === memberId)?.name ??
+      "Unknown member",
+    [members],
+  );
 
-  function bucketName(categoryId: string): string {
-    return (
+  const bucketName = useCallback(
+    (categoryId: string): string =>
       categories.find((category) => category.id === categoryId)?.group ??
-      "Unknown bucket"
-    );
-  }
+      "Unknown bucket",
+    [categories],
+  );
 
-  function categoryName(categoryId: string): string {
-    return (
-      categories.find((category) => category.id === categoryId)?.name ?? ""
-    );
-  }
+  const categoryName = useCallback(
+    (categoryId: string): string =>
+      categories.find((category) => category.id === categoryId)?.name ?? "",
+    [categories],
+  );
 
   const filteredTransactions = useMemo(
     () =>
@@ -300,12 +310,13 @@ export function TransactionsPage() {
         { memberName, bucketName, categoryName },
       ),
     [
-      categories,
+      bucketName,
+      categoryName,
       filterBucket,
       filterMemberId,
       filterType,
       fromDate,
-      members,
+      memberName,
       search,
       toDate,
       transactions,

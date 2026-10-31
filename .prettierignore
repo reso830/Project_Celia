@@ -1,3 +1,6 @@
-.superpowers/
 docs/
 README.md
+.claude/
+.specify/
+scripts/prompts/
+specs/

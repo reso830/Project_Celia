@@ -1,19 +1,156 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* lifted from prototype CSS */
+  --color-page-background: #eceded;
+  --color-rail: #dcdfdf;
+  --color-rail-border: #cbcfcf;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f4f5f5;
+  --color-segmented-track: #e0e2e2;
+  --color-border: #d5d8d8;
+  --color-border-subtle: #e2e4e4;
+  --color-row-divider: #eaecec;
+  --color-ink: #14181a;
+  --color-ink-secondary: #3c4346;
+  --color-muted: #5c6467;
+  --color-muted-on-dark: #b7bec0;
+  --color-hero: #3a4145;
+  --color-accent: #2f7d78;
+  --color-accent-dark: #26686a;
+  --color-accent-tint: #e4efee;
+  --color-category-selected: #eef4f3;
+  --color-nav-hover: #e8eaea;
+  --color-nav-inactive: var(--color-muted);
+  --color-status-green: #3f7d5c;
+  --color-status-amber: #c9992f;
+  --color-status-amber-gauge: #d3a13f;
+  --color-status-amber-text: #b9822c;
+  --color-status-red: #b0533c;
+  --color-status-red-tint: #fdf6f3;
+  --color-status-red-border: #dcc3bc;
+  --color-umbrella-expense: #8c8378;
+  --color-umbrella-unallocated: #c3cac9;
+  --color-scenario-b: #7c6f9a;
+  --color-scenario-c: #a17c3f;
+  --color-modal-scrim: rgba(20, 24, 26, 0.42);
+
+  --font-ui: var(--font-sora);
+  --font-figure: var(--font-jetbrains-mono);
+
+  --font-size-page-title: 27px;
+  --font-size-card-title: 15.5px;
+  --font-size-modal-title: 20px;
+  --font-size-modal-close: 17px;
+  --font-size-body: 13.5px;
+  --font-size-secondary: 12.5px;
+  --font-size-item-count: 12px;
+  --font-size-caps: 11px;
+  --font-size-control: 13px;
+  --font-size-edit-icon: 11.5px;
+  --font-size-hero-figure: 38px;
+  --font-size-kpi-figure: 22px;
+  --font-size-table-figure: 12px;
+  --font-size-brand: 15px;
+  --font-size-nav-icon: 16px;
+  --letter-spacing-title: -0.02em;
+
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-1-75: 7px;
+  --space-2: 8px;
+  --space-item-header-bottom: 9px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-4-5: 18px;
+  --space-5: 20px;
+
+  --rail-width: 72px;
+  --rail-padding-y: 18px;
+  --rail-logo-size: 34px;
+  --rail-logo-margin-bottom: 14px;
+  --rail-item-width: 44px;
+  --rail-item-height: 40px;
+  --rail-item-gap: 6px;
+  --content-padding-top: 26px;
+  --content-padding-x: 30px;
+  --content-padding-bottom: 44px;
+  --header-min-height: 44px;
+  --header-margin-bottom: 18px;
+  --dialog-width: 560px;
+  --household-member-columns: minmax(170px, 0.8fr) minmax(0, 2.2fr) 110px 64px;
+  --space-row-y: 13px;
+
+  --radius-card: 14px;
+  --radius-modal: 16px;
+  --radius-action: 8px;
+  --radius-control-compact: 9px;
+  --radius-control: 10px;
+  --radius-nav-item: 11px;
+  --radius-pill: 20px;
+  --radius-popover: 10px;
+  --radius-option: 7px;
+  --radius-swatch: 3px;
+  --radius-detail-swatch: 5px;
+  --radius-summary: 12px;
+  --radius-bar-small: 4px;
+  --radius-bar: 6px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-celia-page-background: var(--color-page-background);
+  --color-celia-rail: var(--color-rail);
+  --color-celia-rail-border: var(--color-rail-border);
+  --color-celia-surface: var(--color-surface);
+  --color-celia-surface-subtle: var(--color-surface-subtle);
+  --color-celia-segmented-track: var(--color-segmented-track);
+  --color-celia-border: var(--color-border);
+  --color-celia-border-subtle: var(--color-border-subtle);
+  --color-celia-row-divider: var(--color-row-divider);
+  --color-celia-ink: var(--color-ink);
+  --color-celia-ink-secondary: var(--color-ink-secondary);
+  --color-celia-muted: var(--color-muted);
+  --color-celia-muted-on-dark: var(--color-muted-on-dark);
+  --color-celia-hero: var(--color-hero);
+  --color-celia-accent: var(--color-accent);
+  --color-celia-accent-dark: var(--color-accent-dark);
+  --color-celia-accent-tint: var(--color-accent-tint);
+  --color-celia-category-selected: var(--color-category-selected);
+  --color-celia-nav-hover: var(--color-nav-hover);
+  --color-celia-nav-inactive: var(--color-nav-inactive);
+  --color-celia-status-green: var(--color-status-green);
+  --color-celia-status-amber: var(--color-status-amber);
+  --color-celia-status-red: var(--color-status-red);
+  --color-celia-umbrella-expense: var(--color-umbrella-expense);
+  --color-celia-umbrella-unallocated: var(--color-umbrella-unallocated);
+  --color-celia-scenario-b: var(--color-scenario-b);
+  --color-celia-scenario-c: var(--color-scenario-c);
+  --color-celia-modal-scrim: var(--color-modal-scrim);
+  --font-celia-ui: var(--font-ui);
+  --font-celia-figure: var(--font-figure);
+  --radius-celia-card: var(--radius-card);
+  --radius-celia-modal: var(--radius-modal);
+  --radius-celia-action: var(--radius-action);
+  --radius-celia-control-compact: var(--radius-control-compact);
+  --radius-celia-control: var(--radius-control);
+  --radius-celia-nav-item: var(--radius-nav-item);
+  --radius-celia-pill: var(--radius-pill);
+  --radius-celia-popover: var(--radius-popover);
+  --radius-celia-option: var(--radius-option);
+  --radius-celia-swatch: var(--radius-swatch);
+  --radius-celia-detail-swatch: var(--radius-detail-swatch);
+  --radius-celia-summary: var(--radius-summary);
+  --radius-celia-bar-small: var(--radius-bar-small);
+  --radius-celia-bar: var(--radius-bar);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  background: var(--color-page-background);
+  color: var(--color-ink);
+  font-family: var(--font-ui), Arial, Helvetica, sans-serif;
+  /* lifted from prototype CSS: HF L10 sets no line-height, so the hi-fi renders
+     at the browser default; this overrides preflight's html { line-height: 1.5 } */
+  line-height: normal;
 }

@@ -1,23 +1,11 @@
-import { isCategoryType, type CategoryType } from "./category-type";
-import { DomainValidationError } from "./errors";
+import type { HexColor } from "./color";
+import type { ClassifiableUmbrella } from "./umbrella";
 
-export interface Category {
+export type Category = {
   id: string;
-  type: CategoryType;
-  group: string;
+  umbrella: ClassifiableUmbrella;
   name: string;
-}
-
-export function createCategory(input: Category): Readonly<Category> {
-  if (!input.id.trim() || !input.group.trim() || !input.name.trim()) {
-    throw new DomainValidationError(
-      "Category id, group, and name are required.",
-    );
-  }
-
-  if (!isCategoryType(input.type)) {
-    throw new DomainValidationError("Category type must be income or expense.");
-  }
-
-  return Object.freeze({ ...input });
-}
+  color: HexColor;
+  archivedAt: string | null;
+  mergedIntoCategoryId: string | null;
+};

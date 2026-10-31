@@ -2,6 +2,16 @@
 import { useEffect, useRef, useState } from "react";
 import { parseHexColor } from "@/domain/color";
 import { useMutation } from "@/components/ui/use-mutation";
+// Save depends on the colour itself, not on the error message, so a valid
+// colour can be retried after a failed request.
+function isHexColor(value: string) {
+  try {
+    parseHexColor(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
 export default function ColorPicker({
   category,
   onClose,
@@ -120,7 +130,7 @@ export default function ColorPicker({
         </button>
         <button
           type="button"
-          disabled={Boolean(error) || pending}
+          disabled={!isHexColor(color) || pending}
           onClick={() => void save()}
           className="rounded-celia-action bg-celia-accent px-[var(--space-2)] py-[var(--space-1)] text-celia-surface"
         >

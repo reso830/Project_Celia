@@ -34,6 +34,7 @@ export default function ItemsTable({
         </p>
       ) : null}
       <AddItem
+        key={category.id}
         categoryId={category.id}
         disabled={category.archived}
         disabledReasonId={

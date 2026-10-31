@@ -164,6 +164,75 @@ describe("Categories screen", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   });
 
+  it("lets a valid colour be saved again after a failed request", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json(
+          { error: { code: "internal", message: "Try again." } },
+          { status: 500 },
+        ),
+      )
+      .mockResolvedValueOnce(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    renderScreen();
+    await user.click(
+      screen.getByRole("button", { name: "Change colour for Rent" }),
+    );
+    const picker = screen.getByRole("dialog", {
+      name: "Change category colour",
+    });
+    const hex = within(picker).getByLabelText("Hex colour");
+    await user.clear(hex);
+    await user.type(hex, "#AABBCC");
+    await user.click(within(picker).getByRole("button", { name: "Save" }));
+    expect(within(picker).getByText("Try again.")).toBeInTheDocument();
+    const save = within(picker).getByRole("button", { name: "Save" });
+    expect(save).toBeEnabled();
+    await user.click(save);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(picker).not.toBeInTheDocument();
+  });
+
+  it("drops an unfinished item draft when another category is selected", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const groceries = {
+      ...rent,
+      id: "groceries",
+      name: "Groceries",
+      itemCount: 0,
+      items: [],
+    };
+    const { rerender } = renderScreen({ expense: [rent, groceries] });
+    await user.click(screen.getByText("+ add item"));
+    await user.type(screen.getByLabelText("New item name"), "Lease");
+    await user.click(screen.getByRole("button", { name: "Groceries" }));
+    expect(screen.queryByLabelText("New item name")).not.toBeInTheDocument();
+    await user.click(screen.getByText("+ add item"));
+    expect(screen.getByLabelText("New item name")).toHaveValue("");
+
+    // A category archived while its draft is open shows no editable input.
+    rerender(
+      <CategoriesScreen
+        income={[salary]}
+        expense={[
+          rent,
+          {
+            ...groceries,
+            archived: true,
+            archivedAt: "2026-01-01T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+    expect(screen.queryByLabelText("New item name")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "+ add item" })).toBeDisabled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("shows duplicate errors without changing names and supports item rename cancellation", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(

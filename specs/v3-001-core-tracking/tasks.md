@@ -68,6 +68,7 @@ script and no new tooling.
 | 07 | Release Prep | T073–T078 | — |
 | 08 | Browser Smoke Test | T079–T090 | US1–US7 |
 | 08 fixes | Smoke-test findings | T091–T102 | — |
+| PR fixes | PR #26 review findings | T103–T105 | — |
 
 ---
 
@@ -100,7 +101,7 @@ after T009.
   - Behavior: remove `DataProvider` and `DataStateGate`; render `children` directly.
   - Constraints: fonts are changed in T008, not here.
   - Validate: `npm run build`.
-- [ ] **T005 Dependencies and scripts**
+- [x] **T005 Dependencies and scripts**
   - Files: `package.json`, `package-lock.json`.
   - Behavior:
     - Add `better-sqlite3` (dependency) and `@types/better-sqlite3` (devDependency).
@@ -109,6 +110,10 @@ after T009.
   - Constraints: no other dependency changes (research R1, R10). Install with
     `npm install`, not by editing the lock file by hand.
   - Validate: `npm ci && npm run build`.
+  - Validated (2026-10-31): CI's push run of `920f8e0` passed `npm ci` and
+    `npm run build` on Ubuntu with Node 22
+    ([run 41171446716](https://github.com/reso830/Project_Celia/actions/runs/41171446716)).
+    Next.js was later raised to 16.4.3 by T105 (PR #26 review).
 - [x] **T006 [P] Ignore the local database**
   - Files: `.gitignore`.
   - Behavior: add `/data/`.
@@ -723,7 +728,7 @@ after T009.
 
 ## Phase 07 — Release Prep
 
-- [ ] **T073 Version bump to 3.0.0**
+- [x] **T073 Version bump to 3.0.0**
   - Files: `package.json` (`version`) and `package-lock.json` (root `version` and
     `packages[""].version`).
   - Constraints: there is no in-app version display to update.
@@ -731,6 +736,11 @@ after T009.
   - Validation note (Windows, 2026-10-30): `npm ci` exits 1 while compiling
     `better-sqlite3`; `node-gyp` cannot find the Visual Studio C++ Build Tools. No
     project dev server or Vitest process was running, so the failure is not a file lock.
+  - Validated (2026-10-31): CI's push run of `920f8e0` passed `npm ci` on Ubuntu with
+    Node 22
+    ([run 41171446716](https://github.com/reso830/Project_Celia/actions/runs/41171446716)),
+    and `package.json`, `package-lock.json` `version` and `packages[""].version` read
+    3.0.0.
 - [x] **T074 [P] Create CHANGELOG.md**
   - Files: `CHANGELOG.md` (new).
   - Behavior: a "3.0.0 — 2026-MM-DD (merge date)" entry for F01 Core Tracking covering:
@@ -810,7 +820,7 @@ PR.
 - [x] **T089** Contrast and no-shadow pass. Check with devtools that muted text, disabled
   controls and the archived marker are at least 4.5:1, and that no `box-shadow` is
   computed on shell, cards, popovers or dialogs.
-- [ ] **T090** Tier 2 visual review for every 🎨 task:
+- [x] **T090** Tier 2 visual review for every 🎨 task:
   - Tasks: T007, T011–T013, T037–T044, T051–T058, T066–T070.
   - Capture frozen-state screenshots at 1100, 1280 and 1440px and compare side by side
     with the cited HF or WF lines.
@@ -823,6 +833,10 @@ PR.
     month labels and header buttons. The member row is 57px against the hi-fi's 59px
     only because the hi-fi row holds 32px of income bars; padding and border match, and
     F01 has no entries to draw.
+  - Re-run after T101–T105 (2026-10-31, Next.js 16.4.3): **pass**. Screenshots at 1100,
+    1280 and 1440px match the hi-fi apart from the accepted deviation (D1) and the
+    member-row height noted above. Defaults keeps its own height, and the archived
+    "+ add item" renders muted.
 
 ## Phase 08 fixes
 
@@ -899,16 +913,45 @@ beyond their task text:
     - Keep the rail colour and record it in the deviation ledger. `#6f7679` is 3.45:1 on
       the rail, below the 4.5:1 text rule; `#5c6467` is 4.51:1.
     - Fix the row height by setting the base line-height to `normal`.
-- [ ] **T101 🎨 Household bottom grid stretches the Defaults card**
+- [x] **T101 🎨 Household bottom grid stretches the Defaults card**
   - Files: `src/components/household/household-screen.tsx`.
   - Found (T090 re-run): the 65/35 grid holding Expense per member and Defaults has no
     `align-items: start` (HF L515), so Defaults stretches to Expense's height (both end
     at y=507px at 1280px). In the hi-fi each card keeps its own height.
   - Fix: add `items-start` to that grid.
-- [ ] **T102 🎨 Disabled "+ add item" looks enabled**
+- [x] **T102 🎨 Disabled "+ add item" looks enabled**
   - Files: `src/components/categories/add-item.tsx`.
   - Found (T090 re-run, archived state from T066): on an archived category the button is
     disabled but keeps the accent colour `rgb(47, 125, 120)`, identical to the enabled
     button. Other disabled controls in the archived state (Merge, Move) look disabled.
   - Fix: add a disabled style (for example `disabled:text-celia-muted` and a not-allowed
     cursor, as the item-row Move button does) that stays at least 4.5:1.
+
+## PR #26 review fixes
+
+Found by the final-gate reviews of PR #26 (Claude and Codex), fixed 2026-10-31.
+
+- [x] **T103 Reset the new-item draft when the selected category changes**
+  - Files: `src/components/categories/items-table.tsx`,
+    `src/components/categories/add-item.tsx`.
+  - Found: `AddItem` was not keyed, so a half-typed item name survived a change of
+    category and Enter added it to the newly selected category. On an archived category
+    the input also stayed editable.
+  - Fix: key `AddItem` by category id, and render the input only while the button is
+    enabled. Test: "drops an unfinished item draft when another category is selected".
+- [x] **T104 Allow retrying a valid colour after a failed save**
+  - Files: `src/components/categories/color-picker.tsx`.
+  - Found: Save was disabled whenever an error message was shown, including request
+    errors, so a valid colour could not be retried.
+  - Fix: Save depends only on whether the colour is valid and on the pending request.
+    Test: "lets a valid colour be saved again after a failed request".
+- [x] **T105 Security update for Next.js**
+  - Files: `package.json`, `package-lock.json`.
+  - Found: `npm audit --omit=dev` reported advisories in `next@16.2.10` (one critical)
+    and in the packages it bundles (`postcss`, `sharp`, `nanoid`, `source-map-js`,
+    `baseline-browser-mapping`). None applied to how F01 runs (no middleware, Server
+    Actions or custom server; loopback only).
+  - Fix: `next` and `eslint-config-next` to 16.4.3, plus `npm audit fix` (no
+    `--force`). Production dependencies now report 0 vulnerabilities. Sixteen moderate
+    dev-only advisories remain in ESLint's `minimatch` chain; npm's only "fix" is a
+    downgrade to eslint 4 / eslint-config-next 0.2.4, so they are left as they are.

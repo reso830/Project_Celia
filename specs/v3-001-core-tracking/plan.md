@@ -23,7 +23,7 @@ resolvable. No financial calculations are introduced.
 ## Technical Context
 
 - **Language/Version**: TypeScript 5 (strict), Node.js 22 (CI) / 24 (local)
-- **Primary Dependencies**: Next.js 16.2 App Router, React 19.2, Tailwind CSS 4.
+- **Primary Dependencies**: Next.js 16.4 App Router, React 19.2, Tailwind CSS 4.
   New: `better-sqlite3`, `server-only`, with `@types/better-sqlite3` as a dev dependency.
 - **Storage**: A local SQLite file at `CELIA_DB_PATH` (default `./data/celia.db`), accessed
   only on the server. Versioned migrations use `PRAGMA user_version`.

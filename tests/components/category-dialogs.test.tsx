@@ -175,6 +175,9 @@ describe("category operation dialogs", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Merge" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Move" })).toBeDisabled();
+    const addItem = screen.getByRole("button", { name: "+ add item" });
+    expect(addItem).toBeDisabled();
+    expect(addItem).toHaveClass("disabled:text-celia-muted");
     await user.click(screen.getByRole("button", { name: "Restore" }));
     await user.click(screen.getAllByRole("button", { name: "Restore" })[1]);
     expect(fetchMock).toHaveBeenCalledWith(

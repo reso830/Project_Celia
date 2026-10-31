@@ -47,7 +47,7 @@ export default function HouseholdScreen({
           onRemove={setRemoving}
         />
         <ArchivedMembers members={archivedMembers} />
-        <div className="grid grid-cols-[minmax(0,65fr)_minmax(0,35fr)] gap-[var(--space-3-5)]">
+        <div className="grid grid-cols-[minmax(0,65fr)_minmax(0,35fr)] items-start gap-[var(--space-3-5)]">
           <ExpensePerMemberPanel />
           <DefaultsPanel defaults={defaults} />
         </div>

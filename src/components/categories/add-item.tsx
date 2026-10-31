@@ -33,7 +33,7 @@ export default function AddItem({
     }
   }
   // recreated manually: wireframe-only add-item state
-  return adding ? (
+  return adding && !disabled ? (
     <div className="py-[var(--space-2)]">
       <input
         aria-label="New item name"
@@ -65,7 +65,7 @@ export default function AddItem({
       title={
         disabled ? "Restore this category before adding items." : undefined
       }
-      className="py-[var(--space-2)] text-[length:var(--font-size-control)] text-celia-accent"
+      className="py-[var(--space-2)] text-[length:var(--font-size-control)] text-celia-accent disabled:cursor-not-allowed disabled:text-celia-muted"
     >
       + add item
     </button>

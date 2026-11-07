@@ -93,7 +93,7 @@ export default function EntryModal({
   }, [open]);
 
   const availableCategories = choices(categories, type).filter(
-    (category) => !category.archived || category.id === categoryId,
+    (category) => !category.archived || category.id === entry?.categoryId,
   );
   const selectedCategory = categories.find(
     (category) => category.id === categoryId,
@@ -112,9 +112,12 @@ export default function EntryModal({
 
   function switchType(nextType: EntryType) {
     if (nextType === type) return;
+    const activeCategories = choices(categories, nextType).filter(
+      (category) => !category.archived,
+    );
     const nextCategory =
-      choices(categories, nextType).find((category) => category.items.length) ??
-      choices(categories, nextType)[0];
+      activeCategories.find((category) => category.items.length) ??
+      activeCategories[0];
     setType(nextType);
     setCategoryId(nextCategory?.id ?? "");
     setItemId(nextCategory?.items[0]?.id ?? "");
@@ -387,8 +390,10 @@ export default function EntryModal({
                   categories={availableCategories}
                   selectedId={categoryId}
                   onSelect={(category) => {
-                    setCategoryId(category.id);
-                    setItemId(category.items[0]?.id ?? "");
+                    if (category.id !== categoryId) {
+                      setCategoryId(category.id);
+                      setItemId(category.items[0]?.id ?? "");
+                    }
                     closePopoverAndRestoreFocus();
                   }}
                 />

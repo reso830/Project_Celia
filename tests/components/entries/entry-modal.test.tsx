@@ -67,6 +67,87 @@ afterEach(() => {
 });
 
 describe("EntryModal", () => {
+  it.each(["add", "active edit", "archived edit"])(
+    "preserves a non-first item when reselecting its category in %s",
+    async (mode) => {
+      const user = userEvent.setup();
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+      vi.stubGlobal("fetch", fetchMock);
+      const food = {
+        ...view.categories[0],
+        archived: mode === "archived edit",
+        items: [{ id: "first", name: "Apple" }, ...view.categories[0].items],
+      };
+      render(
+        <EntriesScreen
+          {...view}
+          categories={
+            mode === "archived edit"
+              ? view.categories.slice(1)
+              : [food, ...view.categories.slice(1)]
+          }
+          archivedCategories={mode === "archived edit" ? [food] : []}
+          entries={[
+            { ...view.entries[0], categoryArchived: mode === "archived edit" },
+          ]}
+        />,
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name: mode === "add" ? "+ Add entry" : "Edit entry Market",
+        }),
+      );
+      const dialog = screen.getByRole("dialog");
+      if (mode === "add") {
+        await user.type(
+          within(dialog).getByRole("textbox", { name: "Amount" }),
+          "12",
+        );
+        await user.click(
+          within(dialog).getByRole("button", { name: /ITEM Apple/ }),
+        );
+        await user.click(screen.getByRole("option", { name: "Market" }));
+      }
+      await user.click(
+        within(dialog).getByRole("button", { name: /CATEGORY Food/ }),
+      );
+      await user.click(screen.getByRole("option", { name: /Food/ }));
+      expect(
+        within(dialog).getByRole("button", { name: /ITEM Market/ }),
+      ).toBeVisible();
+      await user.click(within(dialog).getByRole("button", { name: "Save" }));
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+      expect(JSON.parse(fetchMock.mock.calls[0][1].body).itemId).toBe("item-1");
+    },
+  );
+
+  it("does not select an unrelated archived category when switching type", async () => {
+    const user = userEvent.setup();
+    const archivedIncome = { ...view.categories[1], archived: true };
+    render(
+      <EntriesScreen
+        {...view}
+        categories={[view.categories[0]]}
+        archivedCategories={[archivedIncome]}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Edit entry Market" }));
+    const dialog = screen.getByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Income" }));
+    expect(
+      within(dialog).getByText(
+        "No categories available. Create a category first in Categories.",
+      ),
+    ).toBeVisible();
+    expect(within(dialog).getByRole("button", { name: "Save" })).toBeDisabled();
+    await user.click(
+      within(dialog).getByRole("button", { name: /CATEGORY Choose category/ }),
+    );
+    expect(
+      screen.queryByRole("option", { name: /Salary/ }),
+    ).not.toBeInTheDocument();
+  });
+
   it("returns focus to the opener under Strict Mode", async () => {
     const user = userEvent.setup();
     render(

@@ -83,7 +83,16 @@ const migrationOne: Migration = {
   },
 };
 
-export const migrations: readonly Migration[] = [migrationOne];
+const migrationTwo: Migration = {
+  version: 2,
+  migrate(database) {
+    database.exec(
+      `CREATE TABLE entries (id TEXT PRIMARY KEY, item_id TEXT NOT NULL REFERENCES items(id), owner_member_id TEXT REFERENCES members(id), amount INTEGER NOT NULL CHECK (amount > 0), date TEXT NOT NULL CHECK (length(date) = 10 AND date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'), note TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL); CREATE INDEX entries_date_idx ON entries (date); CREATE INDEX entries_item_id_idx ON entries (item_id); CREATE INDEX entries_owner_member_id_idx ON entries (owner_member_id);`,
+    );
+  },
+};
+
+export const migrations: readonly Migration[] = [migrationOne, migrationTwo];
 
 export function runMigrations(database: Database.Database) {
   let version = database.pragma("user_version", { simple: true }) as number;

@@ -12,6 +12,7 @@ const rent = {
   archivedAt: null,
   mergedIntoCategoryId: null,
   itemCount: 1,
+  entryCount: 0,
   archived: false,
   items: [
     {
@@ -19,6 +20,7 @@ const rent = {
       categoryId: "rent",
       name: "Apartment",
       mergedIntoItemId: null,
+      entryCount: 0,
     },
   ],
 };

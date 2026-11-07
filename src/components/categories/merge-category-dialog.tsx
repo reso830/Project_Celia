@@ -107,7 +107,8 @@ export default function MergeCategoryDialog({
       </div>
       <p className="mt-[var(--space-3)]">
         What moves: {category.itemCount}{" "}
-        {category.itemCount === 1 ? "item" : "items"} and 0 entries.
+        {category.itemCount === 1 ? "item" : "items"} and {category.entryCount}{" "}
+        {category.entryCount === 1 ? "entry" : "entries"}.
       </p>
       {combined.length ? (
         <p className="mt-[var(--space-2)]">

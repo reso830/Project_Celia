@@ -1,16 +1,15 @@
 "use client";
 import { useState } from "react";
-import type { Item } from "@/domain/item";
 import { useMutation } from "@/components/ui/use-mutation";
 import MoveItemDialog from "./move-item-dialog";
-import type { CategoryRowData } from "./types";
+import type { CategoryItemData, CategoryRowData } from "./types";
 
 export default function ItemRow({
   item,
   category,
   categories,
 }: {
-  item: Item;
+  item: CategoryItemData;
   category: CategoryRowData;
   categories: CategoryRowData[];
 }) {

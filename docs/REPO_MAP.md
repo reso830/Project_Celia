@@ -5,16 +5,21 @@
 - `src/domain`: pure entity types, validation, and domain errors.
 - `src/server`: read models, services, and SQLite store adapters.
 - `src/server/db`: database opening, migrations, and singleton access.
+- `src/server/demo.ts`: transactional demo-data seed and guarded-clear operations.
 - `src/components/shell`: navigation rail, page headers, and shared shell controls.
 - `src/components/household`: household and member-management UI.
 - `src/components/categories`: category, item, move, merge, and archive UI.
+- `src/components/entries`: Entries workspace, entry modal, table, and custom popovers.
 - `src/components/ui`: shared dialogs, empty states, and mutation helper.
 - `tests/domain`: pure domain-rule tests.
-- `tests/server`: database, store, migration, and service tests.
+- `tests/server`: database, store, migration, service, and seed/clear tests (`seed-clear.test.ts`).
 - `tests/api`: route-handler and HTTP helper tests.
-- `tests/components`: component workflow tests.
-- `specs/`: F01 specification, plan, tasks, contracts, and quickstart.
+- `tests/components`: component workflow tests, including `tests/components/entries`.
+- `tests/release-docs.test.ts`: release metadata, command, and documentation link checks.
+- `specs/`: feature specifications, plans, tasks, contracts, and quickstarts.
 - `docs/features/`: approved feature briefs.
 - `handoff/`: supplied design-reference archives.
 - `scripts/prompts/`: project workflow prompts.
+- `scripts/seed.ts`, `scripts/clear.ts`: demo tooling command-line entry points.
+- `scripts/seed.json`: prototype-based demo dataset.
 - `.specify/`: Spec Kit templates and project constitution.

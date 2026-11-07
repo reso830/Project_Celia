@@ -61,27 +61,27 @@ Tier 1 visual regression harness is omitted per user decision (same as F01): the
 
 Order: Domain amount and date types → validation rules → pure calculations & sorting → SQLite Migration 2.
 
-- [ ] **T001 [P] [US1] Exact centavo monetary domain module**
+- [x] **T001 [P] [US1] Exact centavo monetary domain module**
   - Files: `src/domain/amount.ts`.
   - Expected behavior: define `Centavos` type (`number`). Implement `parseAndValidateAmount(raw: string)` supporting integers, decimals (up to 2 places), commas (`3,240.50`), and rejecting empty, non-numeric, `<= 0`, and values exceeding `MAX_AMOUNT_CENTAVOS` (99,999,999,999 centavos) with specific, descriptive error messages. Implement `formatCentavos(centavos, options)` supporting commas, optional decimals when non-zero or forced, `₱` prefix, and signed `+`/`−` prefixes.
   - Constraints: pure TypeScript, zero external libraries (no `decimal.js`).
   - Validation: `tests/domain/amount.test.ts` (node environment).
-- [ ] **T002 [P] [US1] Amount domain unit tests**
+- [x] **T002 [P] [US1] Amount domain unit tests**
   - Files: `tests/domain/amount.test.ts` (new).
   - Expected behavior: test `parseAndValidateAmount` with valid values (`"100"`, `"3240.50"`, `"1,000,000"`, `"0.05"`), invalid values (`"0"`, `"0.00"`, `"-5"`, `"abc"`, `"10.999"`, `"9999999999999"`), ensuring distinct descriptive errors, and formatting round-trips.
   - Constraints: covers constitution required area: required fields and bounds.
   - Validate: `npm run test`.
-- [ ] **T003 [P] [US1] Entry entity types and date validation**
+- [x] **T003 [P] [US1] Entry entity types and date validation**
   - Files: `src/domain/entry.ts`.
   - Expected behavior: define `EntryType` (`"income" | "expense"`), `Entry`, `EntryWithDetails`, and `EntryDraft`. Note: items do not have independent archive status; archive status derives from `categoryArchived`. Implement `validateEntryDate(dateStr: string): boolean` verifying `YYYY-MM-DD` syntax, calendar month 1–12, and valid days in month. Allow future dates.
   - Constraints: pure domain, no React or server dependencies.
   - Validation: `tests/domain/entry.test.ts` (node environment).
-- [ ] **T004 [P] [US1] Date validation and domain entity tests**
+- [x] **T004 [P] [US1] Date validation and domain entity tests**
   - Files: `tests/domain/entry.test.ts` (new).
   - Expected behavior: test `validateEntryDate` with valid dates (`"2026-09-19"`, `"2028-01-01"`, leap year `"2024-02-29"`), invalid dates (`"2026-02-29"`, `"2026-13-01"`, `"2026-09-31"`, `"not-a-date"`, `""`).
   - Constraints: covers constitution required area: date handling.
   - Validate: `npm run test`.
-- [ ] **T005 [P] [US2, US5, US6] Reusable in-memory filtering, calculation, and sorting functions**
+- [x] **T005 [P] [US2, US5, US6] Reusable in-memory filtering, calculation, and sorting functions**
   - Files: `src/domain/entry-calculations.ts`.
   - Expected behavior:
     - Implement `filterEntries(entries, criteria)` filtering by month (`date.startsWith(monthKey)`), type (`income` | `expense`), category, owner (with Household view showing all, and member view showing member entries + Household-owned entries), and search (case-insensitive substring match on note, item name, or category name).
@@ -90,26 +90,26 @@ Order: Domain amount and date types → validation rules → pure calculations &
     - Implement `sortEntries(entries, field, direction)` sorting by `field` (`"date"` | `"amount"`) and `direction` (`"asc"` | `"desc"`), with secondary tie-break on `createdAt DESC` and final tie-break on `id ASC`.
   - Constraints: deterministic integer arithmetic, zero float rounding, pure domain functions.
   - Validation: `tests/domain/entry-calculations.test.ts`.
-- [ ] **T006 [P] [US2, US5, US6] Entry calculations & sorting unit tests**
+- [x] **T006 [P] [US2, US5, US6] Entry calculations & sorting unit tests**
   - Files: `tests/domain/entry-calculations.test.ts` (new).
   - Expected behavior: test filtering permutations, multi-filter combinations, case-insensitive search, member + Household inclusion, exact centavo arithmetic without rounding errors, and deterministic sorting (`date` and `amount` with `createdAt DESC` then `id ASC` tie-breakers).
   - Validate: `npm run test`.
-- [ ] **T007 Domain index barrel export**
+- [x] **T007 Domain index barrel export**
   - Files: `src/domain/index.ts`.
   - Expected behavior: re-export `amount.ts`, `entry.ts`, and `entry-calculations.ts`.
   - Validate: `npm run typecheck`.
-- [ ] **T008 [US2] Database Schema Migration 2**
+- [x] **T008 [US2] Database Schema Migration 2**
   - Files: `src/server/db/migrations.ts`.
   - Expected behavior: add `migrationTwo` to `migrations` array:
     - `CREATE TABLE entries` with `id TEXT PRIMARY KEY`, `item_id TEXT NOT NULL REFERENCES items(id)`, `owner_member_id TEXT REFERENCES members(id)`, `amount INTEGER NOT NULL CHECK (amount > 0)`, `date TEXT NOT NULL CHECK (length(date) = 10 AND date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')`, `note TEXT`, `created_at TEXT NOT NULL`, `updated_at TEXT NOT NULL`.
     - Indexes: `entries_date_idx ON entries(date)`, `entries_item_id_idx ON entries(item_id)`, `entries_owner_member_id_idx ON entries(owner_member_id)`.
   - Constraints: does not alter existing F01 tables; preserves existing data.
   - Validation: `tests/server/migrations.test.ts`.
-- [ ] **T009 [US2] Migration 2 tests**
+- [x] **T009 [US2] Migration 2 tests**
   - Files: `tests/server/migrations.test.ts`.
   - Expected behavior: verify `user_version` advances to 2; existing F01 members and categories survive; foreign keys reject invalid item/member IDs; check constraints reject `<= 0` amount or invalid date length.
   - Validate: `npm run test`.
-- [ ] **T010 Phase 01 Gate Check**
+- [x] **T010 Phase 01 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
   - Confirm all pass.
 
@@ -119,7 +119,7 @@ Order: Domain amount and date types → validation rules → pure calculations &
 
 Order: Store statements → Service use cases → Atomic merge re-pointing → API route handlers.
 
-- [ ] **T011 [US1, US2, US3, US4, US7] Entries SQLite store module**
+- [x] **T011 [US1, US2, US3, US4, US7] Entries SQLite store module**
   - Files: `src/server/entries-store.ts` (new).
   - Expected behavior: prepared statements with `import "server-only"`:
     - `insertEntry(db, entry)`
@@ -132,11 +132,11 @@ Order: Store statements → Service use cases → Atomic merge re-pointing → A
     - `repointEntriesForItem(db, fromItemId, intoItemId, now)`
   - Constraints: pure SQL adapters; centralized location for all entry count queries; deterministic sorting tie-breaker.
   - Validation: `tests/server/entries-store.test.ts`.
-- [ ] **T012 [P] Store module integration tests**
+- [x] **T012 [P] Store module integration tests**
   - Files: `tests/server/entries-store.test.ts` (new).
   - Expected behavior: test insert, retrieve by month with `createdAt DESC` and `id ASC` tie-breakers, update, delete, item/category count queries, and re-pointing against an in-memory SQLite database.
   - Validate: `npm run test`.
-- [ ] **T013 [US1, US3, US4] Entries domain service**
+- [x] **T013 [US1, US3, US4] Entries domain service**
   - Files: `src/server/entries-service.ts` (new).
   - Expected behavior: use-case functions wrapped in `db.transaction`:
     - `createEntry(db, draft)`: validates active item, validates active member (if specified), checks item category umbrella matches draft `type`, inserts row, returns `EntryWithDetails`. Throws `DomainError` (`validation`, `not_found`, `archived`, `umbrella_mismatch`).
@@ -144,30 +144,30 @@ Order: Store statements → Service use cases → Atomic merge re-pointing → A
     - `deleteEntry(db, id)`: validates entry exists, deletes row.
   - Constraints: throws typed `DomainError` with descriptive user-facing message.
   - Validation: `tests/server/entries-service.test.ts`.
-- [ ] **T014 [US7] Atomic entry re-pointing in category merge**
+- [x] **T014 [US7] Atomic entry re-pointing in category merge**
   - Files: `src/server/categories-service.ts`.
   - Expected behavior: in `mergeCategory`, when combining items (`nameKey` match), call `repointEntriesForItem(database, item.id, match.id, timestamp())` inside the merge transaction before marking the item as combined. Bumps `updated_at` on re-pointed entries. If any failure occurs, entire transaction rolls back atomically.
   - Constraints: atomic within the same database transaction.
-  - Validation: `tests/server/categories-service.test.ts`.
-- [ ] **T015 [US1, US3, US4, US7] Entries service tests**
+  - Validation: `tests/server/categories-operations.test.ts`.
+- [x] **T015 [US1, US3, US4, US7] Entries service tests**
   - Files: `tests/server/entries-service.test.ts` (new).
   - Expected behavior: test entry creation, editing, deletion, active-status checks, category umbrella validation on creation, type change via `itemId` on `PATCH` (no umbrella mismatch), retaining archived entity vs 409 when switching to another archived entity, and atomic merge rollback on error.
   - Validate: `npm run test`.
-- [ ] **T016 [US1] Create entry API route handler**
+- [x] **T016 [US1] Create entry API route handler**
   - Files: `src/app/api/entries/route.ts` (new).
   - Expected behavior: `POST /api/entries`: parse JSON body via `readBody`, call `createEntry`, return `201 { entry }`. Map domain errors via `errorResponse`.
   - Validation: `tests/api/entries.test.ts`.
-- [ ] **T017 [US3, US4] Edit & delete entry API route handlers**
+- [x] **T017 [US3, US4] Edit & delete entry API route handlers**
   - Files: `src/app/api/entries/[id]/route.ts` (new).
   - Expected behavior:
     - `PATCH /api/entries/[id]`: parse JSON body, call `updateEntry`, return `200 { entry }`.
     - `DELETE /api/entries/[id]`: call `deleteEntry`, return `200 { id }`.
   - Validation: `tests/api/entries.test.ts`.
-- [ ] **T018 [US1, US3, US4] Route handler tests**
+- [x] **T018 [US1, US3, US4] Route handler tests**
   - Files: `tests/api/entries.test.ts` (new).
   - Expected behavior: test `POST`, `PATCH`, `DELETE` with valid payloads, unknown fields (400), malformed bodies (400), non-existent IDs (404), and archived entity assignments (409).
   - Validate: `npm run test`.
-- [ ] **T019 Phase 02 Gate Check**
+- [x] **T019 Phase 02 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
   - Confirm all pass.
 
@@ -177,23 +177,23 @@ Order: Store statements → Service use cases → Atomic merge re-pointing → A
 
 Order: Store count queries → View model mapping → Move & Merge dialog updates.
 
-- [ ] **T020 [P] [US7] Expose entry counts in getCategoriesView**
+- [x] **T020 [P] [US7] Expose entry counts in getCategoriesView**
   - Files: `src/server/categories-read.ts`, `src/components/categories/types.ts`.
   - Expected behavior: extend `CategoryRowData` and `Item` types to include `entryCount: number`. Update `getCategoriesView()` to populate `entryCount` on each category and item using `countEntriesByCategory` and `countEntriesByItem` from `src/server/entries-store.ts`. Does not duplicate SQL queries in `categories-store.ts`.
   - Validate: `npm run test`.
-- [ ] **T021 [US7] Real entry counts in MoveItemDialog**
+- [x] **T021 [US7] Real entry counts in MoveItemDialog**
   - Files: `src/components/categories/move-item-dialog.tsx`.
   - Expected behavior: replace `"All 0 entries under..."` with real count: `"All ${item.entryCount} entries under <name> move with it."` (using proper singular/plural `"1 entry"` vs `"N entries"`).
   - Validate: `tests/components/categories/dialogs.test.ts`.
-- [ ] **T022 [US7] Real entry counts in MergeCategoryDialog**
+- [x] **T022 [US7] Real entry counts in MergeCategoryDialog**
   - Files: `src/components/categories/merge-category-dialog.tsx`.
   - Expected behavior: replace `"...and 0 entries."` with real count: `"What moves: ${category.itemCount} items and ${category.entryCount} entries."`.
   - Validate: `tests/components/categories/dialogs.test.ts`.
-- [ ] **T023 Category dialog entry count tests**
+- [x] **T023 Category dialog entry count tests**
   - Files: `tests/components/categories/dialogs.test.ts`.
   - Expected behavior: verify `MoveItemDialog` and `MergeCategoryDialog` display actual entry numbers based on provided props and proper singular/plural strings.
   - Validate: `npm run test`.
-- [ ] **T024 Phase 03 Gate Check**
+- [x] **T024 Phase 03 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
 
 ---
@@ -202,7 +202,7 @@ Order: Store count queries → View model mapping → Move & Merge dialog update
 
 Order: Server read helper → Route loading/error boundaries → MonthPicker query sync → Header and shell layout.
 
-- [ ] **T025 [US2] Server-only getEntriesView read helper**
+- [x] **T025 [US2] Server-only getEntriesView read helper**
   - Files: `src/server/entries-read.ts` (new).
   - Expected behavior: implement `getEntriesView(monthKey?: string)`:
     - Calls `await connection()`.
@@ -212,28 +212,28 @@ Order: Server read helper → Route loading/error boundaries → MonthPicker que
     - Packages `archivedCategories` and `archivedMembers` referenced by entries in this month (for edit modal display and swatches).
     - Returns `{ month, entries, categories, members, defaults, archivedCategories, archivedMembers }`.
   - Validate: `tests/server/entries-read.test.ts`.
-- [ ] **T026 [P] Entries read helper tests**
+- [x] **T026 [P] Entries read helper tests**
   - Files: `tests/server/entries-read.test.ts` (new).
   - Expected behavior: test default month resolution, valid `monthKey` filtering, active entity packaging, inclusion of zero-item categories, and `archivedCategories`/`archivedMembers` packaging.
   - Validate: `npm run test`.
-- [ ] **T027 [US2] Route-level loading and error boundaries**
+- [x] **T027 [US2] Route-level loading and error boundaries**
   - Files: `src/app/(shell)/entries/loading.tsx` (new), `src/app/(shell)/entries/error.tsx` (new).
   - Expected behavior:
     - `loading.tsx`: renders skeleton matching entries header, filter chips, and table structure.
     - `error.tsx`: client boundary accepting `{ error: Error; retry: () => void }`, displaying user-facing error message with "Try again" button calling `retry()`.
   - Validate: `tests/components/entries/route-boundaries.test.ts`.
-- [ ] **T028 [US2] MonthPicker query parameter navigation support**
+- [x] **T028 [US2] MonthPicker query parameter navigation support**
   - Files: `src/components/shell/month-picker.tsx`.
   - Expected behavior: allow controlled `value?: string` (`YYYY-MM`) and `onChange?: (month: string) => void`. When used on `/entries`, clicking ◀ / ▶ pushes the updated month to URL query parameters (`/entries?month=YYYY-MM`). Fall back to local state if uncontrolled.
   - Constraints: preserve box-content layout and styling from F01.
   - Validate: `tests/components/shell/month-picker.test.ts`.
-- [ ] **T029 🎨 [US1, US2] Entries screen header**
+- [x] **T029 🎨 [US1, US2] Entries screen header**
   - Files: `src/components/entries/entries-header.tsx` (new).
   - **Match**: `HF#L23–L48, L834–L848`.
-  - Expected behavior: render top header row with Page title ("Entries"), Owner dropdown filter ("Household ▾" + active members), Category dropdown filter ("All categories ▾" + active categories), MonthPicker, and "+ Add entry" primary CTA button (`#14181a` dark surface, radius 10, white text).
+  - Expected behavior: render top header row with Page title ("Entries"), Owner dropdown filter ("Household ▾" + active members), Category dropdown filter ("All categories ▾" + active categories), MonthPicker, and "+ Add entry" primary CTA button (`#2f7d78` teal surface, radius 9, white text).
   - Provenance: `lifted from prototype CSS` (HF L23–L48).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T030 🎨 [US2] Entries screen container & empty states**
+- [x] **T030 🎨 [US2] Entries screen container & empty states**
   - Files: `src/components/entries/entries-screen.tsx` (new).
   - **Match**: `HF#L205–L230`.
   - Expected behavior: client component receiving `EntriesViewData`. Renders `EntriesHeader`, filter chip row placeholder, and table card. Handles empty states:
@@ -241,16 +241,16 @@ Order: Server read helper → Route loading/error boundaries → MonthPicker que
     - Entries exist but filters match none: `"No entries match these filters."`
   - Provenance: `lifted from prototype CSS` (HF L228).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T031 [US2] Functional Entries page component**
+- [x] **T031 [US2] Functional Entries page component**
   - Files: `src/app/(shell)/entries/page.tsx`.
   - Expected behavior: Server Component reading `searchParams: Promise<{ month?: string }>`. Calls `getEntriesView(month)` and passes props to `EntriesScreen`.
   - Constraints: no prerender at build time (`await connection()` in read helper).
   - Validate: `npm run build`.
-- [ ] **T032 Entries screen and route boundary component tests**
+- [x] **T032 Entries screen and route boundary component tests**
   - Files: `tests/components/entries/entries-screen.test.ts` (new), `tests/components/entries/route-boundaries.test.ts` (new).
   - Expected behavior: test rendering with entries, empty month state, filter mismatch empty state, month navigation, skeleton loading state, and error boundary retry trigger.
   - Validate: `npm run test`.
-- [ ] **T033 Phase 04 Gate Check**
+- [x] **T033 Phase 04 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
 
 ---
@@ -259,21 +259,21 @@ Order: Server read helper → Route loading/error boundaries → MonthPicker que
 
 Order: Type filter toggle → Search input & filter state → Summary chips with member split.
 
-- [ ] **T034 🎨 [US5] Type filter segmented control**
+- [x] **T034 🎨 [US5] Type filter segmented control**
   - Files: `src/components/entries/type-filter.tsx` (new).
   - **Match**: Header segmented control style (All | Expense | Income) using pill borders, radius 20, font 13px.
   - Provenance: `recreated manually: type filter not represented in prototype header (spec clarification)`.
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T035 🎨 [US5] Entries search input**
+- [x] **T035 🎨 [US5] Entries search input**
   - Files: `src/components/entries/search-input.tsx` (new).
   - **Match**: `HF#L207–L212` (input at L211). White background, border `#d5d8d8`, radius 9 (HF L211: `border-radius: 9px;`), placeholder `"Search notes and items…"`.
   - Provenance: `lifted from prototype CSS` (HF L211).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T036 [US5] Wire in-memory filtering in EntriesScreen**
-  - Files: `src/components/entries/entries-screen.tsx`.
-  - Expected behavior: maintain local React state for `search`, `type`, `categoryId`, and `ownerId`. Compute `filteredEntries` using `filterEntries()` from `src/domain/entry-calculations.ts` on every state change instantly.
+- [x] **T036 [US5] Wire in-memory filtering in EntriesScreen**
+  - Files: `src/components/entries/entries-screen.tsx`, `src/components/entries/entries-header.tsx`.
+  - Expected behavior: replace the temporary `visibleEntries` test seam with local React state for `search`, `type`, `categoryId`, and `ownerId`, wiring the header controls to that state. Compute `filteredEntries` using `filterEntries()` from `src/domain/entry-calculations.ts` on every state change instantly. Apply the selected styling from the prototype to active chips and their selected menu items.
   - Validate: `tests/components/entries/entries-screen.test.ts`.
-- [ ] **T037 🎨 [US6] Summary chips component**
+- [x] **T037 🎨 [US6] Summary chips component**
   - Files: `src/components/entries/summary-chips.tsx` (new).
   - **Match**: `HF#L207–L210` / styles `HF#L1002–L1008`.
   - Expected behavior: white pill cards, border `#d5d8d8`, radius 20, padding 7×14, font 13px. Displays:
@@ -283,16 +283,16 @@ Order: Type filter toggle → Search input & filter state → Summary chips with
     - `Net <signed ₱amount>` (signed with `+` or true minus `−`)
   - Provenance: `lifted from prototype CSS` (HF L1002–L1008; Net replaces Avg / entry per spec).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T038 [US6] Member view own and shared summary chip split**
+- [x] **T038 [US6] Member view own and shared summary chip split**
   - Files: `src/components/entries/summary-chips.tsx`.
   - Expected behavior: when `ownerId !== "all"`, Expense, Income, and Net chips display member's own amount and shared (Household) amount separately beneath or alongside the total (e.g., `₱18,200 own · ₱6,400 shared`).
   - Constraints: exact arithmetic via `calculateMemberSummary`.
   - Validate: `tests/components/entries/summary-chips.test.ts`.
-- [ ] **T039 Summary chips component tests**
+- [x] **T039 Summary chips component tests**
   - Files: `tests/components/entries/summary-chips.test.ts` (new).
   - Expected behavior: test totals for household view, member view split, exact centavo additions, and empty/zero states.
   - Validate: `npm run test`.
-- [ ] **T040 Phase 05 Gate Check**
+- [x] **T040 Phase 05 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
 
 ---
@@ -301,7 +301,7 @@ Order: Type filter toggle → Search input & filter state → Summary chips with
 
 Order: Table card & columns → Sortable headers calling domain sort → Row rendering → Delete confirmation dialog.
 
-- [ ] **T041 🎨 [US2] Entries table card & headers**
+- [x] **T041 🎨 [US2] Entries table card & headers**
   - Files: `src/components/entries/entries-table.tsx` (new).
   - **Match**: `HF#L213–L214`.
   - Expected behavior: white card, radius 14, border `#d5d8d8`. Grid columns: `78px minmax(0,34%) 1fr 0.8fr 100px 58px`. Column headers:
@@ -313,11 +313,11 @@ Order: Table card & columns → Sortable headers calling domain sort → Row ren
     - Actions (empty header)
   - Provenance: `lifted from prototype CSS` (HF L213–L214).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T042 [US2] Table column sorting invoking domain helper**
+- [x] **T042 [US2] Table column sorting invoking domain helper**
   - Files: `src/components/entries/entries-table.tsx`.
   - Expected behavior: maintain sort state (`field: "date" | "amount"`, `direction: "asc" | "desc"`). Default is date descending (newest first). Toggling DATE flips asc/desc; clicking AMOUNT sorts by amount descending/ascending. Calls `sortEntries(entries, field, direction)` from `src/domain/entry-calculations.ts` ensuring deterministic secondary tie-break on `createdAt DESC` and final on `id ASC`.
   - Validate: `tests/components/entries/entries-table.test.ts`.
-- [ ] **T043 🎨 [US2, US5] Entry row component**
+- [x] **T043 🎨 [US2, US5] Entry row component**
   - Files: `src/components/entries/entry-row.tsx` (new).
   - **Match**: `HF#L215–L227` / styles `HF#L1009–L1020`.
   - Expected behavior:
@@ -329,21 +329,22 @@ Order: Table card & columns → Sortable headers calling domain sort → Row ren
     - Actions: ✎ edit button and ✕ delete button (22×22, radius 6).
   - Provenance: `lifted from prototype CSS` (HF L215–L227).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T044 🎨 [US4] Delete entry confirmation dialog**
+- [x] **T044 🎨 [US4] Delete entry confirmation dialog**
   - Files: `src/components/entries/delete-confirm-dialog.tsx` (new).
   - **Match**: `WF#dialogs` and F01 `ConfirmDialog` styling.
   - Expected behavior: native `<dialog>` wrapper with backdrop. Title: "Delete entry". Body identifies entry (Date, Item, Amount). Buttons: Cancel and Delete entry (red hover fill). Triggers `DELETE /api/entries/:id`.
   - Provenance: `recreated manually: prototype deleted immediately without confirmation (brief requires confirmation)`.
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T045 Wire row actions, stale record recovery, and mutation feedback**
+- [x] **T045 Wire row actions, stale record recovery, and mutation feedback**
   - Files: `src/components/entries/entries-screen.tsx`.
   - Expected behavior: clicking ✎ opens EntryModal in edit mode. Clicking ✕ opens `DeleteConfirmDialog`. On successful delete, shows toast `"Entry deleted"` and triggers `router.refresh()`. If delete returns 404 (stale record), displays error notification and triggers `router.refresh()` to resync table.
+  - Note: per user direction, ✎ remains intentionally inert until Phase 07 introduces `EntryModal`.
   - Validate: `tests/components/entries/entries-table.test.ts`.
-- [ ] **T046 Entries table component tests**
+- [x] **T046 Entries table component tests**
   - Files: `tests/components/entries/entries-table.test.ts` (new).
   - Expected behavior: test rendering rows, sorting by date and amount via domain helper with `createdAt DESC` and `id ASC` tie-breakers, Household row visual distinction in member filter, delete dialog open/cancel/confirm flow, and stale record 404 handling.
   - Validate: `npm run test`.
-- [ ] **T047 Phase 06 Gate Check**
+- [x] **T047 Phase 06 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
 
 ---
@@ -352,40 +353,40 @@ Order: Table card & columns → Sortable headers calling domain sort → Row ren
 
 Order: Popovers (Date, Category, Item) → Modal shell → Form validation → Save & Add another → Edit mode.
 
-- [ ] **T048 🎨 [US1] Custom Calendar Popover**
+- [x] **T048 🎨 [US1] Custom Calendar Popover**
   - Files: `src/components/entries/popovers/calendar-popover.tsx` (new).
   - **Match**: `HF#L565–L572`, styles `HF#L720–L734`.
   - Expected behavior: opens directly under the date field at field width. Header with ◀ Month YYYY ▶. Monday-first grid with 32px day cells. Selected day on `#26686a` with white bold text in JetBrains Mono. Selection updates date and closes popover. Arrow keys navigate calendar days; Enter selects focused day.
   - Provenance: `lifted from prototype CSS` (HF L565–L572).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T049 🎨 [US1] Custom Category Popover**
+- [x] **T049 🎨 [US1] Custom Category Popover**
   - Files: `src/components/entries/popovers/category-popover.tsx` (new).
   - **Match**: `HF#L576–L580`, styles `HF#L741–L747`.
   - Expected behavior: custom dropdown 4px under field, matching width, max-height 240px, scrollable. Lists categories matching active `type` (Expense or Income). Rows show 11×11 square color swatch and name. Selected row is `#e4efee` with `#26686a` text. Selecting a category resets item to that category's first item and closes popover. Arrow keys navigate options; Enter selects. If no categories exist, displays explanation `"No categories available. Create a category first in Categories."`.
   - Provenance: `lifted from prototype CSS` (HF L576–L580).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T050 🎨 [US1] Custom Item Popover**
+- [x] **T050 🎨 [US1] Custom Item Popover**
   - Files: `src/components/entries/popovers/item-popover.tsx` (new).
   - **Match**: `HF#L583–L588`, styles `HF#L748–L752`.
   - Expected behavior: custom dropdown 4px under field, matching width, max-height 240px, scrollable. Lists items belonging to the currently selected category. Selected row is `#e4efee` with `#26686a` text. Arrow keys navigate options; Enter selects. If selected category has zero items, displays explanation `"No items in this category. Add items in Categories."`.
   - Provenance: `lifted from prototype CSS` (HF L583–L588).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T051 [US1] Popover manager & keyboard / outside-click handling**
+- [x] **T051 [US1] Popover manager & keyboard / outside-click handling**
   - Files: `src/components/entries/popovers/use-popover-manager.ts` (new).
   - Expected behavior: enforces single open popover rule (`formMenu: "date" | "cat" | "item" | null`).
   - Keyboard rules: Escape key closes the open popover only (does NOT close the outer modal). Closes on outside click or option selection.
   - Validate: unit/hook test in `tests/components/entries/popovers.test.ts`.
-- [ ] **T052 🎨 [US1] Owner segmented control**
+- [x] **T052 🎨 [US1] Owner segmented control**
   - Files: `src/components/entries/owner-segmented-control.tsx` (new).
   - **Match**: `HF#L589–L593`, styles `HF#L808, L1357–L1359`.
   - Expected behavior: segmented pill control: "Household" (default) plus each active member. Helper text beneath: `"Optional — stays with the household unless you pick a member."`.
   - Provenance: `lifted from prototype CSS` (HF L589–L593, L808, L1357–L1359).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T053 🎨 [US1] Entry modal card, validation styling, & draft preservation**
+- [x] **T053 🎨 [US1] Entry modal card, validation styling, & draft preservation**
   - Files: `src/components/entries/entry-modal.tsx` (new).
   - **Match**: `HF#L550–L603`, styles `HF#L1350–L1376`.
   - Expected behavior:
-    - Overlay `rgba(20,24,26,.42)`; card 520px wide, white, radius 16, padding 24.
+    - Overlay `rgba(20,24,26,.42)`; card 568px wide (the prototype's 520px content width plus 24px padding on each side), white, radius 16, padding 24, no border.
     - Type toggle: Expense | Income segmented on `#e0e2e2`, radius 9. Switching type switches category and item to valid options of the new type.
     - AMOUNT input: Mono 16px text input. When amount is invalid (`<= 0`, non-numeric, >2 decimals), border turns `#b0533c` on `#fdf6f3`, message below input displays specific error from `parseAndValidateAmount`, and Save buttons are disabled with muted `#5c6467` text on `#f4f5f5` with `#d5d8d8` border.
     - NOTE: textarea, 3 rows, placeholder "Optional".
@@ -395,11 +396,11 @@ Order: Popovers (Date, Category, Item) → Modal shell → Form validation → S
     - Footer buttons: Cancel · Save & add another · Save.
   - Provenance: `lifted from prototype CSS` (HF L550–L603, L1350–L1376).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T054 [US1] "Save & add another" creation flow**
+- [x] **T054 [US1] "Save & add another" creation flow**
   - Files: `src/components/entries/entry-modal.tsx`.
   - Expected behavior: submitting via "Save & add another" sends `POST /api/entries`. Disables submit buttons during request. On success, keeps modal open, preserves type, date, category, item, and owner, clears amount and note, focuses amount input, triggers `router.refresh()`, and displays toast `"₱<amount> added to <Category>"`.
   - Validate: `tests/components/entries/entry-modal.test.ts`.
-- [ ] **T055 [US3, US7] Edit mode, type follows itemId, & archived entity preservation**
+- [x] **T055 [US3, US7] Edit mode, type follows itemId, & archived entity preservation**
   - Files: `src/components/entries/entry-modal.tsx`.
   - Expected behavior:
     - In Edit mode: title is "Edit entry", prefilled with existing entry values; hides "Save & add another".
@@ -408,20 +409,21 @@ Order: Popovers (Date, Category, Item) → Modal shell → Form validation → S
     - User can edit amount/date/note without changing the archived entity. If switched away to an active entity, the archived entity can no longer be chosen. Switching to another archived entity is rejected (`409 archived`).
     - On save, sends `PATCH /api/entries/:id`, closes modal, shows toast `"Entry updated"`, triggers `router.refresh()`. If record missing (404), displays error toast and refreshes table.
   - Validate: `tests/components/entries/entry-modal.test.ts`.
-- [ ] **T056 Toast notification component**
+- [x] **T056 Toast notification component**
   - Files: `src/components/ui/toast.tsx` (new).
   - Expected behavior: displays floating feedback toast for 2200ms (`"₱<amount> added to <Category>"`, `"Entry updated"`, `"Entry deleted"`).
+  - Integration: replace Phase 06's temporary screen-local delete success and stale-record error feedback.
   - Constraints: accessible `role="status"` live region.
   - Validate: `tests/components/ui/toast.test.ts`.
-- [ ] **T057 Wire EntryModal into EntriesScreen**
+- [x] **T057 Wire EntryModal into EntriesScreen**
   - Files: `src/components/entries/entries-screen.tsx`.
   - Expected behavior: connects "+ Add entry" button and row ✎ buttons to `EntryModal`. Passes active categories, items, and members.
   - Validate: `tests/components/entries/entry-modal.test.ts`.
-- [ ] **T058 Entry modal & popover component tests**
+- [x] **T058 Entry modal & popover component tests**
   - Files: `tests/components/entries/entry-modal.test.ts` (new), `tests/components/entries/popovers.test.ts` (new).
   - Expected behavior: test initial defaults, amount validation specific error messages, popover opening/closing, single open popover rule, Escape hierarchy (closes popover first, modal second), arrow key popover navigation, Enter submission from amount input, newline preservation in note textarea, draft preservation on error, double submit prevention, Save & add another behavior, Edit mode prefill, type update on itemId change, and archived entity handling.
   - Validate: `npm run test`.
-- [ ] **T059 Phase 07 Gate Check**
+- [x] **T059 Phase 07 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
 
 ---
@@ -430,12 +432,12 @@ Order: Popovers (Date, Category, Item) → Modal shell → Form validation → S
 
 Order: Seed reference data → Demo engine module → Thin CLI wrappers → NPM script registration → Integration tests.
 
-- [ ] **T060 [US8] Copy prototype seed data to scripts directory**
+- [x] **T060 [US8] Copy prototype seed data to scripts directory**
   - Files: `scripts/seed.json` (new).
   - Expected behavior: copy seed data from extracted design handoff (`reference/seed.json` / `data/seed.json` in handoff zip) into `scripts/seed.json`. Contains members (Ana, Miguel), categories, items, and 12-month actuals series.
   - Constraints: committed inside `scripts/` (outside the gitignored `/data/` directory).
   - Validate: file exists and parses as valid JSON.
-- [ ] **T061 [US8] Demo seed and clear engine module**
+- [x] **T061 [US8] Demo seed and clear engine module**
   - Files: `src/server/demo.ts` (new).
   - Expected behavior: prepared statements and transaction logic with `import "server-only"`:
     - `seedDemoData(db, options?: { seedJson?: SeedData; currentDate?: string })`:
@@ -448,21 +450,21 @@ Order: Seed reference data → Demo engine module → Thin CLI wrappers → NPM 
     - `clearAllData(db)`: deletes all records from `entries`, `items`, `categories`, and `members`. Preserves `household`, `umbrellas`, and database schema in a single transaction.
   - Constraints: pure importable module; callable by CLI scripts or directly by tests.
   - Validation: `tests/server/seed-clear.test.ts`.
-- [ ] **T062 [US8] Thin CLI wrappers for seed and clear using shared getDatabase helper**
+- [x] **T062 [US8] Thin CLI wrappers for seed and clear using shared getDatabase helper**
   - Files: `scripts/seed.ts` (new), `scripts/clear.ts` (new).
   - Expected behavior:
     - `scripts/seed.ts`: imports `getDatabase` from `src/server/db/database.ts` (which safely falls back to `"./data/celia.db"` when `process.env.CELIA_DB_PATH` is unset), calls `seedDemoData(db)`, logs seeded counts or exits with error.
     - `scripts/clear.ts`: inspects `process.argv` for `--yes`, imports `getDatabase` from `src/server/db/database.ts` (safely resolving `process.env.CELIA_DB_PATH ?? "./data/celia.db"`). If `--yes`, calls `clearAllData(db)` and reports wiped counts; otherwise, calls `getClearSummary(db)` and prints dry-run summary with instructions to pass `--yes`.
   - Constraints: thin wrappers around `src/server/demo.ts`; uses shared `getDatabase()` helper to avoid crashes when `CELIA_DB_PATH` is unset.
   - Validate: manual test via `tsx --conditions react-server`.
-- [ ] **T063 [US8] Register tsx devDependency and npm scripts**
+- [x] **T063 [US8] Register tsx devDependency and npm scripts**
   - Files: `package.json`.
   - Expected behavior:
     - Add `"tsx": "^4.19.2"` to `devDependencies` (Node's `--experimental-strip-types` cannot resolve `@/` path mappings, justifying `tsx` under Constitution Principle XVII).
     - Add `"seed": "tsx --conditions react-server scripts/seed.ts"` and `"clear": "tsx --conditions react-server scripts/clear.ts"` to `scripts`.
   - Constraints: `tsx` added strictly as a `devDependency` (zero runtime dependencies).
   - Validate: `npm run seed` and `npm run clear` execute without errors.
-- [ ] **T064 [US8] Demo seed and clear in-memory integration tests**
+- [x] **T064 [US8] Demo seed and clear in-memory integration tests**
   - Files: `tests/server/seed-clear.test.ts` (new).
   - Expected behavior: directly test `src/server/demo.ts` against an in-memory SQLite database:
     - Seed on empty DB creates 12 months of entries.
@@ -471,7 +473,7 @@ Order: Seed reference data → Demo engine module → Thin CLI wrappers → NPM 
     - `getClearSummary` makes zero database changes and returns accurate counts.
     - `clearAllData` wipes back to first-run state.
   - Validate: `npm run test`.
-- [ ] **T065 Phase 08 Gate Check**
+- [x] **T065 Phase 08 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
 
 ---
@@ -480,11 +482,11 @@ Order: Seed reference data → Demo engine module → Thin CLI wrappers → NPM 
 
 Order: Version bump → Changelog → Roadmap → Repo map → README → Deviations sync → Docs sanity.
 
-- [ ] **T066 Version bump**
+- [x] **T066 Version bump**
   - Files: `package.json`, `package-lock.json`.
   - Expected behavior: bump version from `3.0.0` to `3.1.0` in `package.json` and `package-lock.json` (`packages[""].version`).
   - Validate: `git diff package.json package-lock.json`.
-- [ ] **T067 [P] CHANGELOG.md update**
+- [x] **T067 [P] CHANGELOG.md update**
   - Files: `CHANGELOG.md`.
   - Expected behavior: add `## 3.1.0 — 2026-MM-DD` entry for F02 Entries covering:
     - Add/Edit entry modal with custom popovers and keyboard navigation.
@@ -494,23 +496,23 @@ Order: Version bump → Changelog → Roadmap → Repo map → README → Deviat
     - Real entry counts in Move and Merge dialogs, and atomic entry re-pointing.
     - CLI tools `npm run seed` (12-month demo data) and `npm run clear` (guarded wipe).
   - Validate: file matches formatting conventions.
-- [ ] **T068 [P] Update feature roadmap**
+- [x] **T068 [P] Update feature roadmap**
   - Files: `docs/feature_roadmap.md`.
   - Expected behavior: mark `F02 — Entries` as `✓ Complete` with link to `[Brief](features/v3-002-entries.md)`.
   - Validate: markdown table renders cleanly.
-- [ ] **T069 [P] Update repository map**
+- [x] **T069 [P] Update repository map**
   - Files: `docs/REPO_MAP.md`.
   - Expected behavior: document `src/components/entries`, `scripts/`, `scripts/seed.json`, `src/server/demo.ts`, and test files.
   - Validate: all listed directories exist.
-- [ ] **T070 [P] Update README.md**
+- [x] **T070 [P] Update README.md**
   - Files: `README.md`.
   - Expected behavior: update feature description to include Entries, document `npm run seed` and `npm run clear` CLI tools, and document exact centavo arithmetic.
   - Validate: clear instructions matching codebase state.
-- [ ] **T071 [P] Review and synchronize deviations.md**
+- [x] **T071 [P] Review and synchronize deviations.md**
   - Files: `specs/v3-002-entries/deviations.md`.
   - Expected behavior: verify all deviations D1–D9 match implemented code and behavior (including D9 for field-level error and budget preview box removal).
   - Validate: `deviations.md` accurately reflects codebase state.
-- [ ] **T072 Docs sanity check**
+- [x] **T072 Docs sanity check**
   - Files: `README.md`, `CHANGELOG.md`, `docs/feature_roadmap.md`, `docs/REPO_MAP.md`, `specs/v3-002-entries/quickstart.md`.
   - Checks:
     - Commands exist in `package.json`.
@@ -524,25 +526,27 @@ Order: Version bump → Changelog → Roadmap → Repo map → README → Deviat
 
 Run in a real desktop browser against the to-be-merged state after Release Prep completes. Start server with `$env:CELIA_DB_PATH="./data/smoke.db"; npm run dev` (quickstart.md).
 
-- [ ] **T073 Dev server network binding check**
+T073–T082 were reported passed in the Phase 10 headless Chrome walkthrough. T083–T085 remain open for the outstanding decisions and visual/contrast coverage.
+
+- [x] **T073 Dev server network binding check**
   - Confirm the server listens exclusively on `127.0.0.1:3000` and is unreachable via LAN IP.
-- [ ] **T074 [US1] Walk quickstart "US1 — Add an Entry"**
+- [x] **T074 [US1] Walk quickstart "US1 — Add an Entry"**
   - Open `/entries`, add expense `3240.50`, confirm toast and table row. Add income `45000` with "Save & add another", confirm modal stays open with values cleared. Verify `0` disables Save with specific error message. Reload; confirm persistence.
-- [ ] **T075 [US2] Walk quickstart "US2 — Browse a Month of Entries & Sorting"**
+- [x] **T075 [US2] Walk quickstart "US2 — Browse a Month of Entries & Sorting"**
   - Seed demo data (`npm run seed`). Open `/entries`. Confirm newest first order, DATE toggle, AMOUNT toggle, month stepping. Run `npm run clear -- --yes` and confirm empty state.
-- [ ] **T076 [US3] Walk quickstart "US3 — Edit an Entry & Cross-Month Move"**
+- [x] **T076 [US3] Walk quickstart "US3 — Edit an Entry & Cross-Month Move"**
   - Seed data. Edit an entry's amount, change its date to the previous month. Confirm toast `"Entry updated"`, confirm row leaves current month, step back a month and confirm entry is present. Reload to verify persistence.
-- [ ] **T077 [US4] Walk quickstart "US4 — Delete an Entry"**
+- [x] **T077 [US4] Walk quickstart "US4 — Delete an Entry"**
   - Click ✕ on an entry. Verify confirmation dialog identifies entry. Cancel: verify unchanged. Confirm delete: verify row disappears, chips update, toast `"Entry deleted"`. Reload to verify persistence.
-- [ ] **T078 [US5] Walk quickstart "US5 — Search and Filter Combinations"**
+- [x] **T078 [US5] Walk quickstart "US5 — Search and Filter Combinations"**
   - Test search by item, category, note. Test Type filter (Expense / Income). Test Category filter. Test Owner filter with Ana (verifying Ana's entries + Household entries are listed with Household marked). Combine filters.
-- [ ] **T079 [US6] Walk quickstart "US6 — Month Totals & Member Split"**
+- [x] **T079 [US6] Walk quickstart "US6 — Month Totals & Member Split"**
   - Check summary chips (Entries N, Expense, Income, Net). Verify exact centavo sums. Switch to member Ana: confirm Income, Expense, and Net chips split into own and shared amounts.
-- [ ] **T080 [US7] Walk quickstart "US7 — Historical Integrity Across Moves, Merges, & Archives"**
+- [x] **T080 [US7] Walk quickstart "US7 — Historical Integrity Across Moves, Merges, & Archives"**
   - Add entry on item Coffee. Check Move dialog displays real count (`1 entry`). Move Coffee to Dining out; confirm entry category updates. Merge Dining out; confirm entry follows surviving category/item. Archive category and member; confirm entry still displays normally and opens in Edit mode with archived tags preserved.
-- [ ] **T081 [US8] Walk quickstart "US8 — Seed and Clear Verification"**
+- [x] **T081 [US8] Walk quickstart "US8 — Seed and Clear Verification"**
   - Run `npm run seed` on non-empty DB: verify refusal. Run `npm run clear` without flag: verify dry-run report. Run `npm run clear -- --yes`: verify wipe to clean first-run state.
-- [ ] **T082 Server restart persistence verification**
+- [x] **T082 Server restart persistence verification**
   - Stop the Next.js server, restart with the same `CELIA_DB_PATH`, and confirm all saved entries and classifications survive intact.
 - [ ] **T083 Keyboard accessibility pass**
   - Verify Tab navigation reaches all inputs, buttons, and popovers.

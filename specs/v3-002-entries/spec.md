@@ -254,6 +254,7 @@ and confirm both apply. Switch to another screen and back, and confirm filters r
 5. Month, search, type, category and owner combine (all must match). Changes apply
    immediately, with no apply button.
 6. Filters and search are per screen and do not carry over to other screens.
+7. Changing the month keeps the current filters and search while the Entries screen remains mounted; leaving and returning resets them.
 
 ### User Story 6 — See month totals (Priority: P2)
 

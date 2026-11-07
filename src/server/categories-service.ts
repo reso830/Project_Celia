@@ -20,6 +20,7 @@ import {
   updateCategory as writeCategory,
   updateItem as writeItem,
 } from "./categories-store";
+import { repointEntriesForItem } from "./entries-store";
 
 function duplicateName() {
   return new DomainError(
@@ -275,6 +276,7 @@ export function mergeCategory(
     for (const item of listItems(database, source.id)) {
       const match = targetsByName.get(nameKey(item.name));
       if (match) {
+        repointEntriesForItem(database, item.id, match.id, timestamp());
         writeItem(database, {
           id: item.id,
           categoryId: source.id,

@@ -15,6 +15,7 @@ const dining = {
   archivedAt: null,
   mergedIntoCategoryId: null,
   itemCount: 1,
+  entryCount: 0,
   archived: false,
   items: [
     {
@@ -22,6 +23,7 @@ const dining = {
       categoryId: "dining",
       name: "Coffee",
       mergedIntoItemId: null,
+      entryCount: 0,
     },
   ],
 };
@@ -36,6 +38,7 @@ const groceries = {
       categoryId: "groceries",
       name: "Coffee",
       mergedIntoItemId: null,
+      entryCount: 0,
     },
   ],
 };

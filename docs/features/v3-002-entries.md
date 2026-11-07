@@ -126,6 +126,8 @@ Users shall be able to narrow transaction records through:
 The default presentation should show the most recent transactions first.
 
 Search and filters should work together, with summaries reflecting the applicable filtered records.
+Changing the month keeps the active search and filters while the Entries screen remains open;
+leaving and returning to the screen resets them.
 
 ### 3.6 Financial Summaries
 

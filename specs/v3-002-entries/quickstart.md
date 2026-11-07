@@ -106,6 +106,7 @@ Walk through these steps in a desktop browser at a 1280px-wide viewport. Each se
 ### US5 — Search and Filter Combinations
 1. With seeded data, type an item name into the search bar (e.g., "Supermarket"). Confirm only rows matching that item remain.
 2. Type a category name (e.g., "Utilities"). Confirm only utilities rows appear. Clear search.
+   Edit an entry to add a distinctive note, then search for a word from that note and confirm it matches. Seeded entries have no notes.
 3. Set the Type filter to "Income". Confirm only income rows appear.
 4. Set the Category filter to a specific category. Confirm only its entries appear.
 5. Set the Owner filter to member "Ana". Confirm the list displays Ana's individual entries **plus** Household-owned entries, with Household rows visibly marked. Confirm entries owned by Miguel are excluded.

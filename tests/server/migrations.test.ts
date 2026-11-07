@@ -4,8 +4,10 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type Database from "better-sqlite3";
+import SqliteDatabase from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
 import { openDatabase } from "@/server/db/database";
+import { migrations, runMigrations } from "@/server/db/migrations";
 
 const temporaryDirectories: string[] = [];
 const databases: Database.Database[] = [];
@@ -29,10 +31,17 @@ afterEach(() => {
 });
 
 describe("database migrations", () => {
-  it("creates version one with the structural household and umbrellas", () => {
+  it("creates version two with the structural household, umbrellas, and entries table", () => {
     const database = createDatabase();
 
-    expect(database.pragma("user_version", { simple: true })).toBe(1);
+    expect(database.pragma("user_version", { simple: true })).toBe(2);
+    expect(
+      database
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'entries'",
+        )
+        .get(),
+    ).toEqual({ name: "entries" });
     expect(
       database.prepare("SELECT id, currency FROM household").all(),
     ).toEqual([{ id: "household", currency: "PHP" }]);
@@ -60,6 +69,41 @@ describe("database migrations", () => {
     ).toEqual({
       count: 3,
     });
+  });
+
+  it("upgrades an existing F01 database without losing records", () => {
+    const directory = mkdtempSync(path.join(tmpdir(), "celia-v1-"));
+    temporaryDirectories.push(directory);
+    const database = new SqliteDatabase(path.join(directory, "celia.db"));
+    databases.push(database);
+    database.pragma("foreign_keys = ON");
+    migrations[0].migrate(database);
+    database.pragma("user_version = 1");
+    const now = "2026-09-28T00:00:00.000Z";
+    database
+      .prepare("INSERT INTO members VALUES (?, ?, ?, ?, ?, ?)")
+      .run("member", "Ana", "ana", null, now, now);
+    database
+      .prepare(
+        "INSERT INTO categories (id, umbrella_id, name, name_key, color, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      )
+      .run("category", "expense", "Food", "food", "#7d8ba8", now, now);
+    database
+      .prepare(
+        "INSERT INTO items (id, category_id, name, name_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+      )
+      .run("item", "category", "Rice", "rice", now, now);
+    runMigrations(database);
+    expect(database.pragma("user_version", { simple: true })).toBe(2);
+    expect(database.prepare("SELECT id FROM members").all()).toEqual([
+      { id: "member" },
+    ]);
+    expect(database.prepare("SELECT id FROM categories").all()).toEqual([
+      { id: "category" },
+    ]);
+    expect(database.prepare("SELECT id FROM items").all()).toEqual([
+      { id: "item" },
+    ]);
   });
 
   it("enables foreign keys, WAL file storage, and missing parent directories", () => {
@@ -141,6 +185,60 @@ describe("database migrations", () => {
           "INSERT INTO household (id, currency, created_at) VALUES (?, ?, ?)",
         )
         .run("other", "PHP", timestamp),
+    ).toThrow(/CHECK constraint failed/);
+  });
+
+  it("enforces each entry foreign key and check constraint", () => {
+    const database = createDatabase();
+    const timestamp = "2026-09-28T00:00:00.000Z";
+    database
+      .prepare(
+        "INSERT INTO categories (id, umbrella_id, name, name_key, color, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      )
+      .run(
+        "category",
+        "expense",
+        "Food",
+        "food",
+        "#7d8ba8",
+        timestamp,
+        timestamp,
+      );
+    database
+      .prepare(
+        "INSERT INTO items (id, category_id, name, name_key, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+      )
+      .run("item", "category", "Rice", "rice", timestamp, timestamp);
+    const insert = database.prepare(
+      "INSERT INTO entries (id, item_id, owner_member_id, amount, date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    );
+    expect(() =>
+      insert.run(
+        "missing-item",
+        "missing",
+        null,
+        1,
+        "2026-09-01",
+        timestamp,
+        timestamp,
+      ),
+    ).toThrow(/FOREIGN KEY constraint failed/);
+    expect(() =>
+      insert.run(
+        "missing-member",
+        "item",
+        "missing",
+        1,
+        "2026-09-01",
+        timestamp,
+        timestamp,
+      ),
+    ).toThrow(/FOREIGN KEY constraint failed/);
+    expect(() =>
+      insert.run("zero", "item", null, 0, "2026-09-01", timestamp, timestamp),
+    ).toThrow(/CHECK constraint failed/);
+    expect(() =>
+      insert.run("bad-date", "item", null, 1, "bad-date", timestamp, timestamp),
     ).toThrow(/CHECK constraint failed/);
   });
 

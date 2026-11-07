@@ -2,17 +2,38 @@
 
 import { useState } from "react";
 
-export default function MonthPicker() {
-  const [month, setMonth] = useState(() => new Date());
+function toDate(month: string) {
+  const [year, number] = month.split("-").map(Number);
+  return new Date(year, number - 1, 1);
+}
+
+function toMonthKey(month: Date) {
+  return `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export default function MonthPicker({
+  value,
+  onChange,
+}: {
+  value?: string;
+  onChange?: (month: string) => void;
+}) {
+  const [uncontrolled, setUncontrolled] = useState(() =>
+    toMonthKey(new Date()),
+  );
+  const monthKey = value ?? uncontrolled;
+  const month = toDate(monthKey);
   const label = new Intl.DateTimeFormat("en-US", {
     month: "short",
     year: "numeric",
   }).format(month);
-  const changeMonth = (offset: number) =>
-    setMonth(
-      (current) =>
-        new Date(current.getFullYear(), current.getMonth() + offset, 1),
+  const changeMonth = (offset: number) => {
+    const next = toMonthKey(
+      new Date(month.getFullYear(), month.getMonth() + offset, 1),
     );
+    if (value === undefined) setUncontrolled(next);
+    onChange?.(next);
+  };
 
   // lifted from prototype CSS; the label is box-content because the
   // prototype has no border-box reset, so its 88px min-width excludes padding

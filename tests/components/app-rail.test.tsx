@@ -8,11 +8,25 @@ import EntriesPage from "@/app/(shell)/entries/page";
 import ForecasterPage from "@/app/(shell)/forecaster/page";
 import BudgetModelsPage from "@/app/(shell)/models/page";
 import SavingsBucketsPage from "@/app/(shell)/savings/page";
+import { getEntriesView } from "@/server/entries-read";
 
 const navigation = vi.hoisted(() => ({ pathname: "/" }));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
+vi.mock("@/server/entries-read", () => ({
+  getEntriesView: vi.fn().mockResolvedValue({
+    month: "2026-11",
+    entries: [],
+    categories: [],
+    members: [],
+    archivedCategories: [],
+    archivedMembers: [],
+    defaults: { owner: "Household", currency: "PHP" },
+  }),
 }));
 
 vi.mock("next/link", async () => {
@@ -92,7 +106,6 @@ describe("app shell", () => {
 
   it.each([
     ["Dashboard", DashboardPage],
-    ["Entries", EntriesPage],
     ["Savings buckets", SavingsBucketsPage],
     ["Budget models", BudgetModelsPage],
     ["Forecaster", ForecasterPage],
@@ -105,6 +118,24 @@ describe("app shell", () => {
     expect(screen.queryAllByRole("button")).toHaveLength(0);
     expect(screen.queryAllByRole("link")).toHaveLength(0);
     expect(document.querySelectorAll("input")).toHaveLength(0);
+  });
+
+  it("renders the Entries workspace", async () => {
+    render(await EntriesPage({ searchParams: Promise.resolve({}) }));
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Entries" }),
+    ).toBeInTheDocument();
+  });
+
+  it("passes the entries month query to the server read helper", async () => {
+    render(
+      await EntriesPage({
+        searchParams: Promise.resolve({ month: "2026-08" }),
+      }),
+    );
+
+    expect(getEntriesView).toHaveBeenCalledWith("2026-08");
   });
 });
 

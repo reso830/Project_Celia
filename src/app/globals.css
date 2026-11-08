@@ -19,6 +19,8 @@
   --color-accent: #2f7d78;
   --color-accent-dark: #26686a;
   --color-accent-tint: #e4efee;
+  --color-filter-selected-border: #b9cfcd;
+  --color-menu-selected: #f0f2f2;
   --color-category-selected: #eef4f3;
   --color-nav-hover: #e8eaea;
   --color-nav-inactive: var(--color-muted);
@@ -117,6 +119,8 @@
   --color-celia-accent: var(--color-accent);
   --color-celia-accent-dark: var(--color-accent-dark);
   --color-celia-accent-tint: var(--color-accent-tint);
+  --color-celia-filter-selected: var(--color-filter-selected-border);
+  --color-celia-menu-selected: var(--color-menu-selected);
   --color-celia-category-selected: var(--color-category-selected);
   --color-celia-nav-hover: var(--color-nav-hover);
   --color-celia-nav-inactive: var(--color-nav-inactive);

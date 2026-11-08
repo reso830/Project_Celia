@@ -1,0 +1,380 @@
+{
+  "_note": "Demo seed data used by the hi-fi prototype. Currency PHP, integer pesos. 'series' = actual monthly totals per category for MONTHS (Oct 2025 → Sep 2026); the prototype splits each total into 1–4 entries across the category's items with a deterministic RNG. Budgets here are the Baseline 2026 model.",
+  "months": [
+    "2025-10",
+    "2025-11",
+    "2025-12",
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05",
+    "2026-06",
+    "2026-07",
+    "2026-08",
+    "2026-09"
+  ],
+  "owners": {
+    "household": "Household",
+    "ana": "Ana",
+    "miguel": "Miguel"
+  },
+  "categories": [
+    {
+      "id": "rent",
+      "name": "Rent",
+      "umbrella": "expense",
+      "color": "#7d8ba8",
+      "items": ["Rent"],
+      "baselineBudget": 25000,
+      "actualSeries": [
+        24000, 24000, 24000, 25000, 25000, 25000, 25000, 25000, 25000, 25000,
+        25000, 25000
+      ]
+    },
+    {
+      "id": "groceries",
+      "name": "Groceries",
+      "umbrella": "expense",
+      "color": "#7f9b6e",
+      "items": [
+        "Supermarket",
+        "Market run",
+        "Butcher",
+        "Bulk store",
+        "Sari-sari"
+      ],
+      "baselineBudget": 20000,
+      "actualSeries": [
+        16800, 18200, 23400, 17600, 16900, 18100, 17200, 19800, 16400, 18900,
+        20300, 18400
+      ]
+    },
+    {
+      "id": "utilities",
+      "name": "Utilities",
+      "umbrella": "expense",
+      "color": "#c2a24a",
+      "items": ["Electricity", "Water", "Internet", "Gas"],
+      "baselineBudget": 6000,
+      "actualSeries": [
+        5200, 5100, 5600, 6400, 6900, 6200, 5400, 5900, 6100, 6300, 7100, 6800
+      ]
+    },
+    {
+      "id": "transport",
+      "name": "Transport",
+      "umbrella": "expense",
+      "color": "#6f9aa5",
+      "items": ["Fuel", "Ride-hail", "Parking"],
+      "baselineBudget": 7000,
+      "actualSeries": [
+        5800, 6200, 7400, 5100, 5300, 5700, 6100, 5600, 4900, 5800, 6400, 5200
+      ]
+    },
+    {
+      "id": "childcare",
+      "name": "Childcare",
+      "umbrella": "expense",
+      "color": "#a98bb0",
+      "items": ["Tuition", "Daycare"],
+      "baselineBudget": 12000,
+      "actualSeries": [
+        11000, 11000, 11000, 12000, 12000, 12000, 12000, 12000, 12000, 12000,
+        12000, 12000
+      ]
+    },
+    {
+      "id": "dining",
+      "name": "Dining out",
+      "umbrella": "expense",
+      "color": "#a5714f",
+      "items": ["Restaurants", "Coffee", "Delivery"],
+      "baselineBudget": 5000,
+      "actualSeries": [
+        5600, 6900, 11200, 4200, 4800, 5400, 5200, 6400, 4800, 6100, 8300, 7900
+      ]
+    },
+    {
+      "id": "health",
+      "name": "Health",
+      "umbrella": "expense",
+      "color": "#c98f9b",
+      "items": ["Pharmacy", "Clinic"],
+      "baselineBudget": 4000,
+      "actualSeries": [
+        3100, 2600, 4800, 9200, 2400, 2900, 2900, 3400, 2100, 3600, 2800, 2300
+      ]
+    },
+    {
+      "id": "salary",
+      "name": "Salary",
+      "umbrella": "income",
+      "color": "#5f8a7d",
+      "items": ["Ana salary", "Miguel salary"],
+      "baselineBudget": 110000,
+      "actualSeries": [
+        104000, 104000, 126000, 110000, 110000, 110000, 110000, 110000, 110000,
+        110000, 110000, 110000
+      ]
+    },
+    {
+      "id": "freelance",
+      "name": "Freelance",
+      "umbrella": "income",
+      "color": "#8a8f6e",
+      "items": ["Design work", "Consulting"],
+      "baselineBudget": 9500,
+      "actualSeries": [
+        6800, 8400, 12600, 4200, 7600, 10400, 7200, 9800, 6400, 11200, 8600,
+        9500
+      ]
+    }
+  ],
+  "buckets": [
+    {
+      "id": "cash",
+      "name": "Cash buffer",
+      "type": "Open-ended · default",
+      "opening": 250000,
+      "plan": 0,
+      "funded": 0,
+      "counts": true,
+      "isDefault": true,
+      "target": 0
+    },
+    {
+      "id": "emergency",
+      "name": "Emergency fund",
+      "type": "Open-ended",
+      "opening": 120000,
+      "plan": 8000,
+      "funded": 8000,
+      "counts": true,
+      "isDefault": false,
+      "target": 0
+    },
+    {
+      "id": "car",
+      "name": "Car down payment",
+      "type": "Goal · Feb 2027",
+      "opening": 85000,
+      "plan": 10000,
+      "funded": 5000,
+      "counts": false,
+      "isDefault": false,
+      "target": 180000
+    },
+    {
+      "id": "insurance",
+      "name": "Insurance",
+      "type": "Sinking · Mar 2027",
+      "opening": 0,
+      "plan": 2000,
+      "funded": 2000,
+      "counts": false,
+      "isDefault": false,
+      "target": 24000
+    }
+  ],
+  "models": [
+    {
+      "id": "baseline",
+      "name": "Baseline 2026",
+      "active": true,
+      "budgets": {
+        "rent": 25000,
+        "groceries": 20000,
+        "utilities": 6000,
+        "transport": 7000,
+        "childcare": 12000,
+        "dining": 5000,
+        "health": 4000,
+        "salary": 110000,
+        "freelance": 9500
+      },
+      "savings": {
+        "cash": 0,
+        "emergency": 8000,
+        "car": 10000,
+        "insurance": 2000
+      }
+    },
+    {
+      "id": "lean",
+      "name": "Lean months",
+      "active": false,
+      "budgets": {
+        "rent": 25000,
+        "groceries": 16000,
+        "utilities": 5500,
+        "transport": 5000,
+        "childcare": 12000,
+        "dining": 3000,
+        "health": 3000,
+        "salary": 110000,
+        "freelance": 9500
+      },
+      "savings": {
+        "cash": 0,
+        "emergency": 8000,
+        "car": 5000,
+        "insurance": 2000
+      }
+    },
+    {
+      "id": "car2027",
+      "name": "Car purchase 2027",
+      "active": false,
+      "budgets": {
+        "rent": 25000,
+        "groceries": 19000,
+        "utilities": 6000,
+        "transport": 2500,
+        "childcare": 12000,
+        "dining": 4000,
+        "health": 4000,
+        "salary": 113000,
+        "freelance": 9500
+      },
+      "savings": {
+        "cash": 0,
+        "emergency": 8000,
+        "car": 14000,
+        "insurance": 2000
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "baseline",
+      "label": "Baseline 2026",
+      "short": "BASELINE",
+      "color": "#3a4145",
+      "tint": "#e8eaea",
+      "ink": "#14181a",
+      "dash": "",
+      "startMonth": 24,
+      "draw": 0,
+      "events": [],
+      "nudges": []
+    },
+    {
+      "id": "a",
+      "label": "A · Buy now, 5-yr loan",
+      "short": "A · LOAN NOW",
+      "color": "#2f7d78",
+      "tint": "#e4efee",
+      "ink": "#26686a",
+      "dash": "",
+      "startMonth": 5,
+      "draw": 98500,
+      "events": [
+        {
+          "name": "Car",
+          "type": "financed purchase",
+          "monthly": 18430
+        },
+        {
+          "name": "Running costs",
+          "type": "recurring",
+          "monthly": 7200
+        },
+        {
+          "name": "Registration",
+          "type": "seasonal",
+          "monthly": 800
+        }
+      ],
+      "nudges": [
+        {
+          "name": "Groceries",
+          "group": "EXPENSES",
+          "value": 18000,
+          "freed": 2000,
+          "pct": 56
+        },
+        {
+          "name": "Dining out",
+          "group": "EXPENSES",
+          "value": 3000,
+          "freed": 2000,
+          "pct": 24
+        },
+        {
+          "name": "Transport",
+          "group": "EXPENSES",
+          "value": 2500,
+          "freed": 4500,
+          "pct": 18
+        },
+        {
+          "name": "Car down payment",
+          "group": "SAVINGS",
+          "value": 5000,
+          "freed": -5000,
+          "pct": 34
+        }
+      ]
+    },
+    {
+      "id": "b",
+      "label": "B · Wait 6 months",
+      "short": "B · WAIT",
+      "color": "#7c6f9a",
+      "tint": "#efecf6",
+      "ink": "#5f5480",
+      "dash": "6 4",
+      "startMonth": 11,
+      "draw": 0,
+      "events": [
+        {
+          "name": "Car",
+          "type": "financed purchase",
+          "monthly": 15200
+        },
+        {
+          "name": "Running costs",
+          "type": "recurring",
+          "monthly": 7200
+        }
+      ],
+      "nudges": [
+        {
+          "name": "Dining out",
+          "group": "EXPENSES",
+          "value": 4000,
+          "freed": 1000,
+          "pct": 32
+        }
+      ]
+    },
+    {
+      "id": "c",
+      "label": "C · Pay cash",
+      "short": "C · CASH",
+      "color": "#a17c3f",
+      "tint": "#f6f0e4",
+      "ink": "#7a5c22",
+      "dash": "2 4",
+      "startMonth": 5,
+      "draw": 518500,
+      "events": [
+        {
+          "name": "Running costs",
+          "type": "recurring",
+          "monthly": 7200
+        }
+      ],
+      "nudges": [
+        {
+          "name": "Dining out",
+          "group": "EXPENSES",
+          "value": 3000,
+          "freed": 2000,
+          "pct": 24
+        }
+      ]
+    }
+  ]
+}

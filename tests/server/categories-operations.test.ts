@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { DomainError } from "@/domain/errors";
 import { findCategory, findItem, listItems } from "@/server/categories-store";
 import { openDatabase } from "@/server/db/database";
+import { findEntryById, insertEntry } from "@/server/entries-store";
 import {
   addItem,
   archiveCategory,
@@ -93,6 +94,16 @@ describe("category operations", () => {
     const secondCombined = addItem(source.id, "Vegetables", db);
     const duplicateFruit = addItem(target.id, "fruit", db);
     const duplicateVegetables = addItem(target.id, "Vegetables", db);
+    insertEntry(db, {
+      id: "fruit-entry",
+      itemId: firstCombined.id,
+      ownerMemberId: null,
+      amount: 100,
+      date: "2026-11-04",
+      note: null,
+      createdAt: "2026-11-04T00:00:00.000Z",
+      updatedAt: "2026-11-04T00:00:00.000Z",
+    });
     const result = mergeCategory(source.id, target.id, db);
     expect(result.movedItemIds).toEqual([moved.id]);
     expect(result.combined).toEqual([
@@ -106,6 +117,10 @@ describe("category operations", () => {
       categoryId: source.id,
       mergedIntoItemId: duplicateFruit.id,
     });
+    expect(findEntryById(db, "fruit-entry")).toMatchObject({
+      itemId: duplicateFruit.id,
+      updatedAt: expect.not.stringMatching("00:00:00.000Z$"),
+    });
     expect(findCategory(db, source.id, { includeMerged: true })).toMatchObject({
       mergedIntoCategoryId: target.id,
     });
@@ -114,22 +129,42 @@ describe("category operations", () => {
     );
   });
 
-  it("rolls back a merge when an item update fails", () => {
+  it("rolls back entry re-pointing when a later item update fails", () => {
     const db = database();
     const source = createCategory("expense", "Dining", undefined, db);
     const target = createCategory("expense", "Groceries", undefined, db);
-    const firstItem = addItem(source.id, "Coffee", db);
-    const secondItem = addItem(source.id, "Tea", db);
+    const combinedItem = addItem(source.id, "Coffee", db);
+    const laterItem = addItem(source.id, "Tea", db);
+    const survivingCoffee = addItem(target.id, "Coffee", db);
+    const originalUpdatedAt = "2026-11-04T00:00:00.000Z";
+    insertEntry(db, {
+      id: "coffee-entry",
+      itemId: combinedItem.id,
+      ownerMemberId: null,
+      amount: 100,
+      date: "2026-11-04",
+      note: null,
+      createdAt: originalUpdatedAt,
+      updatedAt: originalUpdatedAt,
+    });
     db.exec(`CREATE TRIGGER fail_merge BEFORE UPDATE ON items
-      WHEN OLD.id = '${secondItem.id}'
+      WHEN OLD.id = '${laterItem.id}'
       BEGIN SELECT RAISE(FAIL, 'forced merge failure'); END`);
     expect(() => mergeCategory(source.id, target.id, db)).toThrow(
       /forced merge failure/,
     );
-    expect(findItem(db, firstItem.id)).toMatchObject({ categoryId: source.id });
-    expect(findItem(db, secondItem.id)).toMatchObject({
+    expect(findItem(db, combinedItem.id)).toMatchObject({
+      categoryId: source.id,
+      mergedIntoItemId: null,
+    });
+    expect(findItem(db, laterItem.id)).toMatchObject({
       categoryId: source.id,
     });
+    expect(findEntryById(db, "coffee-entry")).toMatchObject({
+      itemId: combinedItem.id,
+      updatedAt: originalUpdatedAt,
+    });
+    expect(survivingCoffee.id).toBeTruthy();
     expect(findCategory(db, source.id)).toMatchObject({
       mergedIntoCategoryId: null,
     });

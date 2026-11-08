@@ -3,8 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation } from "@/components/ui/use-mutation";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
-import type { Item } from "@/domain/item";
-import type { CategoryRowData } from "./types";
+import type { CategoryItemData, CategoryRowData } from "./types";
 
 export default function MoveItemDialog({
   item,
@@ -13,7 +12,7 @@ export default function MoveItemDialog({
   open,
   onClose,
 }: {
-  item: Item;
+  item: CategoryItemData;
   category: CategoryRowData;
   categories: CategoryRowData[];
   open: boolean;
@@ -62,8 +61,9 @@ export default function MoveItemDialog({
       error={error}
     >
       <p>
-        All 0 entries under{" "}
-        <strong className="text-celia-ink">{item.name}</strong> move with it.
+        All {item.entryCount} {item.entryCount === 1 ? "entry" : "entries"}{" "}
+        under <strong className="text-celia-ink">{item.name}</strong> move with
+        it.
       </p>
       <div className="mt-[var(--space-4)] grid grid-cols-[minmax(0,1fr)_20px_minmax(0,1fr)] items-end gap-[var(--space-2-5)]">
         <div>

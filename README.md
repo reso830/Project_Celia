@@ -1,8 +1,9 @@
 # Celia
 
-Celia is a local-first household finance application. Version 3.0.0 provides the shared
-application shell, household member management, and Income/Expense category and item
-configuration that later financial-entry and planning features build on.
+Celia is a local-first household finance application. Version 3.1.0 includes household
+members, Income/Expense categories and items, and an Entries workspace for recording,
+editing, deleting, searching, filtering, and reviewing income and expenses. Amounts are
+stored as integer centavos so calculations remain exact.
 
 ## Prerequisites
 
@@ -34,6 +35,21 @@ npm run dev
 Celia is not deployable to serverless hosting: `better-sqlite3` requires a persistent local
 filesystem and native module support.
 
+## Demo data
+
+With development dependencies installed, `npm run seed` adds a deterministic household
+and twelve months of entries to an empty database. It refuses to run if user data exists.
+These commands use `CELIA_DB_PATH` when set, or `./data/celia.db` otherwise.
+
+```bash
+npm run seed
+npm run clear          # Dry run: show counts without deleting
+npm run clear -- --yes # Delete all entries, items, categories, and members
+```
+
+The confirmed clear is irreversible and removes real user data as well as demo data;
+household and umbrella configuration rows and the schema are retained.
+
 ## Verification
 
 ```bash
@@ -48,17 +64,17 @@ GitHub Actions runs these checks on every push and pull request.
 
 ## Architecture
 
-- `src/domain` holds pure entity types, validation, default colours, and domain errors.
+- `src/domain` holds pure entity types, validation, exact-centavo calculations, and domain errors.
 - `src/server/db` opens the local SQLite database and applies migrations; server stores and
   services map rows and enforce use-case rules.
 - `src/app/api` exposes thin JSON mutation handlers.
 - `src/app/(shell)` server pages read views and pass them to client components.
-- `src/components` renders the shell, household, categories, and shared UI workflows.
+- `src/components` renders the shell, household, categories, Entries, and shared UI workflows.
 
 ## Scope
 
-F01 Core Tracking deliberately does not implement financial entries, savings buckets, budget
-models, dashboard calculations, forecasting, authentication, or server deployment.
+Savings buckets, budget models, dashboard calculations, forecasting, authentication, and
+server deployment are outside the current feature scope.
 
 See the [changelog](CHANGELOG.md), [feature roadmap](docs/feature_roadmap.md), and
 [repository map](docs/REPO_MAP.md) for project context.

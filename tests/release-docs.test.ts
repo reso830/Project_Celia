@@ -11,6 +11,7 @@ const releaseDocuments = [
   "docs/feature_roadmap.md",
   "docs/REPO_MAP.md",
   "specs/v3-001-core-tracking/quickstart.md",
+  "specs/v3-002-entries/quickstart.md",
 ];
 
 function documentText(file: string) {
@@ -28,9 +29,9 @@ describe("release documentation", () => {
       packages: { "": { version: string } };
     };
 
-    expect(packageJson.version).toBe("3.0.0");
-    expect(packageLock.version).toBe("3.0.0");
-    expect(packageLock.packages[""].version).toBe("3.0.0");
+    expect(packageJson.version).toBe("3.1.0");
+    expect(packageLock.version).toBe("3.1.0");
+    expect(packageLock.packages[""].version).toBe("3.1.0");
     for (const command of [
       "dev",
       "lint",
@@ -38,6 +39,8 @@ describe("release documentation", () => {
       "typecheck",
       "test",
       "build",
+      "seed",
+      "clear",
     ]) {
       expect(packageJson.scripts).toHaveProperty(command);
     }

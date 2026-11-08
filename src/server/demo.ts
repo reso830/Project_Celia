@@ -4,15 +4,39 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
+import type { BucketType } from "@/domain/savings";
 import { nameKey } from "@/domain/names";
 
 export type ClearSummary = {
+  savingsBucketsCount: number;
+  savingsActivitiesCount: number;
+  budgetModelsCount: number;
+  budgetModelAllocationsCount: number;
+  monthlyBudgetPlansCount: number;
+  monthlyBudgetAllocationsCount: number;
   entriesCount: number;
   itemsCount: number;
   categoriesCount: number;
   membersCount: number;
 };
 export type SeedData = {
+  buckets: {
+    id: string;
+    name: string;
+    type: string;
+    opening: number;
+    funded: number;
+    counts: boolean;
+    isDefault: boolean;
+    target: number;
+  }[];
+  models: {
+    id: string;
+    name: string;
+    active: boolean;
+    budgets: Record<string, number>;
+    savings: Record<string, number>;
+  }[];
   months: string[];
   owners: Record<string, string>;
   categories: {
@@ -26,6 +50,12 @@ export type SeedData = {
 };
 export type SeedOptions = { seedJson?: SeedData; currentDate?: string };
 export type SeedResult = {
+  savingsBucketsSeeded: number;
+  savingsActivitiesSeeded: number;
+  budgetModelsSeeded: number;
+  budgetModelAllocationsSeeded: number;
+  monthlyBudgetPlansSeeded: number;
+  monthlyBudgetAllocationsSeeded: number;
   entriesSeeded: number;
   itemsSeeded: number;
   categoriesSeeded: number;
@@ -40,6 +70,12 @@ export function getClearSummary(database: Database.Database): ClearSummary {
       }
     ).count;
   return {
+    savingsBucketsCount: count("savings_buckets"),
+    savingsActivitiesCount: count("savings_activities"),
+    budgetModelsCount: count("budget_models"),
+    budgetModelAllocationsCount: count("budget_model_allocations"),
+    monthlyBudgetPlansCount: count("monthly_budget_plans"),
+    monthlyBudgetAllocationsCount: count("monthly_budget_allocations"),
     entriesCount: count("entries"),
     itemsCount: count("items"),
     categoriesCount: count("categories"),
@@ -52,7 +88,13 @@ export function clearAllData(database: Database.Database): ClearSummary {
     const summary = getClearSummary(database);
     database.pragma("defer_foreign_keys = ON");
     database.exec(
-      "DELETE FROM entries; DELETE FROM items; DELETE FROM categories; DELETE FROM members;",
+      `DELETE FROM monthly_budget_allocations;
+      DELETE FROM monthly_budget_plans;
+      DELETE FROM budget_model_allocations;
+      DELETE FROM budget_models;
+      DELETE FROM savings_activities;
+      DELETE FROM savings_buckets;
+      DELETE FROM entries; DELETE FROM items; DELETE FROM categories; DELETE FROM members;`,
     );
     return summary;
   })();
@@ -98,10 +140,12 @@ export function seedDemoData(
       insertMember.run(id, name, nameKey(name), timestamp, timestamp);
       members.set(owner, id);
     }
+    const categoryIds = new Map<string, string>();
     const items = new Map<string, string[]>();
     let itemCount = 0;
     for (const category of data.categories) {
       const categoryId = randomUUID();
+      categoryIds.set(category.id, categoryId);
       insertCategory.run(
         categoryId,
         category.umbrella,
@@ -190,11 +234,153 @@ export function seedDemoData(
         }
       });
     });
+    const bucketIds = new Map<string, string>();
+    const insertBucket = database.prepare(`INSERT INTO savings_buckets
+      (id,name,name_key,type,opening_balance,target_amount,target_month,counts_toward_buffer,is_default,created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
+    const insertActivity = database.prepare(`INSERT INTO savings_activities
+      (id,bucket_id,kind,amount,date,created_at,updated_at) VALUES (?,?,'contribution',?,?,?,?)`);
+    let activityCount = 0;
+    for (const bucket of data.buckets) {
+      const id = demoId(`bucket:${bucket.id}`);
+      bucketIds.set(bucket.id, id);
+      const type: BucketType = bucket.isDefault
+        ? "cash_buffer"
+        : bucket.type.startsWith("Goal")
+          ? "goal"
+          : bucket.type.startsWith("Sinking")
+            ? "sinking_fund"
+            : "emergency_fund";
+      const due =
+        /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})$/.exec(
+          bucket.type,
+        );
+      const targetMonth = due
+        ? `${due[2]}-${String(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].indexOf(due[1]) + 1).padStart(2, "0")}`
+        : null;
+      insertBucket.run(
+        id,
+        bucket.name,
+        nameKey(bucket.name),
+        type,
+        bucket.opening * 100,
+        bucket.target > 0 ? bucket.target * 100 : null,
+        targetMonth,
+        Number(bucket.counts),
+        Number(bucket.isDefault),
+        timestamp,
+        timestamp,
+      );
+      if (bucket.funded > 0)
+        for (const month of months) {
+          insertActivity.run(
+            demoId(`activity:${bucket.id}:${month}`),
+            id,
+            bucket.funded * 100,
+            `${month}-01`,
+            timestamp,
+            timestamp,
+          );
+          activityCount++;
+        }
+    }
+    const insertModel = database.prepare(
+      `INSERT INTO budget_models(id,name,name_key,display_order,created_at,updated_at) VALUES(?,?,?,?,?,?)`,
+    );
+    const insertAllocation = database.prepare(
+      `INSERT INTO budget_model_allocations(id,model_id,target_type,category_id,bucket_id,amount,updated_at) VALUES(?,?,?,?,?,?,?)`,
+    );
+    const insertPlan = database.prepare(
+      `INSERT INTO monthly_budget_plans(id,month_key,source_model_id,model_name,is_revised,applied_at,updated_at) VALUES(?,?,?,?,0,?,?)`,
+    );
+    const listModelAllocations = database.prepare(
+      "SELECT id,target_type,category_id,bucket_id,amount FROM budget_model_allocations WHERE model_id=?",
+    );
+    const insertPlanAllocation = database.prepare(
+      "INSERT INTO monthly_budget_allocations(id,plan_id,target_type,category_id,bucket_id,amount,updated_at) VALUES(?,?,?,?,?,?,?)",
+    );
+    let modelAllocationCount = 0,
+      planCount = 0,
+      planAllocationCount = 0;
+    for (const [index, model] of data.models.entries()) {
+      const id = demoId(`model:${model.id}`);
+      insertModel.run(
+        id,
+        model.name,
+        nameKey(model.name),
+        index,
+        timestamp,
+        timestamp,
+      );
+      for (const [type, allocations, ids] of [
+        ["category", model.budgets, categoryIds],
+        ["bucket", model.savings, bucketIds],
+      ] as const) {
+        for (const [target, amount] of Object.entries(allocations)) {
+          if (amount === 0) continue;
+          const targetId = ids.get(target);
+          if (!targetId)
+            throw new Error(`Unknown seed allocation target: ${target}.`);
+          insertAllocation.run(
+            demoId(`allocation:${model.id}:${type}:${target}`),
+            id,
+            type,
+            type === "category" ? targetId : null,
+            type === "bucket" ? targetId : null,
+            amount * 100,
+            timestamp,
+          );
+          modelAllocationCount++;
+        }
+      }
+      if (model.active)
+        for (const month of months) {
+          const planId = demoId(`plan:${month}`);
+          insertPlan.run(planId, month, id, model.name, timestamp, timestamp);
+          const allocations = listModelAllocations.all(id) as {
+            id: string;
+            target_type: string;
+            category_id: string | null;
+            bucket_id: string | null;
+            amount: number;
+          }[];
+          for (const allocation of allocations) {
+            insertPlanAllocation.run(
+              demoId(`snapshot:${month}:${allocation.id}`),
+              planId,
+              allocation.target_type,
+              allocation.category_id,
+              allocation.bucket_id,
+              allocation.amount,
+              timestamp,
+            );
+            planAllocationCount++;
+          }
+          planCount++;
+        }
+    }
     return {
+      savingsBucketsSeeded: data.buckets.length,
+      savingsActivitiesSeeded: activityCount,
+      budgetModelsSeeded: data.models.length,
+      budgetModelAllocationsSeeded: modelAllocationCount,
+      monthlyBudgetPlansSeeded: planCount,
+      monthlyBudgetAllocationsSeeded: planAllocationCount,
       entriesSeeded: entriesCount,
       itemsSeeded: itemCount,
       categoriesSeeded: data.categories.length,
       membersSeeded: members.size,
     };
   })();
+}
+
+function demoId(key: string) {
+  const bytes = createHash("sha256")
+    .update(`celia-demo:${key}`)
+    .digest()
+    .subarray(0, 16);
+  bytes[6] = (bytes[6] & 0x0f) | 0x80;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = bytes.toString("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }

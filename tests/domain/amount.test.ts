@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatCentavos, parseAndValidateAmount } from "@/domain/amount";
+import {
+  formatCentavos,
+  parseAndValidateAmount,
+  parseAndValidateNonNegativeAmount,
+  parseOptionalPositiveAmount,
+} from "@/domain/amount";
 
 describe("amounts", () => {
   it.each([
@@ -51,5 +56,46 @@ describe("amounts", () => {
     expect(formatCentavos(10000, { forceDecimals: true, signed: true })).toBe(
       "+₱100.00",
     );
+  });
+});
+
+describe("optional and non-negative amounts", () => {
+  it.each([
+    ["0", 0],
+    ["", 0],
+    ["0.00", 0],
+    ["0,000.00", 0],
+    ["250,000", 25000000],
+    ["180000.50", 18000050],
+    ["999999999.99", 99999999999],
+  ])("parses %s", (raw, centavos) => {
+    expect(parseAndValidateNonNegativeAmount(String(raw))).toEqual({
+      ok: true,
+      centavos,
+    });
+  });
+  it.each(["-1", "1.001", "1,00", "1000000000", "abc"])(
+    "rejects %s with field",
+    (raw) => {
+      expect(
+        parseAndValidateNonNegativeAmount(raw, "openingBalance"),
+      ).toMatchObject({ ok: false, field: "openingBalance" });
+    },
+  );
+  it.each([undefined, null, "", "  "])("clears optional %s", (raw) =>
+    expect(parseOptionalPositiveAmount(raw)).toEqual({
+      ok: true,
+      centavos: null,
+    }),
+  );
+  it("requires a positive target", () => {
+    expect(parseOptionalPositiveAmount("0")).toMatchObject({
+      ok: false,
+      field: "targetAmount",
+    });
+    expect(parseOptionalPositiveAmount("180000.50")).toEqual({
+      ok: true,
+      centavos: 18000050,
+    });
   });
 });

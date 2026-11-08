@@ -12,6 +12,7 @@ const releaseDocuments = [
   "docs/REPO_MAP.md",
   "specs/v3-001-core-tracking/quickstart.md",
   "specs/v3-002-entries/quickstart.md",
+  "specs/v3-003-budget-and-savings/quickstart.md",
 ];
 
 function documentText(file: string) {
@@ -29,9 +30,9 @@ describe("release documentation", () => {
       packages: { "": { version: string } };
     };
 
-    expect(packageJson.version).toBe("3.1.0");
-    expect(packageLock.version).toBe("3.1.0");
-    expect(packageLock.packages[""].version).toBe("3.1.0");
+    expect(packageJson.version).toBe("3.2.0");
+    expect(packageLock.version).toBe("3.2.0");
+    expect(packageLock.packages[""].version).toBe("3.2.0");
     for (const command of [
       "dev",
       "lint",
@@ -55,6 +56,43 @@ describe("release documentation", () => {
     );
   });
 
+  it("documents the F03 release and its implementation map", () => {
+    expect(documentText("README.md")).toContain("Version 3.2.0");
+    for (const route of ["/savings", "/models"])
+      expect(documentText("README.md")).toContain(route);
+    expect(documentText("CHANGELOG.md")).toContain(
+      "## 3.2.0 \u2014 2026-11-08",
+    );
+    expect(documentText("docs/feature_roadmap.md")).toMatch(
+      /F03[^\n]*\u2713 Complete[^\n]*features\/v3-003-budget-and-savings\.md/,
+    );
+    const map = documentText("docs/REPO_MAP.md");
+    for (const moduleFile of [
+      "month.ts",
+      "savings.ts",
+      "savings-calculations.ts",
+      "budget.ts",
+      "budget-calculations.ts",
+    ])
+      expect(map).toContain(`src/domain/${moduleFile}`);
+    for (const moduleFile of [
+      "savings-store.ts",
+      "savings-service.ts",
+      "savings-read.ts",
+      "models-store.ts",
+      "models-service.ts",
+      "models-read.ts",
+    ])
+      expect(map).toContain(`src/server/${moduleFile}`);
+    for (const area of [
+      "src/app/api/savings",
+      "src/app/api/models",
+      "src/app/api/monthly-plans",
+      "src/components/savings",
+      "src/components/models",
+    ])
+      expect(map).toContain(area);
+  });
   it("has resolving relative links in each release document", () => {
     for (const file of releaseDocuments) {
       const links = [

@@ -1,3 +1,4 @@
+import { mergeCategoryAllocationsInModels } from "./models-store";
 import "server-only";
 
 import type Database from "better-sqlite3";
@@ -298,6 +299,12 @@ export function mergeCategory(
         movedItemIds.push(item.id);
       }
     }
+    mergeCategoryAllocationsInModels(
+      database,
+      source.id,
+      target.id,
+      timestamp(),
+    );
     writeCategoryState(database, source, null, target.id);
     const updatedTarget = writeCategoryState(database, target, null, null);
     return { target: updatedTarget, movedItemIds, combined };

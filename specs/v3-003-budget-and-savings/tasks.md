@@ -60,7 +60,7 @@ Tier 1 visual regression harness is omitted per user decision (same as F01 and F
 
 Order: Non-negative/optional amount parsers → Shared month helpers & Savings domain types → Savings calculations → Budget domain types → Budget calculations → Barrel exports → SQLite Migration 3.
 
-- [ ] **T001 [P] [US1, US2, US4] Extend monetary domain parser for non-negative and optional positive amounts**
+- [x] **T001 [P] [US1, US2, US4] Extend monetary domain parser for non-negative and optional positive amounts**
   - Files: `src/domain/amount.ts`, `tests/domain/amount.test.ts`.
   - Expected behavior:
     - Implement `parseAndValidateNonNegativeAmount(raw: string, field = "amount")` accepting `"0"`, `"0.00"`, empty string `""` (resolving to `0` centavos), positive integers, comma-grouped numbers, and up to 2 decimal places up to `MAX_AMOUNT_CENTAVOS` (`99_999_999_999`), rejecting negative or malformed inputs with descriptive errors and `field`.
@@ -69,7 +69,7 @@ Order: Non-negative/optional amount parsers → Shared month helpers & Savings d
   - Constraints: pure TypeScript, zero external libraries; preserve existing `parseAndValidateAmount` and `formatCentavos` behavior.
   - Validation: `tests/domain/amount.test.ts` (node environment).
   - Out of scope: UI components and database queries.
-- [ ] **T002 [P] [US1, US2, US3] Shared month-key helpers (`month.ts`) and savings bucket/activity domain types (`savings.ts`)**
+- [x] **T002 [P] [US1, US2, US3] Shared month-key helpers (`month.ts`) and savings bucket/activity domain types (`savings.ts`)**
   - Files: `src/domain/month.ts` (new), `src/domain/savings.ts` (new), `src/server/entries-read.ts`.
   - Expected behavior:
     - Create `src/domain/month.ts` exporting `isValidMonthKey(value: string | undefined): value is string` (`^\d{4}-(0[1-9]|1[0-2])$`) and `currentMonthKey(now?: Date): string`, and update `src/server/entries-read.ts` to import and use them instead of local `validMonth`/`currentMonth`.
@@ -78,7 +78,7 @@ Order: Non-negative/optional amount parsers → Shared month helpers & Savings d
     - Provide helpers `defaultCountsTowardBuffer(type: BucketType): boolean` (`true` for `cash_buffer` and `emergency_fund`, `false` for `goal` and `sinking_fund`) and `formatBucketTypeSubtitle(bucket)` (e.g. `"Open-ended · default"`, `"Open-ended"`, `"Goal · Feb 2027"`, `"Sinking · Mar 2027"`).
   - Constraints: pure domain modules (`month.ts`, `savings.ts`) have no React or server imports.
   - Validation: `tests/domain/savings-calculations.test.ts`.
-- [ ] **T003 [P] [US1, US2] Pure savings bucket metrics and KPI calculation helpers + unit tests**
+- [x] **T003 [P] [US1, US2] Pure savings bucket metrics and KPI calculation helpers + unit tests**
   - Files: `src/domain/savings-calculations.ts` (new), `tests/domain/savings-calculations.test.ts` (new).
   - Expected behavior:
     - Implement `calculateBucketMetrics(bucket, activities, monthKey, plannedMonthlyCentavos)` computing:
@@ -96,14 +96,14 @@ Order: Non-negative/optional amount parsers → Shared month helpers & Savings d
       - Non-negative balance validation on withdrawals, edits, deletes, and opening-balance reductions.
   - Constraints: exact integer centavo arithmetic; no automatic monthly unallocated sweep into bucket balances.
   - Validation: `tests/domain/savings-calculations.test.ts` (node environment).
-- [ ] **T004 [P] [US4, US5] Budget model and monthly plan domain types**
+- [x] **T004 [P] [US4, US5] Budget model and monthly plan domain types**
   - Files: `src/domain/budget.ts` (new).
   - Expected behavior:
     - Define `AllocationTargetType` (`"category" | "bucket"`), `BudgetAllocationLine`, `BudgetModel`, and `MonthlyBudgetPlan`.
     - Implement `hasTemplateDivergedFromPlan(model, plan, activeCategoryIds, activeBucketIds): boolean` comparing a reusable model's active category and active bucket allocations against an applied `MonthlyBudgetPlan`'s allocations.
   - Constraints: pure domain module; no React or server imports.
   - Validation: `tests/domain/budget-calculations.test.ts`.
-- [ ] **T005 [P] [US4, US6, US7] Pure budget allocation, chart, post-merge folding, and favourable-positive Δ calculation helpers + unit tests**
+- [x] **T005 [P] [US4, US6, US7] Pure budget allocation, chart, post-merge folding, and favourable-positive Δ calculation helpers + unit tests**
   - Files: `src/domain/budget-calculations.ts` (new), `tests/domain/budget-calculations.test.ts` (new).
   - Expected behavior:
     - Implement `calculateBudgetSummary({ incomeAllocations, expenseAllocations, savingsAllocations, actualIncomeCentavos, actualExpensesCentavos, actualSavingsCentavos })` returning `expectedIncomeCentavos`, `plannedExpensesCentavos`, `plannedSavingsCentavos`, `unallocatedCentavos` (`expectedIncome − plannedExpenses − plannedSavings`), `actualIncomeCentavos`, `actualExpensesCentavos`, `actualSavingsCentavos`, `actualUnallocatedCentavos` (`actualIncome − actualExpenses − actualSavings`), `unallocatedDeltaCentavos` (`actualUnallocated − unallocated`), `unallocatedDeltaTone` (`green` `> 0`, `red` `< 0`, `muted` `=== 0`), `isFullyAllocated` (`unallocated === 0 && expectedIncome > 0`), `isOverallocated` (`unallocated < 0`), and `"Where the income goes"` `segments` (`Expenses` `#8c8378`, `Savings` `#2f7d78`, `Unallocated` `#c3cac9` when `> 0`, with `widthPercent` and `displayPercent = Math.round(...)`) without dividing by zero when `expectedIncomeCentavos === 0`.
@@ -116,20 +116,24 @@ Order: Non-negative/optional amount parsers → Shared month helpers & Savings d
     - Add unit tests in `tests/domain/budget-calculations.test.ts` covering balanced (`isFullyAllocated`), unallocated surplus, overallocated, zero-income, zero-budget-with-actual-spend (`isOverspentZeroBudget`), `Unallocated` footer `actual` and `Δ`, favourable-positive `Δ` signs, amber savings shortfall tone, post-merge historical comparison with non-zero actuals (including a chained merge `Dining out → Food → Groceries`, verifying no false surplus on `Dining out`, accurate folded `Δ` on `Groceries`, and no double-counting in group totals), donut stops, and diverging bar geometry.
   - Constraints: pure domain functions; UI copy/helpers must never emit `"over budget"` or `"under budget"`.
   - Validation: `tests/domain/budget-calculations.test.ts` (node environment).
-- [ ] **T006 Export F03 domain modules from barrel**
+- [x] **T006 Export F03 domain modules from barrel**
   - Files: `src/domain/index.ts`.
   - Expected behavior: re-export `amount.ts`, `month.ts`, `savings.ts`, `savings-calculations.ts`, `budget.ts`, and `budget-calculations.ts`.
   - Validation: `npm run typecheck`.
-- [ ] **T007 [US1, US2, US4, US5] Database Schema Migration 3 and migration tests**
+- [x] **T007 [US1, US2, US4, US5] Database Schema Migration 3 and migration tests**
   - Files: `src/server/db/migrations.ts`, `tests/server/migrations.test.ts`.
   - Expected behavior:
     - Add `migrationThree` (`version: 3`) in `src/server/db/migrations.ts` creating `savings_buckets`, `savings_activities`, `budget_models`, `budget_model_allocations`, `monthly_budget_plans`, and `monthly_budget_allocations` with all `CHECK` constraints, foreign keys, and partial unique indexes (`savings_buckets_default_unique`, `budget_model_allocations_category_unique`, `budget_model_allocations_bucket_unique`, `monthly_budget_allocations_category_unique`, `monthly_budget_allocations_bucket_unique`, `savings_activities_bucket_date_idx`, `savings_activities_date_idx`) per `data-model.md`.
     - Update `tests/server/migrations.test.ts` to verify `PRAGMA user_version` advances to `3`, existing F01+F02 data survives intact, at most one default Cash Buffer bucket is allowed, negative amounts and malformed date/month-key shapes (e.g. `"2026-9"`, `"abcd-ef"`, `"2026/09/15"`, matching SQLite `length` and `GLOB` shape checks) are rejected, and `ON DELETE CASCADE` / `ON DELETE SET NULL` behave as specified. (Full calendar validity such as `"2026-13"` or `"2026-02-31"` is tested in domain, service, and API tests.)
   - Constraints: do not alter or drop existing F01 or F02 tables.
   - Validation: `tests/server/migrations.test.ts` (node environment).
-- [ ] **T008 Phase 01 Gate Check**
+- [x] **T008 Phase 01 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
   - Confirm all pass.
+
+Phase 01 validation (2026-11-08): lint, format:check, typecheck, all 291 tests (39 files), and production build passed. Targeted domain/migration tests were first observed failing before implementation. Independent phase review identified a subtitle separator encoding issue, corrected before the final gate. Existing currency formatting was restored after a full-suite regression exposed a file-encoding error. Tests/build ran outside the sandbox after Vitest temporary-file renames failed with EPERM inside it. No phase checks skipped; Phase 02 remains pending.
+
+Phase 01 review follow-up (2026-11-08): addressed both MINOR findings. Folded source reference rows retain planned/raw amounts but return neutral comparison values (zero delta/remaining/overspent, null utilization, muted tone). The strengthened merge regression failed before the fix and passed afterward. Added nonzero income direction, unallocated delta tone, expense underspend tone, and 3px minimum bar tests. Final gate passed: lint, format:check, typecheck, 296 tests across 39 files, and production build. INFO observations remain unchanged; no later-phase work performed.
 
 ---
 
@@ -137,7 +141,7 @@ Order: Non-negative/optional amount parsers → Shared month helpers & Savings d
 
 Order: Savings SQLite store → Savings domain service → Service tests → Server read helper → API route handlers → API tests.
 
-- [ ] **T009 [US1, US2, US3] Savings SQLite store module**
+- [x] **T009 [US1, US2, US3] Savings SQLite store module**
   - Files: `src/server/savings-store.ts` (new).
   - Expected behavior: prepared statements with `import "server-only"`:
     - `listSavingsBuckets(db, options?: { includeArchived?: boolean })`
@@ -152,7 +156,7 @@ Order: Savings SQLite store → Savings domain service → Service tests → Ser
     - `deleteSavingsActivity(db, id)`
   - Constraints: raw SQL isolated in store module; maps integer `0`/`1` columns (`counts_toward_buffer`, `is_default`) to booleans.
   - Validation: `tests/server/savings-service.test.ts`.
-- [ ] **T010 [US1, US2, US3] Savings domain service**
+- [x] **T010 [US1, US2, US3] Savings domain service**
   - Files: `src/server/savings-service.ts` (new).
   - Expected behavior: transactional use-case functions wrapped in `database.transaction()`:
     - `createSavingsBucket(draft, db)`: validates `name` (`validateName`, case-insensitive uniqueness across buckets via `nameKey`), `type` (`isValidBucketType`), `openingBalance` (`>= 0`), optional `targetAmount` (`> 0` or `null`), optional `targetMonth` (`isValidMonthKey` or `null`), `countsTowardBuffer`, and `isDefault` (allowed only when `type === "cash_buffer"`, locking `countsTowardBuffer = true` and clearing any prior default bucket).
@@ -164,12 +168,12 @@ Order: Savings SQLite store → Savings domain service → Service tests → Ser
     - `deleteSavingsActivity(id, db)`: validates activity exists (`404 not_found`) and its parent bucket is active (`409 archived` if `bucket.archivedAt !== null`: `"Archived buckets are read-only."`); verifies removing the activity does not leave lifetime bucket balance `< 0` before deleting.
   - Constraints: never creates or modifies F02 `entries`.
   - Validation: `tests/server/savings-service.test.ts`.
-- [ ] **T011 [US1, US2, US3] Savings store & service integration tests**
+- [x] **T011 [US1, US2, US3] Savings store & service integration tests**
   - Files: `tests/server/savings-service.test.ts` (new).
   - Expected behavior: test bucket creation, case-insensitive duplicate name rejection, default Cash Buffer transfer, rejecting `isDefault = false` / `type != "cash_buffer"` / `countsTowardBuffer = false` / archive on the default bucket (`409 invalid_state`), clearing nullable fields with `""`, archive and restore preserving activity history, rejecting activity create/edit/**delete** on an archived bucket (`409 archived`, verifying the activity row remains unchanged in SQLite), rejecting future-dated activity (`date > today`), and blocking negative lifetime balances on withdrawal, contribution edit, contribution delete, and opening-balance reduction.
   - Constraints: covers constitution status transitions, required fields, and date handling.
   - Validation: `npm run test`.
-- [ ] **T012 [US1, US2, US3] Server-only `getSavingsView` read helper**
+- [x] **T012 [US1, US2, US3] Server-only `getSavingsView` read helper**
   - Files: `src/server/savings-read.ts` (new).
   - Expected behavior:
     - Calls `await connection()`.
@@ -177,7 +181,7 @@ Order: Savings SQLite store → Savings domain service → Service tests → Ser
     - Loads active and archived buckets, all bucket activities, the selected month's actual household expenses from `entries-store.ts`, and `hasMonthlyPlan: false` / `0` planned allocations (wired to `findMonthlyBudgetPlan(db, month)` in `T021`).
     - Computes `BucketDerivedMetrics` and `SavingsKpiSummary` via `src/domain/savings-calculations.ts`.
   - Validation: `tests/server/savings-service.test.ts` (including invalid `monthKey` fallback test).
-- [ ] **T013 [P] [US1, US3] Savings bucket API route handlers**
+- [x] **T013 [P] [US1, US3] Savings bucket API route handlers**
   - Files:
     - `src/app/api/savings/buckets/route.ts` (new: `POST`)
     - `src/app/api/savings/buckets/[id]/route.ts` (new: `PATCH`)
@@ -185,19 +189,23 @@ Order: Savings SQLite store → Savings domain service → Service tests → Ser
     - `src/app/api/savings/buckets/[id]/restore/route.ts` (new: `POST`)
   - Expected behavior: validate request JSON via `readBody`, invoke `savings-service.ts`, return `201` / `200` JSON responses per `contracts/api.md`, and map `DomainError` via `errorResponse`.
   - Validation: `tests/api/savings.test.ts`.
-- [ ] **T014 [P] [US2] Savings activity API route handlers**
+- [x] **T014 [P] [US2] Savings activity API route handlers**
   - Files:
     - `src/app/api/savings/activities/route.ts` (new: `POST`)
     - `src/app/api/savings/activities/[id]/route.ts` (new: `PATCH`, `DELETE`)
   - Expected behavior: validate request JSON via `readBody`, invoke `createSavingsActivity`, `updateSavingsActivity`, and `deleteSavingsActivity`, return `{ activity, currentBalance }` or `{ id, currentBalance }`, and map `DomainError` via `errorResponse`.
   - Validation: `tests/api/savings.test.ts`.
-- [ ] **T015 [US1, US2, US3] Savings API route handler tests**
+- [x] **T015 [US1, US2, US3] Savings API route handler tests**
   - Files: `tests/api/savings.test.ts` (new).
   - Expected behavior: test `POST /api/savings/buckets`, `PATCH /api/savings/buckets/:id` (including `""` field clearing and `409 invalid_state` when changing type or clearing default on the default bucket), `POST /api/savings/buckets/:id/archive`, `POST /api/savings/buckets/:id/restore`, `POST /api/savings/activities` (including future-date `400` and archived-bucket `409`), `PATCH /api/savings/activities/:id`, and `DELETE /api/savings/activities/:id` (including `409 archived` when bucket is archived, verifying record stays in DB) across success (`201`/`200`) and error (`400`, `404`, `409`) cases.
   - Validation: `npm run test`.
-- [ ] **T016 Phase 02 Gate Check**
+- [x] **T016 Phase 02 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
   - Confirm all pass.
+
+Phase 02 validation (2026-11-08): implemented T009-T016 only. New service/read/API tests were observed failing before implementation; all 15 targeted tests now pass. Covered default transfer and database-failure rollback, lifetime negative-balance guards, archived history immutability, nullable patches, deterministic ordering/filtering, exact response amounts, request validation/error mapping, and request-time read month fallback. Independent read-only phase review found no material issues. Final lint, format:check, typecheck, full test suite (311 tests across 41 files), production build, and diff checks passed. Tests/build used execution outside the sandbox for the previously confirmed Vitest temporary-file EPERM issue. No phase checks skipped. T012 intentionally reports no monthly plan and zero planned allocations until T021; Phase 03 remains pending. Existing uncommitted Phase 01 changes were preserved.
+
+Phase 02 review follow-up (2026-11-08): split the archive invalid-state guard into the contract default-bucket message and "Bucket is already archived." Both remain 409 invalid_state. Added an API regression verifying both exact messages and unchanged bucket rows; observed it fail before the fix and pass afterward. All 16 targeted Phase 02 tests and the full gate passed (lint, format:check, typecheck, 312 tests across 41 files, production build, diff check). The existing SavingsViewData contract already documents today; other INFO observations remain unchanged.
 
 ---
 
@@ -205,7 +213,7 @@ Order: Savings SQLite store → Savings domain service → Service tests → Ser
 
 Order: Models SQLite store → Models domain service → Category merge integration → Service tests → Server read helper → API route handlers → API tests.
 
-- [ ] **T017 [US4, US5, US7] Budget models & monthly plans SQLite store module**
+- [x] **T017 [US4, US5, US7] Budget models & monthly plans SQLite store module**
   - Files: `src/server/models-store.ts` (new).
   - Expected behavior: prepared statements with `import "server-only"`:
     - `listBudgetModels(db)` and `findBudgetModelById(db, id)` (with `allocations` from `budget_model_allocations`)
@@ -217,7 +225,7 @@ Order: Models SQLite store → Models domain service → Category merge integrat
     - `mergeCategoryAllocationsInModels(db, sourceCategoryId, targetCategoryId, now)`: for every reusable model in `budget_models`, adds `sourceCategoryId`'s `budget_model_allocations.amount` into `targetCategoryId`'s allocation and deletes `sourceCategoryId`'s row, without touching `monthly_budget_allocations`.
   - Constraints: raw SQL isolated in store module.
   - Validation: `tests/server/models-service.test.ts`.
-- [ ] **T018 [US4, US5, US7] Budget models & monthly plans domain service**
+- [x] **T018 [US4, US5, US7] Budget models & monthly plans domain service**
   - Files: `src/server/models-service.ts` (new).
   - Expected behavior: transactional use cases wrapped in `database.transaction()`:
     - `createBudgetModel(draft, db)`: validates `name` (`validateName`, case-insensitive uniqueness via `nameKey`) and optional `description`; inserts model.
@@ -227,16 +235,16 @@ Order: Models SQLite store → Models domain service → Category merge integrat
     - `applyBudgetModelToMonth(modelId, monthKey, db)`: validates `isValidMonthKey(monthKey)`, copies the reusable model's name and **only active** category (`archivedAt === null && mergedIntoCategoryId === null`) and **active** bucket (`archivedAt === null`) allocations into `monthly_budget_plans` + `monthly_budget_allocations` for `monthKey` (`isRevised = false`, `sourceModelId = model.id`), skipping any archived entities.
     - `reviseMonthlyBudgetPlan(monthKey, patch, db)`: validates `isValidMonthKey(monthKey)`, verifies a `MonthlyBudgetPlan` exists for `monthKey` (`404 not_found`) and `targetId` exists (`404 not_found`), rejects `amount > 0` on archived/merged entities (`409 archived`, while allowing `amount === 0` to zero out an archived snapshot row), upserts the allocation line in `monthly_budget_allocations`, and sets `is_revised = 1` without modifying any reusable `BudgetModel`.
   - Validation: `tests/server/models-service.test.ts`.
-- [ ] **T019 [US7] Integrate atomic reusable-model category allocation merge into `mergeCategory`**
+- [x] **T019 [US7] Integrate atomic reusable-model category allocation merge into `mergeCategory`**
   - Files: `src/server/categories-service.ts`.
   - Expected behavior: inside `mergeCategory(sourceCategoryId, targetCategoryId, database)`'s existing transaction, call `mergeCategoryAllocationsInModels(database, source.id, target.id, timestamp())` from `src/server/models-store.ts` so source category planned amounts in reusable models are atomically combined into the target category while historical `monthly_budget_allocations` remain untouched.
   - Constraints: atomic within the existing `mergeCategory` transaction.
   - Validation: `tests/server/models-service.test.ts`.
-- [ ] **T020 [US4, US5, US6, US7] Models service & historical integrity integration tests**
+- [x] **T020 [US4, US5, US6, US7] Models service & historical integrity integration tests**
   - Files: `tests/server/models-service.test.ts` (new).
   - Expected behavior: test model CRUD, duplicate, delete preserving monthly snapshots, applying a model to multiple months (verifying archived categories/buckets in the template are skipped when creating the monthly snapshot), editing a reusable model without altering previously applied monthly snapshots, verifying `hasTemplateDivergedFromPlan` returns `true` (`DIVERGED` badge) when an entity with a non-zero allocation in an applied monthly plan is subsequently archived, revising a monthly snapshot directly (`isRevised = true`, including revising a newly created active category/bucket on an existing snapshot), category merge with non-zero F02 entries recorded before the merge (verifying reusable model allocations combine while historical `monthly_budget_allocations` preserve the source row and `getModelsView` / `calculateBudgetComparisonRows` fold the merged source allocation into the merge target without false surpluses or double-counting), **edit → save → reload on a merge target `T` in a historical monthly plan** (editing `Groceries`'s own `rawPlannedCentavos` from `₱20,000` to `₱21,000` via `reviseMonthlyBudgetPlan`, reloading via `getModelsView`, and verifying `rawPlannedCentavos = ₱21,000`, `Dining out` snapshot remains `₱5,000`, and `Groceries` effective `plannedCentavos = ₱26,000`), **transitive merge-target closure loading through `getModelsView`** covering **Case A** (`S = ₱5,000`, `D = ₱0`, no actuals, `S` merged into `D`, then `D` archived — verifying `D` is still loaded by `getModelsView` with `rawPlannedCentavos = 0`, `plannedCentavos = ₱5,000`, and `archived = true`) and **Case B** (chained merge `S → D → T` where intermediate `D` has `₱0` allocation and `₱0` actuals — verifying `getModelsView` loads `D` in the closure so `S` resolves and folds into `T`), and archived category/bucket zeroing (`amount = 0` allowed, `amount > 0` rejected with `409 archived`).
   - Validation: `npm run test`.
-- [ ] **T021 [US4, US5, US6, US7] Server-only `getModelsView` read helper and `getSavingsView` plan integration**
+- [x] **T021 [US4, US5, US6, US7] Server-only `getModelsView` read helper and `getSavingsView` plan integration**
   - Files: `src/server/models-read.ts` (new), `src/server/savings-read.ts`.
   - Expected behavior:
     - `getModelsView(monthKey?)` calls `await connection()`, resolves `month = isValidMonthKey(monthKey) ? monthKey : currentMonthKey()`, and queries:
@@ -247,7 +255,7 @@ Order: Models SQLite store → Models domain service → Category merge integrat
       - Selected-month category actuals from F02 `entries` and selected-month bucket gross contribution actuals from F03 `savings_activities`.
     - Updates `getSavingsView` in `src/server/savings-read.ts` to read the selected month's planned savings allocations strictly from `findMonthlyBudgetPlan(db, month)` (`hasMonthlyPlan = plan !== null`, `0` when no plan is applied to `month`; no global active-model fallback), scoping `monthlyPlannedSavingsCentavos` and `monthlyShortfallCentavos` in `calculateSavingsKpis` strictly to **active buckets**.
   - Validation: `tests/server/models-service.test.ts` (including invalid `monthKey` fallback test).
-- [ ] **T022 [P] [US4, US5] Budget models API route handlers**
+- [x] **T022 [P] [US4, US5] Budget models API route handlers**
   - Files:
     - `src/app/api/models/route.ts` (new: `POST`)
     - `src/app/api/models/[id]/route.ts` (new: `PATCH`, `DELETE`)
@@ -255,17 +263,19 @@ Order: Models SQLite store → Models domain service → Category merge integrat
     - `src/app/api/models/[id]/apply/route.ts` (new: `POST`)
   - Expected behavior: validate request JSON via `readBody`, invoke `models-service.ts`, return `201` / `200` JSON responses per `contracts/api.md`, and map `DomainError` via `errorResponse`.
   - Validation: `tests/api/models.test.ts`.
-- [ ] **T023 [P] [US5] Monthly budget plan revision API route handler**
+- [x] **T023 [P] [US5] Monthly budget plan revision API route handler**
   - Files: `src/app/api/monthly-plans/[monthKey]/route.ts` (new: `PATCH`).
   - Expected behavior: validate request JSON via `readBody`, invoke `reviseMonthlyBudgetPlan(monthKey, patch)`, return `200 { plan }`, and map `DomainError` via `errorResponse`.
   - Validation: `tests/api/models.test.ts`.
-- [ ] **T024 [US4, US5] Models & monthly plans API route handler tests**
+- [x] **T024 [US4, US5] Models & monthly plans API route handler tests**
   - Files: `tests/api/models.test.ts` (new).
   - Expected behavior: test `POST /api/models`, `PATCH /api/models/:id` (including `description: ""` clearing, `409 archived` on non-zero archived target, and `200` on zeroing an archived target), `DELETE /api/models/:id`, `POST /api/models/:id/duplicate`, `POST /api/models/:id/apply`, and `PATCH /api/monthly-plans/:monthKey` (including `404` when no plan exists for `monthKey` or unknown `targetId`, and `409 archived` on non-zero archived target) across valid and invalid inputs (`400`, `404`, `409`).
   - Validation: `npm run test`.
-- [ ] **T025 Phase 03 Gate Check**
+- [x] **T025 Phase 03 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
   - Confirm all pass.
+
+Phase 03 validation (2026-11-08): implemented T017-T025 only. New model service/read/API suites were observed failing before implementation; all 15 targeted tests now pass. Coverage includes independent monthly snapshots, apply/revision/delete/copy semantics, inactive allocation restrictions and zero-out, atomic category merge and failed-reapply rollback, non-zero actuals after merges, raw target edit/save/reload, both transitive merge-closure edge cases, badge transitions, authoritative summaries, and active-only savings-plan KPIs. Independent read-only phase review found no material issues. Final lint, format:check, typecheck, full suite (327 tests across 43 files), production build, and diff check passed. Tests/build ran outside the sandbox for the previously confirmed Vitest temporary-file EPERM restriction. No checks skipped or additional product decisions introduced. Phase 04 remains pending; pre-existing Phase 01/02 changes were preserved.
 
 ---
 
@@ -273,19 +283,19 @@ Order: Models SQLite store → Models domain service → Category merge integrat
 
 Order: Route loading/error boundaries → Header → KPI row → Bucket card → Bucket modal → Activity modal → History modal → Archived section → Screen & RSC page → Component tests.
 
-- [ ] **T026 [US1] Route-level loading and error boundaries for `/savings`**
+- [x] **T026 [US1] Route-level loading and error boundaries for `/savings`**
   - Files: `src/app/(shell)/savings/loading.tsx` (new), `src/app/(shell)/savings/error.tsx` (new).
   - Expected behavior:
     - `loading.tsx`: skeleton matching the `/savings` header, 4-card KPI row, and bucket cards grid.
     - `error.tsx`: client error boundary accepting `{ error: Error; retry: () => void }` with `"Try again"` button calling `retry()`.
   - Validation: `tests/components/savings/savings-screen.test.tsx`.
-- [ ] **T027 🎨 [US1] Savings Buckets header component**
+- [x] **T027 🎨 [US1] Savings Buckets header component**
   - Files: `src/components/savings/savings-header.tsx` (new).
   - **Match**: `HF#L23–L48` (page title `"Savings buckets"`, `MonthPicker` navigating to `/savings?month=YYYY-MM`, and `+ New bucket` primary CTA button on `#2f7d78` teal surface, radius 9, white text; Deviation `D1`).
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `lifted from prototype CSS` (HF L23–L48; `+ New bucket` and `MonthPicker` added on `/savings` per spec Clarification #4 / Deviation D1).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T028 🎨 [US1, US2] Savings KPI row component**
+- [x] **T028 🎨 [US1, US2] Savings KPI row component**
   - Files: `src/components/savings/savings-kpi-row.tsx` (new).
   - **Match**: `HF#L286–L294`, styles `HF#L855–L860, L1070–L1079`.
   - Expected behavior: 4-card auto-fit grid (`repeat(auto-fit, minmax(200px, 1fr))`, gap 14px, margin-bottom 16px):
@@ -296,7 +306,7 @@ Order: Route loading/error boundaries → Header → KPI row → Bucket card →
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `lifted from prototype CSS` (HF L286–L294, L1070–L1079).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T029 🎨 [US1, US2, US3] Savings bucket card component**
+- [x] **T029 🎨 [US1, US2, US3] Savings bucket card component**
   - Files: `src/components/savings/bucket-card.tsx` (new).
   - **Match**: `HF#L295–L313`, styles `HF#L1048–L1069`.
   - Expected behavior: white card (`border-radius: 14px`, padding 18px, border `#b9cfcd` when `countsTowardBuffer` is true else `#d5d8d8`):
@@ -307,47 +317,53 @@ Order: Route loading/error boundaries → Header → KPI row → Bucket card →
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `lifted from prototype CSS` (HF L295–L313, L1048–L1069) and `recreated manually: card action buttons per spec Clarification #4 (Deviation D3)`.
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T030 🎨 [US1] Create / Edit Bucket modal component**
+- [x] **T030 🎨 [US1] Create / Edit Bucket modal component**
   - Files: `src/components/savings/bucket-modal.tsx` (new).
   - **Match**: Modal shell and control tokens from `HF#L550–L602` (`520px` content width, radius 16px, 42px controls, 11.5px caps labels, error border `#b0533c` on `#fdf6f3`, disabled button `#5c6467` on `#f4f5f5`).
   - Expected behavior: supports creating and editing a bucket with fields: `NAME`, `TYPE` (`Cash Buffer`, `Emergency Fund`, `Goal`, `Sinking Fund`), `OPENING BALANCE (PHP)` (defaults to `0`), `TARGET AMOUNT (PHP)` (optional), `TARGET / DUE MONTH` (`YYYY-MM`, shown for `Goal` and `Sinking Fund`), `DESCRIPTION` (optional), `COUNTS TOWARD BUFFER` toggle, and `DEFAULT CASH BUFFER` checkbox (shown when type is `Cash Buffer`). When editing the current default bucket (`bucket.isDefault === true`), `TYPE`, `DEFAULT CASH BUFFER`, and `COUNTS TOWARD BUFFER` are locked/disabled with helper text `"Designate another Cash Buffer bucket as default first."`. Disables Save while in-flight (double-submit guard) and preserves draft on server error.
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `recreated manually: bucket CRUD modal required by spec Clarification #4 using HF#L550–L602 modal tokens (Deviation D3)`.
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T031 🎨 [US2] Contribute / Withdraw Savings Activity modal component**
+- [x] **T031 🎨 [US2] Contribute / Withdraw Savings Activity modal component**
   - Files: `src/components/savings/activity-modal.tsx` (new).
   - **Match**: Modal shell and control tokens from `HF#L550–L602`, reusing `CalendarPopover` (`src/components/entries/popovers/calendar-popover.tsx`).
   - Expected behavior: pre-set to target bucket and operation kind (`Contribution` | `Withdrawal` segmented toggle), with `AMOUNT (PHP)`, Monday-first `DATE` popover (defaulting to today, with dates `> today` disabled/rejected), and optional `NOTE`. Shows current bucket balance and projected balance after save; blocks Save with `"Bucket balance cannot be negative."` if a withdrawal exceeds current balance; disables Save while in-flight to prevent double-submission.
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `recreated manually: savings activity modal required by spec Clarification #4 using HF#L550–L602 modal tokens (Deviation D3)`.
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T032 🎨 [US2, US3] Bucket Activity History modal component**
+- [x] **T032 🎨 [US2, US3] Bucket Activity History modal component**
   - Files: `src/components/savings/bucket-history-modal.tsx` (new).
   - **Match**: Modal shell `HF#L550–L602` and table row tokens `HF#L215–L227`.
   - Expected behavior: displays bucket name, opening balance, and derived lifetime current balance; lists recorded contributions (`+` in status green `#3f7d5c`) and withdrawals (`−` in ink `#14181a`) ordered newest first, with date, kind, note, amount in Mono, and `✎` (inline/modal edit) and `✕` (delete with confirmation via `ConfirmDialog`) actions on active buckets (strictly read-only on archived buckets — no edit or delete controls). Blocks edits or deletes that would cause the bucket balance to go negative or have `date > today`.
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `recreated manually: activity history modal required by spec Clarifications #4–#5 using HF modal and table row tokens (Deviation D3)`.
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T033 🎨 [US3] Collapsible Archived Buckets section component**
+- [x] **T033 🎨 [US3] Collapsible Archived Buckets section component**
   - Files: `src/components/savings/archived-buckets.tsx` (new).
   - **Match**: Collapsible section styling matching `src/components/household/archived-members.tsx` and `HF#L377–L378`.
   - Expected behavior: renders at the bottom of `/savings` when `archivedBuckets.length > 0`. Expands/collapses to show archived buckets with `(archived)` badge, preserved balance, `History` button (read-only), and `Restore` button. Also includes archive confirmation dialog via `ConfirmDialog`.
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `recreated manually: archived buckets section required by spec Clarification #4 and US3 (Deviation D3)`.
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T034 [US1, US2, US3] Savings screen container and Server Component page**
+- [x] **T034 [US1, US2, US3] Savings screen container and Server Component page**
   - Files: `src/components/savings/savings-screen.tsx` (new), `src/app/(shell)/savings/page.tsx`.
   - Expected behavior:
     - `SavingsScreen` orchestrates `SavingsHeader`, `SavingsKpiRow`, active `BucketCard` grid (or `EmptyState` when no active buckets exist), `ArchivedBuckets`, `BucketModal`, `ActivityModal`, `BucketHistoryModal`, archive `ConfirmDialog`, and `Toast`, calling `router.refresh()` after mutations (and handling `404` stale-record responses by showing an error toast, closing the stale modal, and calling `router.refresh()`).
     - `src/app/(shell)/savings/page.tsx` reads `searchParams: Promise<{ month?: string }>`, calls `getSavingsView(month)`, and renders `SavingsScreen`.
   - Validation: `tests/components/savings/savings-screen.test.tsx`.
-- [ ] **T035 [US1, US2, US3] Savings screen and modal component tests**
+- [x] **T035 [US1, US2, US3] Savings screen and modal component tests**
   - Files: `tests/components/savings/savings-screen.test.tsx` (new), `tests/components/savings/savings-modals.test.tsx` (new).
   - Expected behavior: test empty state, KPI rendering (`—` runway when expenses are `0`, `"no plan for <Mon>"`, `"no savings planned"`, amber `"₱X short"` per-bucket shortfall sum, and green `"on plan"`), bucket cards, default bucket locked controls in `BucketModal` and card toggle, contribute/withdraw modal negative-balance and `date > today` guards, double-submit prevention on `BucketModal` and `ActivityModal`, history modal edit/delete flows (and read-only state on archived buckets), archive/restore workflows, and two-tab `404` stale-record recovery (toast + modal close + `router.refresh()`).
   - Validation: `npm run test`.
-- [ ] **T036 Phase 04 Gate Check**
+- [x] **T036 Phase 04 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
   - Confirm all pass.
+
+Phase 04 validation (2026-11-08): implemented T026-T036 only. New component tests were observed failing before implementation; savings tests cover all funding states, empty/loading/error states, month navigation, default locks, balance/date guards, double-submit protection, draft retention, activity history edit/delete, archive/restore, pending-confirmation failure retention, and stale-404 recovery. Final lint, format:check, typecheck, full suite (343 tests across 45 files), production build, and diff checks passed. Independent review found literal separator text and pending-confirmation dismissal issues; both were corrected and regression-tested before the final gate. Required small shared changes: optional CalendarPopover maxDate, savings CSS tokens, guarding ConfirmDialog dismissal while pending, and replacing the obsolete shell Savings-placeholder test with a workspace assertion. No other Phase 01-03 behavior was changed.
+
+Visible production-browser verification used only ./data/phase04-smoke.db: created four buckets, contributed, blocked an oversized withdrawal, withdrew, edited/deleted history with exact balance checks, archived/restored, inspected read-only history, toggled buffer inclusion, checked default locks and disabled future dates, and verified Escape handling and persistence after restart/reload. Frozen screen, create/edit/activity/calendar/history/confirmation/archived captures were compared with the supplied prototype at 1100, 1280 and 1440px. All 27 UI captures had no horizontal or dialog overflow and zero computed box shadows. Artifacts and comparison contact sheets: C:/Users/acres/.codex/visualizations/2026/11/08/01a1bad6-4b50-73b1-8057-e320961c13c2/ (phase04-*-contact.png). Shared tokens reproduce the reference spacing; the darker warning-text contrast exception is recorded in deviations.md. No checks skipped. No attribution/provenance comments were added, following the implementation prompt's explicit no-attribution instruction over the task convention. Final whole-feature acceptance remains Phase 08; Phase 05 is pending.
+
+Phase 04 review follow-up (2026-11-08): addressed the MINOR modal-fidelity finding. Bucket/activity field labels now render literal caps with F02's 11.5px / 0.06em label style, while input values retain normal spacing. The buffer field is a native button with role=switch, aria-checked and the card's switch tokens; default/pending locks and saved boolean values are preserved. Updated label queries and added switch/style/payload regression coverage, observed failing before the fix and passing afterward. Final gate passed: lint, format:check, typecheck, 344 tests across 45 files, production build and diff check. Visible browser verified keyboard Space toggling, the default lock, computed label styling, and no overflow at 1100/1280/1440px for both changed forms. Updated captures: C:/Users/acres/.codex/visualizations/2026/11/08/01a1bad6-4b50-73b1-8057-e320961c13c2/savings-label-review-contact.png. INFO observations were left unchanged; no later-phase work performed.
 
 ---
 
@@ -355,19 +371,19 @@ Order: Route loading/error boundaries → Header → KPI row → Bucket card →
 
 Order: Route loading/error boundaries → Header → Left model list (Month's Plan card + Reusable Model cards) → Stacked bar → Conic donut → Diverging bar chart → Collapsible umbrella table → Model modal → Screen & RSC page → Component tests.
 
-- [ ] **T037 [US4] Route-level loading and error boundaries for `/models`**
+- [x] **T037 [US4] Route-level loading and error boundaries for `/models`**
   - Files: `src/app/(shell)/models/loading.tsx` (new), `src/app/(shell)/models/error.tsx` (new).
   - Expected behavior:
     - `loading.tsx`: skeleton matching `/models` header, left model list column, and right detail pane.
     - `error.tsx`: client error boundary accepting `{ error: Error; retry: () => void }` with `"Try again"` button calling `retry()`.
   - Validation: `tests/components/models/models-screen.test.tsx`.
-- [ ] **T038 🎨 [US4, US5] Budget Models header component**
+- [x] **T038 🎨 [US4, US5] Budget Models header component**
   - Files: `src/components/models/models-header.tsx` (new).
   - **Match**: `HF#L23–L48` (page title `"Budget models"`, `MonthPicker` navigating to `/models?month=YYYY-MM`, and `+ New model` button; Deviation `D5`).
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `lifted from prototype CSS` (HF L23–L48; `MonthPicker` added on `/models` per spec Clarification #6 / Deviation D5).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T039 🎨 [US4, US5] Left column Month's Plan card & Reusable Model cards list**
+- [x] **T039 🎨 [US4, US5] Left column Month's Plan card & Reusable Model cards list**
   - Files: `src/components/models/model-list.tsx` (new).
   - **Match**: `HF#L319–L328`, styles `HF#L1083–L1097`.
   - Expected behavior:
@@ -379,7 +395,7 @@ Order: Route loading/error boundaries → Header → Left model list (Month's Pl
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `lifted from prototype CSS` (HF L319–L328, L1083–L1097) and `recreated manually: top Month's Plan card per user decision C2a (Deviation D5)`.
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T040 🎨 [US4] `"Where the income goes"` 100% stacked bar component**
+- [x] **T040 🎨 [US4] `"Where the income goes"` 100% stacked bar component**
   - Files: `src/components/models/income-allocation-bar.tsx` (new).
   - **Match**: `HF#L336–L347`, styles `HF#L1156–L1168, L1384`.
   - Expected behavior: subtle card (`#f4f5f5` bg, border `#e2e4e4`, radius 12px, padding `14px 16px`):
@@ -389,21 +405,21 @@ Order: Route loading/error boundaries → Header → Left model list (Month's Pl
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `lifted from prototype CSS` (HF L336–L347, L1156–L1168; status badges per Deviation D10).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T041 🎨 [US4] `"Expense breakdown"` conic donut chart component**
+- [x] **T041 🎨 [US4] `"Expense breakdown"` conic donut chart component**
   - Files: `src/components/models/expense-breakdown-donut.tsx` (new).
   - **Match**: `HF#L350–L353`, styles `HF#L1149–L1155, L1387`.
   - Expected behavior: subtle card (`#f4f5f5` bg, border `#e2e4e4`, radius 12px, padding 14px) with title `"Expense breakdown"` and centered `176×176px` `conic-gradient(...)` ring with `108×108px` inner `#f4f5f5` hole (`margin: 34px`). Shows clean neutral ring / empty label when planned expenses are `₱0`.
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `lifted from prototype CSS` (HF L350–L353, L1149–L1155, L1387).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T042 🎨 [US6] `"Budget vs actual (Δ)"` diverging bar chart component**
+- [x] **T042 🎨 [US6] `"Budget vs actual (Δ)"` diverging bar chart component**
   - Files: `src/components/models/budget-vs-actual-chart.tsx` (new).
   - **Match**: `HF#L354–L372`, styles `HF#L1170–L1180`.
   - Expected behavior: subtle card (`#f4f5f5` bg, border `#e2e4e4`, radius 12px, padding 14px) with title `"Budget vs actual (Δ)"`, horizontal `1px #14181a` zero line at vertical center (`top: 50%`), vertical rotated labels `SURPLUS` (`#5c6467`) and `DEFICIT` (`#b0533c`), `18px`-wide category-colored bars extending upward for surplus (`Δ > 0`) and downward for deficit (`Δ < 0`) for the selected month, and 4-letter category labels below the plot area (`#b0533c` when deficit else `#5c6467`).
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `lifted from prototype CSS` (HF L354–L372, L1170–L1180).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T043 🎨 [US4, US5, US6, US7] Collapsible umbrella groups & Budget-vs-Actual table component**
+- [x] **T043 🎨 [US4, US5, US6, US7] Collapsible umbrella groups & Budget-vs-Actual table component**
   - Files: `src/components/models/models-table.tsx` (new).
   - **Match**: `HF#L375–L391`, styles `HF#L1098–L1144, L1385–L1386`.
   - Expected behavior:
@@ -416,14 +432,14 @@ Order: Route loading/error boundaries → Header → Left model list (Month's Pl
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `lifted from prototype CSS` (HF L375–L391, L1098–L1144, L1385–L1386; column `ACTUAL`, utilization subtitles, post-merge rows, and footer `ACTUAL`/`Δ` per Deviations D6, D7, D9).
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T044 🎨 [US4] Create / Edit / Duplicate Budget Model modal component**
+- [x] **T044 🎨 [US4] Create / Edit / Duplicate Budget Model modal component**
   - Files: `src/components/models/model-modal.tsx` (new).
   - **Match**: Modal shell and control tokens from `HF#L550–L602` (Deviation `D11`).
   - Expected behavior: modal for creating a new budget model, editing a model's `NAME` and optional `DESCRIPTION`, or duplicating an existing model with a custom name/description. Validates required unique name (`validateName`), disables Save while in-flight (double-submit guard), and preserves draft on error.
   - Breakpoints: 1100, 1280, and 1440px wide.
   - Provenance: `recreated manually: model create/edit/duplicate modal using HF#L550–L602 modal tokens (Deviation D11)`.
   - Validate: Tier 2 review at 1100, 1280, 1440px.
-- [ ] **T045 [US4, US5, US6, US7] Budget Models screen container and Server Component page**
+- [x] **T045 [US4, US5, US6, US7] Budget Models screen container and Server Component page**
   - Files: `src/components/models/models-screen.tsx` (new), `src/app/(shell)/models/page.tsx`.
   - Expected behavior:
     - `ModelsScreen` defaults selection to the top **Month's Plan card** (`selectedView = { kind: "plan" }`) when `appliedPlan !== null` for `month`, or to the first reusable `BudgetModel` card (`selectedView = { kind: "model", modelId: models[0].id }`) when `appliedPlan === null`.
@@ -432,13 +448,27 @@ Order: Route loading/error boundaries → Header → Left model list (Month's Pl
     - Handles `404` stale-record responses by showing an error toast, closing any open modal, and calling `router.refresh()`.
     - `src/app/(shell)/models/page.tsx` reads `searchParams: Promise<{ month?: string }>`, calls `getModelsView(month)`, and renders `ModelsScreen`.
   - Validation: `tests/components/models/models-screen.test.tsx`.
-- [ ] **T046 [US4, US5, US6, US7] Budget Models screen and table component tests**
+- [x] **T046 [US4, US5, US6, US7] Budget Models screen and table component tests**
   - Files: `tests/components/models/models-screen.test.tsx` (new), `tests/components/models/models-table.test.tsx` (new).
   - Expected behavior: test empty state, default selection of Month's Plan card when `appliedPlan !== null`, switching between Month's Plan card and Reusable Model cards (verifying live B-vs-A preview and routing `PATCH` to `/api/monthly-plans/:monthKey` vs `/api/models/:id`), creating/editing/duplicating/deleting models, `Make active` immediate apply on current/future month without plan vs `ConfirmDialog` when overwriting an existing/revised plan or applying to a past month, double-submit prevention on `Make active` and `ModelModal`, past-month plan lock and `"Unlock to revise past plan"` confirmation, `<10ms` live recalculation while typing + save on `blur`/`Enter` + revert on `Escape` + invalid input error state, `Unallocated` footer `planned`/`actual`/`Δ` and `"Fully allocated"` / `"Overallocated"` badges, favourable-positive `Δ` with amber for savings shortfalls, post-merge historical B-vs-A folding with non-zero actuals (`Groceries` input showing own `20,000` with subtitle `"₱25,000 effective (+₱5,000 from Dining out)"` + `"Dining out (merged → Groceries)"` reference row, plus **editing `Groceries`'s input from `20000` to `21000`, saving via `PATCH /api/monthly-plans/:monthKey` with `amount: "21000"`, and verifying reload renders input `21,000` and subtitle `"₱26,000 effective (+₱5,000 from Dining out)"`**), and two-tab `404` stale-record recovery.
   - Validation: `npm run test`.
-- [ ] **T047 Phase 05 Gate Check**
+- [x] **T047 Phase 05 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
   - Confirm all pass.
+
+### Phase 05 implementation and validation - 2026-11-09
+
+Completed T037-T047: Models route boundaries and server page, the eight Models components, template/snapshot selection and mutation routing, live allocation previews, merged raw/effective budget handling, protected past plans, confirmations, metadata modals and stale-record recovery. Added 14 component tests across the two Models test files; replaced the obsolete Models placeholder assertion in the shell test. Shared changes are limited to the Models chart/input tokens in globals.css, the shell test and the accessibility note in deviations.md. Prior phase changes remain uncommitted and preserved; no workflow ledger is present.
+
+Validation passed: npm run lint, npm run format:check, npm run typecheck, npm run test (47 files, 358 tests), npm run build and git diff --check. The repository has no test:run script; npm run test is its non-watch equivalent. Independent review completed and its zero/zero utilization finding was fixed with a failing-then-passing regression test. No attribution/provenance comments were added, following the implementation prompt.
+
+Visible production-browser checks used only ./data/phase04-smoke.db: snapshot persistence and template independence, create/edit/duplicate/delete, overwrite cancellation, confirmed re-application, immediate future-month application, and past-plan lock/unlock. Workspace and modal captures were inspected against the supplied prototype at 1100, 1280 and 1440px; no horizontal overflow, page errors or computed box shadows occurred. External artifacts: C:/Users/acres/.codex/visualizations/2026/11/08/01a1bad6-4b50-73b1-8057-e320961c13c2/phase05-contact.png and phase05-*.png. Text contrast corrections are recorded in deviations.md for Phase 08/T071 acceptance. No phase checks skipped; whole-feature acceptance remains Phase 08. Phase 06 is pending.
+
+### Phase 05 review follow-up - 2026-11-09
+
+Addressed the four MINOR review findings. Editor identity now depends on selection alone; per-row save guards allow keyboard entry and concurrent saves in other rows. A refreshed snapshot clears only its acknowledged row draft, retaining other drafts, focus and collapsed groups. Regression coverage includes delayed saves, row retries, Enter/blur deduplication and revising a saved row before refresh arrives. Money figures now use font-celia-figure (JetBrains Mono), and reusable Models spacing, typography, geometry and layout values use shared tokens. Unrevised matching plans show disabled Active; expense subtitles use one line with a middle dot, and zero/zero renders only the dash. Added the explicitly requested style provenance comments to Models and Savings (the latter is comments only), superseding the earlier no-comment decision for this follow-up. Also added an empty-donut label, prototype caret glyphs and a tooltip explaining hidden-category actual totals.
+
+Validation: focused Models/Savings tests pass; the full suite passes 47 files / 363 tests. Lint, formatting, typecheck, production build and diff checks pass. A visible production-browser check delayed a row response while tabbing into the next income input, confirmed that its draft/focus and the collapsed Savings group survived the refresh, then verified both values after reload. Computed input font is JetBrains Mono. Settled workspace captures at 1100, 1280 and 1440px show single-line expense subtitles without horizontal overflow; artifacts are phase05-followup-*.png in the same external artifact directory. No checks skipped. Existing contrast deviations still await Phase 08/T071; no later phase work was started.
 
 ---
 
@@ -446,24 +476,32 @@ Order: Route loading/error boundaries → Header → Left model list (Month's Pl
 
 Order: Extend `src/server/demo.ts` → Update CLI wrapper output → Extend `tests/server/seed-clear.test.ts`.
 
-- [ ] **T048 [US8] Extend `seedDemoData`, `getClearSummary`, and `clearAllData` for F03 tables**
+- [x] **T048 [US8] Extend `seedDemoData`, `getClearSummary`, and `clearAllData` for F03 tables**
   - Files: `src/server/demo.ts`.
   - Expected behavior:
     - `getClearSummary(db)` returns counts for all 10 user tables (`monthlyBudgetAllocationsCount`, `monthlyBudgetPlansCount`, `budgetModelAllocationsCount`, `budgetModelsCount`, `savingsActivitiesCount`, `savingsBucketsCount`, `entriesCount`, `itemsCount`, `categoriesCount`, `membersCount`).
     - `clearAllData(db)` deletes rows from all 10 user tables inside a single transaction in foreign-key-safe order.
     - `seedDemoData(db, options)` refuses if any of the 10 user tables is non-empty; uses the 12 rolling calendar `months` ending with `now` (`options.currentDate ?? new Date()`); seeds the 4 buckets (`Cash buffer`, `Emergency fund`, `Car down payment`, `Insurance`), deterministic monthly savings contributions dated `${month}-01` across those 12 rolling months for buckets with `funded > 0`, the 3 reusable budget models (`Baseline 2026`, `Lean months`, `Car purchase 2027`) with their category and bucket allocations, and 12 monthly applied `Baseline 2026` plans (`MonthlyBudgetPlan` + `MonthlyBudgetAllocation`).
   - Validation: `tests/server/seed-clear.test.ts`.
-- [ ] **T049 [US8] Update `scripts/seed.ts` and `scripts/clear.ts` summary output**
+- [x] **T049 [US8] Update `scripts/seed.ts` and `scripts/clear.ts` summary output**
   - Files: `scripts/seed.ts`, `scripts/clear.ts`.
   - Expected behavior: include F03 seeded/cleared counts (buckets, savings activities, budget models, monthly plans) in CLI stdout summaries.
   - Validation: `tests/server/seed-clear.test.ts`.
-- [ ] **T050 [US8] Extend demo seed and clear integration tests**
+- [x] **T050 [US8] Extend demo seed and clear integration tests**
   - Files: `tests/server/seed-clear.test.ts`.
   - Expected behavior: verify `seedDemoData` seeds all 4 buckets, 36 savings contribution records (3 funded buckets × 12 rolling months dated `${month}-01`), 3 reusable models, and 12 monthly plans; verify derived lifetime bucket balances (`₱250,000`, `₱216,000`, `₱145,000`, `₱24,000`) and model totals match `scripts/seed.json`; verify non-empty refusal when only an F03 table has rows; verify `clearAllData` wipes all F03, F02, and F01 user tables.
   - Validation: `npm run test`.
-- [ ] **T051 Phase 06 Gate Check**
+- [x] **T051 Phase 06 Gate Check**
   - Run: `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
   - Confirm all pass.
+
+### Phase 06 implementation and validation - 2026-11-09
+
+Completed T048-T051. Extended demo.ts to report all ten user-table counts, reject seeding when any contain data, and delete all dependent records before their parents in one transaction. Seed reads the existing scripts/seed.json fixture, maps its prototype bucket labels to domain types and due months, and creates four buckets, 36 first-of-month contributions across the same 12 rolling calendar months as entries, three reusable models with 36 positive allocations, and 12 independent Baseline 2026 snapshots with 144 allocations. Existing F01/F02 seed behavior is preserved; fixed target/due months come from the fixture rather than shifting with the rolling activity months. CLI summaries include seeded/cleared F03 counts.
+
+Integration tests cover the exact four lifetime balances, all model allocations against the JSON fixture, monthly dates and amounts (including seeding on the first of a month), default/buffer/target settings, snapshot independence, deterministic activity/snapshot records after clear/reseed, F03-only refusal, ten-table dry-run/confirmed CLI summaries, preserved household/umbrellas, and rollback after late seed or clear failures. CLI tests use disposable temporary databases only; no user database was seeded or cleared. Six new test cases bring seed-clear.test.ts to 13 tests.
+
+Validation passed: focused seed/clear integration tests, independent read-only review (no actionable findings), npm run lint, npm run format:check, npm run typecheck, npm run test (47 files / 369 tests), npm run build and git diff --check. No checks skipped. No workflow ledger is present. No attribution comments were added. Changes remain uncommitted; no Phase 07 release or Phase 08 browser acceptance work was started.
 
 ---
 
@@ -471,34 +509,42 @@ Order: Extend `src/server/demo.ts` → Update CLI wrapper output → Extend `tes
 
 Order: Version bump → Changelog → Roadmap → Repo map → README → Deviations sync → Release docs test & Gate check.
 
-- [ ] **T052 Version bump to `3.2.0`**
+- [x] **T052 Version bump to `3.2.0`**
   - Files: `package.json`, `package-lock.json`.
   - Expected behavior: bump `"version"` from `"3.1.0"` to `"3.2.0"` in `package.json` and `package-lock.json` (both root `"version"` and `packages[""].version`).
   - Validation: `tests/release-docs.test.ts`.
-- [ ] **T053 [P] Update `CHANGELOG.md`**
+- [x] **T053 [P] Update `CHANGELOG.md`**
   - Files: `CHANGELOG.md`.
   - Expected behavior: add `## 3.2.0 — 2026-11-08` section documenting F03 Budget & Savings (`/savings` screen, savings buckets, contributions/withdrawals, activity history, `/models` screen, reusable budget models, monthly applied snapshots, Budget-vs-Actual comparisons, Migration 3, and extended `seed`/`clear` CLI tooling).
   - Validation: `tests/release-docs.test.ts`.
-- [ ] **T054 [P] Update `docs/feature_roadmap.md`**
+- [x] **T054 [P] Update `docs/feature_roadmap.md`**
   - Files: `docs/feature_roadmap.md`.
   - Expected behavior: mark `F03 — Budget & Savings` as `✓ Complete` and link `[Brief](features/v3-003-budget-and-savings.md)` in the roadmap table.
   - Validation: `tests/release-docs.test.ts`.
-- [ ] **T055 [P] Update `docs/REPO_MAP.md`**
+- [x] **T055 [P] Update `docs/REPO_MAP.md`**
   - Files: `docs/REPO_MAP.md`.
   - Expected behavior: document new F03 domain modules (`month.ts`, `savings.ts`, `savings-calculations.ts`, `budget.ts`, `budget-calculations.ts`), server modules (`savings-store.ts`, `savings-service.ts`, `savings-read.ts`, `models-store.ts`, `models-service.ts`, `models-read.ts`), API routes (`/api/savings/**`, `/api/models/**`, `/api/monthly-plans/**`), and component directories (`src/components/savings/`, `src/components/models/`).
   - Validation: `tests/release-docs.test.ts`.
-- [ ] **T056 [P] Update `README.md`**
+- [x] **T056 [P] Update `README.md`**
   - Files: `README.md`.
   - Expected behavior: document F03 Savings Buckets (`/savings`) and Budget Models (`/models`) capabilities and updated `npm run seed` / `npm run clear` coverage.
   - Validation: `tests/release-docs.test.ts`.
-- [ ] **T057 [P] Review and synchronize `deviations.md`**
+- [x] **T057 [P] Review and synchronize `deviations.md`**
   - Files: `specs/v3-003-budget-and-savings/deviations.md`.
   - Expected behavior: verify all deviations `D1`–`D11` match the implemented components and behavior.
   - Validation: `specs/v3-003-budget-and-savings/deviations.md` matches codebase.
-- [ ] **T058 Update `tests/release-docs.test.ts` and run Phase 07 Gate Check**
+- [x] **T058 Update `tests/release-docs.test.ts` and run Phase 07 Gate Check**
   - Files: `tests/release-docs.test.ts`.
   - Expected behavior: update expected version to `"3.2.0"` and add `"specs/v3-003-budget-and-savings/quickstart.md"` to `releaseDocuments`. Run `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`.
   - Validation: all checks pass.
+
+### Phase 07 implementation and validation - 2026-11-09
+
+Completed T052-T058. Synchronized package.json and both root package-lock.json version fields to 3.2.0 without dependency changes. Added the F03 changelog entry using T053's explicitly specified 2026-11-08 date. README now documents Savings/Models behavior, snapshot independence and ten-table seed/clear coverage; the roadmap marks F03 implementation complete with the brief link and explicitly leaves Phase 08 acceptance pending. REPO_MAP lists the F03 domain/server modules, routes, component directories and feature artifacts. App metadata has no versioned fields, so no source change was needed there.
+
+Reviewed and synchronized D1-D11 against the implementation, including unchanged-plan Active state and zero/zero expense utilization. Deviation rows distinguish implemented behavior from pending T071 acceptance; existing contrast exceptions remain pending. Updated release-docs.test.ts for version 3.2.0, the F03 quickstart/link checks, and F03 release/map coverage. The added release regression failed before the metadata/docs changes and passes afterward.
+
+Validation passed: focused release documentation tests (4), full npm run test (47 files / 370 tests), npm run lint, npm run format:check, npm run typecheck, npm run build and git diff --check. Independent scoped release review found no actionable gaps. No checks skipped. No workflow ledger is present. Changes remain uncommitted; no Phase 08 browser smoke or visual acceptance work was performed in this phase.
 
 ---
 

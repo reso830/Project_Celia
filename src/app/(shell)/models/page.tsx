@@ -1,5 +1,10 @@
-import PageHeader from "@/components/shell/page-header";
-
-export default function BudgetModelsPage() {
-  return <PageHeader title="Budget models" />;
+import ModelsScreen from "@/components/models/models-screen";
+import { getModelsView } from "@/server/models-read";
+export default async function BudgetModelsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const { month } = await searchParams;
+  return <ModelsScreen data={await getModelsView(month)} />;
 }

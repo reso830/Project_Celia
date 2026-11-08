@@ -52,6 +52,7 @@ export default function ConfirmDialog({
   }, [open]);
 
   function close() {
+    if (pending) return;
     dialogRef.current?.close();
     onCancel();
     triggerRef.current?.focus();
@@ -82,6 +83,7 @@ export default function ConfirmDialog({
         <button
           type="button"
           aria-label="Close dialog"
+          disabled={pending}
           onClick={close}
           className="text-[length:var(--font-size-modal-close)] text-celia-muted"
         >

@@ -148,6 +148,56 @@ describe("EntryModal", () => {
     ).not.toBeInTheDocument();
   });
 
+  it.each(["category", "type"])(
+    "hides the original archived category after switching away by %s",
+    async (route) => {
+      const user = userEvent.setup();
+      const archived = {
+        ...view.categories[0],
+        archived: true,
+        items: [{ id: "first", name: "Apple" }, ...view.categories[0].items],
+      };
+      const travel = {
+        ...view.categories[0],
+        id: "travel",
+        name: "Travel",
+        items: [{ id: "bus", name: "Bus" }],
+      };
+      render(
+        <EntriesScreen
+          {...view}
+          entries={[{ ...view.entries[0], categoryArchived: true }]}
+          categories={[travel, view.categories[1]]}
+          archivedCategories={[archived]}
+        />,
+      );
+      await user.click(
+        screen.getByRole("button", { name: "Edit entry Market" }),
+      );
+      const dialog = screen.getByRole("dialog");
+      if (route === "category") {
+        await user.click(
+          within(dialog).getByRole("button", { name: /CATEGORY Food/ }),
+        );
+        await user.click(screen.getByRole("option", { name: "Travel" }));
+      } else {
+        await user.click(
+          within(dialog).getByRole("button", { name: "Income" }),
+        );
+        await user.click(
+          within(dialog).getByRole("button", { name: "Expense" }),
+        );
+      }
+      await user.click(
+        within(dialog).getByRole("button", { name: /CATEGORY Travel/ }),
+      );
+      expect(
+        screen.queryByRole("option", { name: /Food/ }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Travel" })).toBeVisible();
+    },
+  );
+
   it("returns focus to the opener under Strict Mode", async () => {
     const user = userEvent.setup();
     render(

@@ -93,7 +93,9 @@ export default function EntryModal({
   }, [open]);
 
   const availableCategories = choices(categories, type).filter(
-    (category) => !category.archived || category.id === entry?.categoryId,
+    (category) =>
+      !category.archived ||
+      (category.id === categoryId && category.id === entry?.categoryId),
   );
   const selectedCategory = categories.find(
     (category) => category.id === categoryId,
@@ -455,7 +457,10 @@ export default function EntryModal({
         <div className="mt-[var(--space-4-5)]">
           <OwnerSegmentedControl
             members={members.filter(
-              (member) => !member.archived || member.id === ownerMemberId,
+              (member) =>
+                !member.archived ||
+                (member.id === ownerMemberId &&
+                  member.id === entry?.ownerMemberId),
             )}
             value={ownerMemberId}
             onChange={setOwnerMemberId}

@@ -526,7 +526,9 @@ Order: Version bump → Changelog → Roadmap → Repo map → README → Deviat
 
 Run in a real desktop browser against the to-be-merged state after Release Prep completes. Start server with `$env:CELIA_DB_PATH="./data/smoke.db"; npm run dev` (quickstart.md).
 
-T073–T082 were reported passed in the Phase 10 headless Chrome walkthrough. T083–T085 remain open for the outstanding decisions and visual/contrast coverage.
+T073–T082 were reported passed in the Phase 10 headless Chrome walkthrough. The keyboard, contrast, and visual follow-up below was run in Chrome on 2026-11-08 with an isolated temporary database.
+
+On 2026-11-08, the user chose to retain the current behavior for header filter menus (Tab and Enter, without arrow-key navigation), rail styling, delete-dialog initial focus, truncated names without tooltips, the search placeholder at 1100px, and the default category. The user also accepted deviations D1–D11.
 
 - [x] **T073 Dev server network binding check**
   - Confirm the server listens exclusively on `127.0.0.1:3000` and is unreachable via LAN IP.
@@ -548,14 +550,17 @@ T073–T082 were reported passed in the Phase 10 headless Chrome walkthrough. T0
   - Run `npm run seed` on non-empty DB: verify refusal. Run `npm run clear` without flag: verify dry-run report. Run `npm run clear -- --yes`: verify wipe to clean first-run state.
 - [x] **T082 Server restart persistence verification**
   - Stop the Next.js server, restart with the same `CELIA_DB_PATH`, and confirm all saved entries and classifications survive intact.
-- [ ] **T083 Keyboard accessibility pass**
+- [x] **T083 Keyboard accessibility pass**
   - Verify Tab navigation reaches all inputs, buttons, and popovers.
   - Verify Escape hierarchy: closes open popover only when open; closes modal when no popover open.
-  - Verify Arrow keys and Enter inside popovers navigate and select options.
+  - Verify Arrow keys and Enter inside modal popovers navigate and select options; header filter menus use Tab and Enter as accepted above.
   - Verify Enter submits from Amount input, and multiline Note textarea preserves Enter for newlines without submitting.
-- [ ] **T084 Contrast and no-shadow pass**
+  - Verified modal tab order, calendar and category/item picker arrow-key selection, Escape hierarchy, Enter submission, and Note newlines in Chrome. No screen reader was tested.
+- [x] **T084 Contrast and no-shadow pass**
   - Verify text contrast meets >= 4.5:1. Verify zero `box-shadow` on shell, table, popovers, and modal.
-- [ ] **T085 Tier 2 Visual review for every 🎨 task**
+  - On 2026-11-08, rendered text and shadows were checked in Chrome across the shell, table, Type states, filter menus, entry modal, calendar, item/category pickers, enabled Save, and delete dialog. Disabled controls, translucent text, and hover states were not included in the automated contrast scan.
+- [x] **T085 Tier 2 Visual review for every 🎨 task**
   - Tasks: T029, T030, T034, T035, T037, T041, T043, T044, T048, T049, T050, T052, T053.
   - Capture screenshots at 1100, 1280, and 1440px wide and compare against `reference/Money Tracker Hi-Fi.dc.html`.
   - Confirm zero horizontal scroll at >=1100px width.
+  - Compared paired Entries and Add modal screenshots at 1100, 1280, and 1440px against the supplied prototype; inspected the owner filter, category/item/calendar pickers, and delete dialog. At each width the document scroll width matched the viewport. Differences and retained behaviors are recorded above and in the deviation ledger.

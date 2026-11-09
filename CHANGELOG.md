@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.2.0 — 2026-11-09
+
+### Added
+
+- A Savings Buckets workspace at `/savings` with opening balances, optional targets and due months, buffer inclusion, and a protected default Cash Buffer.
+- Explicit savings contributions and withdrawals with editable activity history, archive/restore, future-date checks, and protection against negative lifetime balances. Savings activity remains separate from income and expense entries.
+- Savings KPIs for lifetime balances, buffer and runway, plus selected-month gross funding and per-bucket shortfalls.
+- A Budget Models workspace at `/models` for reusable templates, create/edit/duplicate/delete, inline allocations, income allocation and expense charts, and favourable-positive Budget-vs-Actual comparisons.
+- Independent monthly applied snapshots, overwrite confirmations, protected past-month revisions, and historical archived/merged-category comparisons that preserve raw allocations.
+- SQLite Migration 3 adds the six savings and budget tables while preserving F01/F02 records.
+- Extended `npm run seed` populates four buckets, 36 savings contributions, three reusable models, and 12 applied plans alongside entries across 12 rolling calendar months. Guarded `npm run clear` reports and clears all ten user tables.
+
 ## 3.1.0 — 2026-11-07
 
 ### Added

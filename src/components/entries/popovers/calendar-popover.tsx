@@ -13,9 +13,11 @@ function dateKey(date: Date) {
 export default function CalendarPopover({
   value,
   onSelect,
+  maxDate,
 }: {
   value: string;
   onSelect: (value: string) => void;
+  maxDate?: string;
 }) {
   const [month, setMonth] = useState(
     () => new Date(toDate(value).getFullYear(), toDate(value).getMonth(), 1),
@@ -88,7 +90,7 @@ export default function CalendarPopover({
           };
           if (event.key === "Enter") {
             event.preventDefault();
-            onSelect(focusedDate);
+            if (!maxDate || focusedDate <= maxDate) onSelect(focusedDate);
             return;
           }
           if (!(event.key in movement)) return;
@@ -96,6 +98,7 @@ export default function CalendarPopover({
           const next = toDate(focusedDate);
           next.setDate(next.getDate() + movement[event.key]);
           const nextKey = dateKey(next);
+          if (maxDate && nextKey > maxDate) return;
           setFocusedDate(nextKey);
           setMonth(new Date(next.getFullYear(), next.getMonth(), 1));
           requestAnimationFrame(() =>
@@ -113,13 +116,14 @@ export default function CalendarPopover({
           if (day.getMonth() !== month.getMonth()) return <span key={key} />;
           return (
             <button
+              disabled={Boolean(maxDate && key > maxDate)}
               data-calendar-day={key}
               key={key}
               type="button"
               tabIndex={key === focusedDate ? 0 : -1}
               onFocus={() => setFocusedDate(key)}
               onClick={() => onSelect(key)}
-              className={`grid h-[32px] w-full place-items-center rounded-celia-option font-celia-figure ${selected ? "bg-celia-accent-dark font-bold text-celia-surface" : "text-celia-ink"}`}
+              className={`grid h-[32px] w-full place-items-center rounded-celia-option font-celia-figure disabled:text-celia-muted disabled:opacity-50 ${selected ? "bg-celia-accent-dark font-bold text-celia-surface" : "text-celia-ink"}`}
             >
               {day.getDate()}
             </button>

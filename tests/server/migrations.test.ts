@@ -31,10 +31,10 @@ afterEach(() => {
 });
 
 describe("database migrations", () => {
-  it("creates version two with the structural household, umbrellas, and entries table", () => {
+  it("creates version three with the structural household, umbrellas, and entries table", () => {
     const database = createDatabase();
 
-    expect(database.pragma("user_version", { simple: true })).toBe(2);
+    expect(database.pragma("user_version", { simple: true })).toBe(3);
     expect(
       database
         .prepare(
@@ -94,7 +94,7 @@ describe("database migrations", () => {
       )
       .run("item", "category", "Rice", "rice", now, now);
     runMigrations(database);
-    expect(database.pragma("user_version", { simple: true })).toBe(2);
+    expect(database.pragma("user_version", { simple: true })).toBe(3);
     expect(database.prepare("SELECT id FROM members").all()).toEqual([
       { id: "member" },
     ]);
@@ -372,5 +372,84 @@ describe("database migrations", () => {
         timestamp,
       ),
     ).not.toThrow();
+  });
+});
+
+describe("F03 migration", () => {
+  it("upgrades populated v2, enforces F03 constraints and preserves snapshots", () => {
+    const db = new SqliteDatabase(":memory:");
+    databases.push(db);
+    db.pragma("foreign_keys = ON");
+    migrations[0].migrate(db);
+    migrations[1].migrate(db);
+    db.pragma("user_version = 2");
+    db.exec(
+      `INSERT INTO members VALUES ('m','Ana','ana',NULL,'',''); INSERT INTO categories (id,umbrella_id,name,name_key,color,created_at,updated_at) VALUES ('c','expense','Food','food','#7d8ba8','',''); INSERT INTO items (id,category_id,name,name_key,created_at,updated_at) VALUES ('i','c','Rice','rice','',''); INSERT INTO entries VALUES ('e','i','m',101,'2026-09-01',NULL,'','');`,
+    );
+    runMigrations(db);
+    expect(db.pragma("user_version", { simple: true })).toBe(3);
+    expect(db.prepare("SELECT amount FROM entries").get()).toEqual({
+      amount: 101,
+    });
+    const bucket = db.prepare(
+      "INSERT INTO savings_buckets (id,name,name_key,type,opening_balance,counts_toward_buffer,is_default,created_at,updated_at) VALUES (?,?,?,'cash_buffer',?,1,?,'','')",
+    );
+    bucket.run("b", "Buffer", "buffer", 0, 1);
+    expect(() => bucket.run("b2", "Other", "other", 0, 1)).toThrow(/UNIQUE/);
+    expect(() => bucket.run("b3", "Negative", "negative", -1, 0)).toThrow(
+      /CHECK/,
+    );
+    expect(() => bucket.run("b4", "BUFFER", "buffer", 0, 0)).toThrow(/UNIQUE/);
+    expect(() =>
+      db.exec("UPDATE savings_buckets SET counts_toward_buffer=0 WHERE id='b'"),
+    ).toThrow(/CHECK/);
+    const activity = db.prepare(
+      "INSERT INTO savings_activities VALUES (?,?,'contribution',?,?,NULL,'','')",
+    );
+    expect(() => activity.run("a", "missing", 1, "2026-09-01")).toThrow(
+      /FOREIGN KEY/,
+    );
+    expect(() => activity.run("a", "b", 0, "2026-09-01")).toThrow(/CHECK/);
+    expect(() => activity.run("a", "b", 1, "2026/09/01")).toThrow(/CHECK/);
+    db.exec(
+      "INSERT INTO budget_models VALUES ('model','Model','model',NULL,0,'',''); INSERT INTO monthly_budget_plans VALUES ('plan','2026-09','model','Model',0,'','');",
+    );
+    const allocation = db.prepare(
+      "INSERT INTO monthly_budget_allocations VALUES (?, 'plan', ?, ?, ?, ?, '')",
+    );
+    allocation.run("l", "category", "c", null, 100);
+    expect(() => allocation.run("dup", "category", "c", null, 100)).toThrow(
+      /UNIQUE/,
+    );
+    expect(() => allocation.run("bad", "bucket", "c", "b", 100)).toThrow(
+      /CHECK/,
+    );
+    expect(() => allocation.run("bad", "bucket", null, "missing", 100)).toThrow(
+      /FOREIGN KEY/,
+    );
+    expect(() => allocation.run("bad", "bucket", null, "b", -1)).toThrow(
+      /CHECK/,
+    );
+    expect(() =>
+      db.exec("UPDATE monthly_budget_plans SET month_key='2026-9'"),
+    ).toThrow(/CHECK/);
+    db.exec(
+      "INSERT INTO budget_model_allocations VALUES ('ml','model','bucket',NULL,'b',500,''); DELETE FROM budget_models WHERE id='model';",
+    );
+    expect(
+      db.prepare("SELECT source_model_id FROM monthly_budget_plans").get(),
+    ).toEqual({ source_model_id: null });
+    expect(
+      db.prepare("SELECT amount FROM monthly_budget_allocations").get(),
+    ).toEqual({ amount: 100 });
+    expect(
+      db.prepare("SELECT count(*) AS n FROM budget_model_allocations").get(),
+    ).toEqual({ n: 0 });
+    db.exec("DELETE FROM monthly_budget_plans");
+    expect(
+      db.prepare("SELECT count(*) AS n FROM monthly_budget_allocations").get(),
+    ).toEqual({ n: 0 });
+    runMigrations(db);
+    expect(db.pragma("foreign_key_check")).toEqual([]);
   });
 });

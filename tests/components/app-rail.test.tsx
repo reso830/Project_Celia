@@ -17,6 +17,37 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
+vi.mock("@/server/models-read", () => ({
+  getModelsView: vi.fn().mockResolvedValue({
+    month: "2026-11",
+    currentMonth: "2026-11",
+    models: [],
+    appliedPlan: null,
+    categories: [],
+    buckets: [],
+  }),
+}));
+vi.mock("@/server/savings-read", () => ({
+  getSavingsView: vi.fn().mockResolvedValue({
+    month: "2026-11",
+    today: "2026-11-08",
+    activeBuckets: [],
+    archivedBuckets: [],
+    kpis: {
+      activeBucketCount: 0,
+      heldInBucketsCentavos: 0,
+      savingsBufferCentavos: 0,
+      monthlyExpensesCentavos: 0,
+      runwayMonths: null,
+      monthlyFundedCentavos: 0,
+      monthlyPlannedSavingsCentavos: 0,
+      monthlyShortfallCentavos: 0,
+      hasMonthlyPlan: false,
+      fundedStatus: "no_plan",
+    },
+  }),
+}));
+
 vi.mock("@/server/entries-read", () => ({
   getEntriesView: vi.fn().mockResolvedValue({
     month: "2026-11",
@@ -106,8 +137,6 @@ describe("app shell", () => {
 
   it.each([
     ["Dashboard", DashboardPage],
-    ["Savings buckets", SavingsBucketsPage],
-    ["Budget models", BudgetModelsPage],
     ["Forecaster", ForecasterPage],
   ])("renders the %s page as a title-only placeholder", (title, Page) => {
     render(<Page />);
@@ -118,6 +147,23 @@ describe("app shell", () => {
     expect(screen.queryAllByRole("button")).toHaveLength(0);
     expect(screen.queryAllByRole("link")).toHaveLength(0);
     expect(document.querySelectorAll("input")).toHaveLength(0);
+  });
+
+  it("renders the Budget models workspace", async () => {
+    render(await BudgetModelsPage({ searchParams: Promise.resolve({}) }));
+    expect(
+      screen.getByRole("heading", { name: "Budget models" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/No budget models/)).toBeInTheDocument();
+  });
+  it("renders the Savings workspace", async () => {
+    render(await SavingsBucketsPage({ searchParams: Promise.resolve({}) }));
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Savings buckets" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "+ New bucket" }),
+    ).toBeInTheDocument();
   });
 
   it("renders the Entries workspace", async () => {

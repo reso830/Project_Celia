@@ -1,5 +1,6 @@
 import "server-only";
 
+import { currentMonthKey, isValidMonthKey } from "@/domain/month";
 import { connection } from "next/server";
 import type { EntryWithDetails } from "@/domain/entry";
 import type { HexColor } from "@/domain/color";
@@ -30,16 +31,6 @@ export type EntriesViewData = {
   defaults: { owner: "Household"; currency: "PHP" };
 };
 
-function currentMonth(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
-function validMonth(value: string | undefined): value is string {
-  if (!value || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return false;
-  return true;
-}
-
 function categoryData(
   database: ReturnType<typeof getDatabase>,
   categoryId: string,
@@ -66,7 +57,7 @@ export async function getEntriesView(
   monthKey?: string,
 ): Promise<EntriesViewData> {
   await connection();
-  const month = validMonth(monthKey) ? monthKey : currentMonth();
+  const month = isValidMonthKey(monthKey) ? monthKey : currentMonthKey();
   const database = getDatabase();
   const entries = listEntriesForMonth(database, month);
   const categories = listCategories(database)

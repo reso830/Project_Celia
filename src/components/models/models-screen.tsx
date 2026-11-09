@@ -444,6 +444,7 @@ function Editor({
         : selected.allocationsByBucket)[row.targetId] ?? 0;
     if (parsed.centavos === (saved[key]?.centavos ?? base)) return;
     inFlight.current.add(key);
+    setErrors((current) => ({ ...current, [key]: "" }));
     setSavingRows((current) => ({ ...current, [key]: true }));
     setSaved((current) => ({
       ...current,

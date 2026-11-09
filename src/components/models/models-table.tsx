@@ -155,7 +155,6 @@ export default function ModelsTable({
                             disabled={pending || savingRows[key] || locked}
                             aria-label={`Zero out ${r.name}`}
                             onClick={() => {
-                              onDraft(r, "0");
                               onCommit(r, "0");
                             }}
                           >

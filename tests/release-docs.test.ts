@@ -61,7 +61,7 @@ describe("release documentation", () => {
     for (const route of ["/savings", "/models"])
       expect(documentText("README.md")).toContain(route);
     expect(documentText("CHANGELOG.md")).toContain(
-      "## 3.2.0 \u2014 2026-11-08",
+      "## 3.2.0 \u2014 2026-11-09",
     );
     expect(documentText("docs/feature_roadmap.md")).toMatch(
       /F03[^\n]*\u2713 Complete[^\n]*features\/v3-003-budget-and-savings\.md/,

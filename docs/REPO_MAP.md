@@ -31,9 +31,9 @@
 - `src/domain/month.ts`: shared month-key validation and current-month helper.
 - `src/domain/savings.ts`: bucket/activity types, date and balance validation, and bucket display helpers.
 - `src/domain/savings-calculations.ts`: lifetime balances, target progress, buffer, runway and gross monthly funding/shortfall KPIs.
-- `src/domain/budget.ts`: reusable model, monthly plan and allocation types and validation.
+- `src/domain/budget.ts`: reusable model, monthly plan and allocation types, plus template-divergence detection.
 - `src/domain/budget-calculations.ts`: planned/actual summaries, favourable-positive variances, historical merge folding, and chart data.
-- `src/server/savings-store.ts`: savings bucket/activity SQL and aggregate reads.
+- `src/server/savings-store.ts`: savings bucket/activity SQL row reads and writes.
 - `src/server/savings-service.ts`: transactional bucket/activity writes, default transfer and non-negative balance enforcement.
 - `src/server/savings-read.ts`: selected-month Savings view and KPI assembly.
 - `src/server/models-store.ts`: model/plan allocation SQL and reusable-model merge updates.

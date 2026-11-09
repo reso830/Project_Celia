@@ -96,8 +96,7 @@ GitHub Actions runs these checks on every push and pull request.
 ## Scope
 
 Dashboard calculations, forecasting, authentication, and server deployment are outside
-the current feature scope. F03 implementation is complete; its final browser smoke test
-and visual acceptance remain Phase 08 of the feature plan.
+the current feature scope.
 
 See the [changelog](CHANGELOG.md), [feature roadmap](docs/feature_roadmap.md), and
 [repository map](docs/REPO_MAP.md) for project context.

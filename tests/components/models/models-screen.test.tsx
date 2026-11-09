@@ -408,6 +408,141 @@ describe("Models screen", () => {
       }),
     );
   });
+  it.each(["plan", "model"] as const)(
+    "keeps failed archived zero-outs visible and retryable in %s mode",
+    async (mode) => {
+      for (const target of ["category", "bucket"] as const) {
+        let fail!: (response: unknown) => void;
+        const request = vi
+          .fn()
+          .mockImplementationOnce(
+            () =>
+              new Promise((resolve) => {
+                fail = resolve;
+              }),
+          )
+          .mockResolvedValue({ ok: true, json: async () => ({}) });
+        vi.stubGlobal("fetch", request);
+        const fixture = {
+          ...view,
+          categories: view.categories.map((c) =>
+            c.id === "food" ? { ...c, archived: true } : c,
+          ),
+          buckets: view.buckets.map((b) => ({ ...b, archived: true })),
+          appliedPlan: mode === "plan" ? view.appliedPlan : null,
+        };
+        const { rerender, unmount } = render(<ModelsScreen data={fixture} />);
+        const name = target === "category" ? "Groceries" : "Car",
+          original = target === "category" ? "20,000" : "10,000",
+          input = () =>
+            screen.getByRole("textbox", { name: `${name} budget per month` }),
+          button = () =>
+            screen.getByRole("button", { name: `Zero out ${name}` });
+        fireEvent.click(button());
+        expect(input()).toHaveValue(original);
+        expect(button()).toBeDisabled();
+        await act(async () =>
+          fail({
+            ok: false,
+            json: async () => ({
+              error: { code: "internal", message: "Retry zero out." },
+            }),
+          }),
+        );
+        expect(screen.getByRole("alert")).toHaveTextContent("Retry zero out.");
+        expect(input()).toHaveValue(original);
+        expect(button()).toBeEnabled();
+        expect(screen.getByLabelText("Unallocated planned")).toHaveTextContent(
+          "+\u20b170,000",
+        );
+        fireEvent.click(button());
+        await waitFor(() => expect(request).toHaveBeenCalledTimes(2));
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(request).toHaveBeenLastCalledWith(
+          mode === "plan" ? "/api/monthly-plans/2026-11" : "/api/models/base",
+          expect.objectContaining({
+            body: JSON.stringify({
+              targetType: target,
+              targetId: target === "category" ? "food" : "car",
+              amount: "0",
+            }),
+          }),
+        );
+        const categories = {
+            salary: 10000000,
+            food: target === "category" ? 0 : 2000000,
+          },
+          buckets = { car: target === "bucket" ? 0 : 1000000 };
+        rerender(
+          <ModelsScreen
+            data={{
+              ...fixture,
+              models: fixture.models.map((m) =>
+                m.id === "base"
+                  ? {
+                      ...m,
+                      allocationsByCategory: categories,
+                      allocationsByBucket: buckets,
+                    }
+                  : m,
+              ),
+              appliedPlan: fixture.appliedPlan
+                ? {
+                    ...fixture.appliedPlan,
+                    allocationsByCategory: categories,
+                    allocationsByBucket: buckets,
+                  }
+                : null,
+            }}
+          />,
+        );
+        if (mode === "model")
+          expect(
+            screen.queryByRole("textbox", { name: `${name} budget per month` }),
+          ).not.toBeInTheDocument();
+        else expect(input()).toHaveValue("0");
+        unmount();
+      }
+    },
+  );
+  it("preserves a merged reference zero-out after network failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    const fixture = {
+      ...view,
+      categories: [
+        ...view.categories,
+        {
+          ...view.categories[1],
+          id: "dining",
+          name: "Dining",
+          merged: true,
+          mergedIntoCategoryId: "food",
+        },
+      ],
+      appliedPlan: {
+        ...view.appliedPlan!,
+        allocationsByCategory: {
+          salary: 10000000,
+          food: 2000000,
+          dining: 500000,
+        },
+      },
+    };
+    render(<ModelsScreen data={fixture} />);
+    fireEvent.click(screen.getByRole("button", { name: "Zero out Dining" }));
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Unable to save"),
+    );
+    expect(
+      screen.getByRole("textbox", { name: "Dining budget per month" }),
+    ).toHaveValue("5,000");
+    expect(
+      screen.getByRole("button", { name: "Zero out Dining" }),
+    ).toBeEnabled();
+    expect(screen.getByText(/effective/)).toHaveTextContent(
+      "\u20b125,000 effective",
+    );
+  });
   it("shows disabled Active for an unchanged monthly plan", () => {
     render(<ModelsScreen data={view} />);
     expect(screen.getByRole("button", { name: "Active" })).toBeDisabled();

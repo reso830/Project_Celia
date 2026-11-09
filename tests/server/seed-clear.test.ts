@@ -145,6 +145,11 @@ describe("demo seed and clear", () => {
       monthlyBudgetPlansSeeded: 12,
       monthlyBudgetAllocationsSeeded: 144,
     });
+    expect(
+      database
+        .prepare("SELECT name FROM savings_buckets ORDER BY created_at,id")
+        .all(),
+    ).toEqual(seed.buckets.map((bucket) => ({ name: bucket.name })));
     const balances = database
       .prepare(
         "SELECT b.name,b.opening_balance+COALESCE(SUM(a.amount),0) AS balance,b.type,b.target_month,b.target_amount,b.counts_toward_buffer,b.is_default FROM savings_buckets b LEFT JOIN savings_activities a ON a.bucket_id=b.id GROUP BY b.id ORDER BY b.name",

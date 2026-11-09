@@ -99,7 +99,7 @@ export default function ModelModal({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className={`${inputClass} h-[var(--models-description-height)] py-[var(--space-3)]`}
+            className={`${inputClass.replace("h-[var(--savings-control-height)]", "h-[var(--models-description-height)]")} py-[var(--space-3)]`}
             disabled={pending}
           />
         </label>

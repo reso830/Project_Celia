@@ -34,6 +34,7 @@
   --color-umbrella-expense: #8c8378;
   --color-umbrella-unallocated: #c3cac9;
   --color-savings-warning-tint: #fdf9f0;
+  --models-positive-ink: #3d7b5a;
   --models-deficit-border: #cf9b8c;
   --models-shortfall-border: #d3a13f;
   --models-workspace-columns: minmax(200px, 25%) minmax(0, 1fr);
@@ -123,7 +124,7 @@
   --savings-switch-inset: 2px;
   --savings-switch-on-left: 17px;
   --savings-kpi-columns: repeat(auto-fit, minmax(200px, 1fr));
-  --savings-bucket-columns: repeat(auto-fit, minmax(300px, 1fr));
+  --savings-bucket-columns: repeat(auto-fit, minmax(360px, 1fr));
   --savings-warning-ink: #8a6516;
   --household-member-columns: minmax(170px, 0.8fr) minmax(0, 2.2fr) 110px 64px;
   --space-row-y: 13px;

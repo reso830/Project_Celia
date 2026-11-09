@@ -21,7 +21,7 @@ export default function ModelsHeader({
             onChange={(m) => router.push(`/models?month=${m}`)}
           />
           <button
-            className="rounded-celia-control-compact bg-celia-accent px-[var(--space-5)] py-[var(--space-3)] text-celia-surface"
+            className="rounded-celia-control-compact bg-celia-accent px-[var(--space-4-5)] py-[var(--space-3)] text-[length:var(--font-size-body)] font-medium text-celia-surface"
             onClick={onNew}
           >
             + New model

@@ -106,7 +106,7 @@ export default function ModelsTable({
                 {money(sum("actualCentavos"))}
               </span>
               <span
-                className={`font-celia-figure text-[length:var(--font-size-table-figure)] ${toneClass(sum("deltaCentavos") > 0 ? "green" : sum("deltaCentavos") < 0 ? (umbrella === "savings" ? "amber" : "red") : "muted")}`}
+                className={`font-celia-figure text-[length:var(--font-size-table-figure)] ${sum("deltaCentavos") > 0 ? "text-[color:var(--models-positive-ink)]" : toneClass(sum("deltaCentavos") < 0 ? (umbrella === "savings" ? "amber" : "red") : "muted")}`}
               >
                 {money(sum("deltaCentavos"), { signed: true })}
               </span>

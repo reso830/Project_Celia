@@ -552,30 +552,47 @@ Validation passed: focused release documentation tests (4), full npm run test (4
 
 Run in a real desktop browser against the to-be-merged state after Release Prep completes. Start server with `$env:CELIA_DB_PATH="./data/smoke.db"; npm run dev` (`quickstart.md`).
 
-- [ ] **T059 Dev server network binding check**
+- [x] **T059 Dev server network binding check**
   - Confirm the server listens exclusively on `127.0.0.1:3000` and is not bound to `0.0.0.0`.
-- [ ] **T060 [US1] Walk quickstart "US1 — Create, Edit, and Manage Savings Buckets"**
+- [x] **T060 [US1] Walk quickstart "US1 — Create, Edit, and Manage Savings Buckets"**
   - On a clean DB, open `/savings`, verify empty state and zeroed KPIs (`no plan for <Mon>`). Create default `"Cash buffer"` (`250000`), `"Emergency fund"` (`120000`), and `"Car down payment"` (`85000` opening, `180000` target, `2027-02`). Verify badges, locked default buffer toggle, interactive buffer toggle on Car bucket, progress text, and persistence across reload.
-- [ ] **T061 [US2] Walk quickstart "US2 — Record and Manage Savings Contributions and Withdrawals"**
+- [x] **T061 [US2] Walk quickstart "US2 — Record and Manage Savings Contributions and Withdrawals"**
   - Contribute `5000` to `"Car down payment"`, verify balance (`₱90,000`) and gross `FUNDED <MON>`. Attempt withdrawal of `100000` and verify negative-balance block. Withdraw `15000` (`₱75,000` balance, `FUNDED <MON>` remains `₱5,000`). Edit and delete activities in History modal. Confirm `/entries` is completely unaffected.
-- [ ] **T062 [US3] Walk quickstart "US3 — Archive and Restore Savings Buckets"**
+- [x] **T062 [US3] Walk quickstart "US3 — Archive and Restore Savings Buckets"**
   - Create `"Travel Fund"`, contribute `10000`, archive it, verify it moves to `Archived` section and is excluded from active KPIs, inspect preserved read-only history, and restore it to active status.
-- [ ] **T063 [US4] Walk quickstart "US4 — Create, Edit, Duplicate, and Delete Reusable Budget Models"**
+- [x] **T063 [US4] Walk quickstart "US4 — Create, Edit, Duplicate, and Delete Reusable Budget Models"**
   - On `/models`, create `"Baseline 2026"`, enter Income (`Salary = 110000`, `Freelance = 9500`), Expense (`Rent = 25000`, `Groceries = 20000`, `Dining out = 5000`), and Savings (`Emergency fund = 8000`, `Car down payment = 10000`, `Travel Fund = 3000`) allocations, verify `"Where the income goes"` stacked bar, `"Expense breakdown"` donut, teal surplus vs. red overallocated `Unallocated` states, duplicate `"Baseline 2026 (Copy)"`, and delete the copy.
-- [ ] **T064 [US5] Walk quickstart "US5 — Apply a Budget Model to a Month and Preserve Historical Monthly Plans"**
+- [x] **T064 [US5] Walk quickstart "US5 — Apply a Budget Model to a Month and Preserve Historical Monthly Plans"**
   - Apply `"Baseline 2026"` (`Groceries = ₱20,000`) to Sep 2026 and `"Lean months"` (`Groceries = ₱16,000`) to Oct 2026. Edit reusable `"Baseline 2026"` template to `Groceries = ₱22,000`. Switch back to Sep 2026, select the top `"Sep 2026 plan"` card, and confirm September's applied plan still shows `Groceries = ₱20,000`.
-- [ ] **T065 [US6] Walk quickstart "US6 — Compare Budget Allocations Against Actual Monthly Activity"**
+- [x] **T065 [US6] Walk quickstart "US6 — Compare Budget Allocations Against Actual Monthly Activity"**
   - Record Sep 2026 entries (`Salary`, `Groceries`, `Dining out`) and savings contribution (`Car down payment`). Verify `/models` for Sep 2026 displays accurate `ACTUAL`, favourable-positive `Δ` (green for underspent expense, red for overspent expense, amber — never red — for under-funded savings), utilization, diverging bar chart (`SURPLUS` / `DEFICIT`), and live preview when clicking `"Lean months"`.
-- [ ] **T066 [US7] Walk quickstart "US7 — Historical Integrity Across Archived or Merged Categories and Buckets"**
+- [x] **T066 [US7] Walk quickstart "US7 — Historical Integrity Across Archived or Merged Categories and Buckets"**
   - Apply `"Baseline 2026"` to Aug 2026, record Aug 2026 entries (`Dining out = ₱4,000`, `Groceries = ₱18,000`), archive `"Travel Fund"`, and merge `"Dining out"` into `"Groceries"`. Verify Aug 2026's historical monthly plan folds `"Dining out"`'s `₱5,000` into `"Groceries"` (`₱25,000` effective planned vs `₱22,000` actual, `Δ = +₱3,000`) while rendering `"Dining out (merged → Groceries)"` as a reference row and `"Travel Fund (archived)"` intact, and verify the reusable `"Baseline 2026"` template combines `"Dining out"` into `"Groceries"`.
-- [ ] **T067 [US8] Walk quickstart "US8 — Seed and Clear Verification"**
+- [x] **T067 [US8] Walk quickstart "US8 — Seed and Clear Verification"**
   - Run `npm run clear -- --yes`, then `npm run seed`. Verify 4 buckets on `/savings` (`FUNDED <MON> ₱15,000`, `"₱5,000 short"` in amber) and `"<Mon YYYY> plan"` + 3 reusable models on `/models`. Run `npm run clear` dry-run and `npm run clear -- --yes` full wipe.
-- [ ] **T068 Server restart persistence verification**
+- [x] **T068 Server restart persistence verification**
   - Stop and restart the Next.js server with the same `CELIA_DB_PATH` and confirm all buckets, savings activities, reusable models, and monthly applied plans persist intact.
-- [ ] **T069 Keyboard accessibility pass**
+- [x] **T069 Keyboard accessibility pass**
   - Verify Tab order, Enter submission, Escape modal/popover/input dismissal, and keyboard interaction across `/savings` and `/models` modals and collapsible groups.
-- [ ] **T070 Contrast and no-shadow pass**
+- [x] **T070 Contrast and no-shadow pass**
   - Verify text contrast >= 4.5:1 and zero `box-shadow` across `/savings` and `/models` cards, charts, tables, and modals.
-- [ ] **T071 Tier 2 Visual review for every 🎨 task**
+- [x] **T071 Tier 2 Visual review for every 🎨 task**
   - Tasks: `T027`, `T028`, `T029`, `T030`, `T031`, `T032`, `T033`, `T038`, `T039`, `T040`, `T041`, `T042`, `T043`, `T044`.
   - Capture screenshots of `/savings` and `/models` (and modals) at 1100, 1280, and 1440px wide, compare side by side against `reference/Money Tracker Hi-Fi.dc.html`, confirm zero horizontal scroll at `>= 1100px`, and record final visual review status in `specs/v3-003-budget-and-savings/deviations.md`.
+
+Phase 08 validation (2026-11-09): T059-T069 passed in headless Chrome 157 driven over the DevTools Protocol (no new dependencies) against `CELIA_DB_PATH=./data/f03-smoke.db` (a fresh file; the existing `smoke.db` was left untouched). T059: `next dev` and `next start` both listen only on `127.0.0.1:3000`. T060-T066 walked the quickstart through the UI; the Sep/Aug entries and the US7 category merge were set up through the existing F02 entries and F01 merge APIs, both accepted in their own features. T067: clear/seed CLI counts matched, the dry run deleted nothing, and the wipe restored both empty states. T068: UI state for `/savings` and `/models` (Aug-Oct) was identical after a server restart. T069: Tab order, Enter, Space and Escape pass. In `next dev` only, focus lands on `<body>` after Escape closes the bucket, activity and model modals; this is React StrictMode's double-run effect, and the production build returns focus to the trigger for all four modal types.
+
+Initial Claude review: T070 remained open with zero `box-shadow` anywhere, and every text passes except the status-green group-header delta on `/models` (`#3f7d5c` on `#f4f5f5`, 4.47:1 at 12px). Disabled future calendar days fall below 4.5:1 but are exempt as disabled controls.
+
+T071 remains open pending user acceptance and the visual findings recorded in `deviations.md` (Phase 08 visual review). No horizontal scroll at 1100, 1280 or 1440px on either page or any modal.
+
+
+### Phase 08 visual findings follow-up - 2026-11-09
+
+Corrected V2 (Models header CTA now 13.5px/500 with matching padding), V3 (DESCRIPTION textarea now has only its 96px height class), V5 (fresh seeds preserve fixture bucket order with deterministic increasing timestamps), and the T070 group-header positive-delta contrast miss (#3d7b5a on #f4f5f5, 4.60:1). Corrected D1/D5 header wording and D9's Available to allocate pill. V4 currency notation, V6 existing F01 alphabetical category/bar ordering, and V8 wrapping at 1100px are explicitly documented as remaining visual differences pending user acceptance. Existing smoke databases were not changed or reseeded; the seed-order change applies to future seeds. T059-T069's completed review results are preserved. T071 remains unchecked: no user acceptance is inferred.
+
+Verification: scoped Models/seed tests pass (32 tests); full suite passes 47 files / 370 tests. Lint, formatting, typecheck, production build and diff checks pass. Production-browser measurements on a separate phase08-fixes.db confirm CTA typography, 96px textarea, corrected computed group-delta color, and Cash buffer / Emergency fund / Car down payment / Insurance order at 1100, 1280 and 1440px. Frozen screenshots were inspected; no horizontal overflow was found. T070 is closed using Claude's prior full text/no-shadow audit plus verification of its sole corrected miss. Artifacts are external under C:/Users/acres/.codex/visualizations/2026/11/08/01a1bad6-4b50-73b1-8057-e320961c13c2/phase08-*-fix-*.png.
+
+Phase 08 user decisions (2026-11-09): V6 accepted as-is. V8 resolved by raising the bucket grid minimum to 360px (`--savings-bucket-columns`); verified in headless Chrome at 1100/1245/1280/1440/1600px with no in-card wrapping or horizontal scroll, and the full suite still passes (370 tests), with lint and format clean. T071 stays unchecked until V4, the contrast corrections and D1-D11 are confirmed.
+
+T071 complete (2026-11-09): the user accepted D1-D11, V4 and the contrast corrections; V6 was accepted and V8 resolved earlier. All Phase 08 tasks are complete.

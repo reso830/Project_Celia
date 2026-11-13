@@ -1,8 +1,19 @@
 # Celia
 
-Celia is a local-first household finance application. Version 3.2.0 includes household
+Celia is a local-first household finance application. Version 3.3.0 includes household
 members, Income/Expense categories and items, an Entries workspace, Savings Buckets,
-and Budget Models. Amounts are stored as integer centavos so calculations remain exact.
+Budget Models, and Dashboard reporting. Amounts are stored as integer centavos so calculations remain exact.
+
+## Dashboard and reporting
+
+- `/` shows savings buffer, runway, monthly totals, and trends alongside the applied budget.
+- Filter by month, owner, or category. Use the six- or twelve-month spending comparison,
+  category breakdown, and member distribution to review spending. Category links open
+  the matching Entries view.
+- Track savings goals and upcoming commitments. Add an entry from the dashboard to
+  refresh the reporting totals.
+
+See the [F04 quickstart](specs/v3-004-dashboard-reporting/quickstart.md) for reporting flows.
 
 ## Savings and budget planning
 
@@ -91,11 +102,12 @@ GitHub Actions runs these checks on every push and pull request.
   services map rows and enforce use-case rules.
 - `src/app/api` exposes thin JSON mutation handlers.
 - `src/app/(shell)` server pages read views and pass them to client components.
-- `src/components` renders the shell, household, categories, Entries, Savings, Models, and shared UI workflows.
+- `src/components` renders the shell, household, categories, Entries, Savings, Models, Dashboard, and shared UI workflows.
+- `src/server/dashboard-read.ts` assembles reporting views from entries, applied monthly plans, and savings activity.
 
 ## Scope
 
-Dashboard calculations, forecasting, authentication, and server deployment are outside
+Forecasting, authentication, and server deployment are outside
 the current feature scope.
 
 See the [changelog](CHANGELOG.md), [feature roadmap](docs/feature_roadmap.md), and

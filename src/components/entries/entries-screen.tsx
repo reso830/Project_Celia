@@ -14,12 +14,21 @@ import SummaryChips from "./summary-chips";
 import TypeFilter from "./type-filter";
 import Toast from "@/components/ui/toast";
 
-export default function EntriesScreen(view: EntriesViewData) {
+export default function EntriesScreen(
+  view: EntriesViewData & {
+    initialCategoryId?: string;
+    initialOwnerId?: string;
+  },
+) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [type, setType] = useState<EntryType | "all">("all");
-  const [categoryId, setCategoryId] = useState<string | "all">("all");
-  const [ownerId, setOwnerId] = useState<string | "all">("all");
+  const [categoryId, setCategoryId] = useState<string | "all">(
+    view.initialCategoryId ?? "all",
+  );
+  const [ownerId, setOwnerId] = useState<string | "all">(
+    view.initialOwnerId ?? "all",
+  );
   const [entryModalOpen, setEntryModalOpen] = useState(false);
   const [editedEntry, setEditedEntry] = useState<EntryWithDetails | null>(null);
   const [deleteRequest, setDeleteRequest] = useState<{

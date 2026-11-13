@@ -42,7 +42,9 @@ export default function SummaryChips({
 }) {
   const totals = calculateTotals(entries);
   const memberSummary =
-    ownerId === "all" ? null : calculateMemberSummary(entries, ownerId);
+    ownerId === "all" || ownerId === "household"
+      ? null
+      : calculateMemberSummary(entries, ownerId);
 
   return (
     // lifted from prototype CSS

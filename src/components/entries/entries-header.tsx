@@ -129,7 +129,10 @@ export default function EntriesHeader({
     })),
   ];
   const ownerLabel =
-    ownerOptions.find((option) => option.id === ownerId)?.name ?? "Household";
+    ownerId === "household"
+      ? "Household only"
+      : (ownerOptions.find((option) => option.id === ownerId)?.name ??
+        "Household");
   const categoryLabel =
     categoryOptions.find((option) => option.id === categoryId)?.name ??
     "All categories";

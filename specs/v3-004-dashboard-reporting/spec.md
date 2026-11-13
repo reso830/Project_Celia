@@ -72,7 +72,7 @@ F04 delivers the primary **Dashboard & Reporting** screen (`/`) as Celia's defau
 - **Primary Dashboard Screen (`/`)**:
   - **Row 1**:
     - Hero Card: `SAVINGS BUFFER` lifetime balance, historical 12-month buffer sparkline (normalized `0..1` ratios converted to SVG coordinates), and cash runway (`"N.N months runway"`).
-    - Secondary KPI Grid: `INCOME`, `EXPENSES`, `SAVINGS`, and `UNALLOCATED` (with plan-variance deltas when applicable, and `—` formatting).
+    - Secondary KPI Grid: `INCOME`, `EXPENSES`, `SAVINGS`, and `UNALLOCATED` (with plan-variance deltas when applicable, `—` formatting, and the prototype’s 88×30 monthly trend lines). Each trend uses 12 calendar months ending with the selected month, independent of the expense chart’s 6/12-month toggle. Historical samples follow the same owner/category scope and null applicability as each KPI. Savings history is gross monthly contributions to currently active buckets; unallocated history uses Income − Expenses − Savings under All members, or Income − Expenses under an owner filter. Quiet months are zero. Signed values are preserved; each line uses min/max scaling (including negative net values), with flat series drawn horizontally. Inapplicable KPIs omit their trend.
   - **Row 2**:
     - `Burn rate` gauge: 270° SVG arc visualization of selected month's Budget Utilization % with `<85%` green, `85–115%` amber, `>115%` red bands, and explicit unbudgeted / zero-budget / income-category handling.
     - `Actual vs budget` trend chart: 6-month or 12-month bar chart comparing actual monthly expenses against each month's applied budget plan, with selected month's dashed budget line and overspent bar highlighting.
@@ -108,7 +108,7 @@ F04 delivers the primary **Dashboard & Reporting** screen (`/`) as Celia's defau
 ### User Story 1 — Financial Position & Runway Overview (Priority: P1)
 As a household administrator, I want to see our lifetime savings buffer, historical trajectory, and cash runway at a glance so I know how financially resilient our household is.
 
-**Independent Test**: Seed 12 months of data (`npm run seed`), open `http://127.0.0.1:3000/`. Confirm `SAVINGS BUFFER` displays lifetime balance of active buffer buckets (₱470,000), runway reads `"N.N months runway"` matching `/savings`, and the sparkline displays a smooth 12-month trajectory.
+**Independent Test**: Seed 12 months of data (`npm run seed`), open `http://127.0.0.1:3000/`. Confirm `SAVINGS BUFFER` displays lifetime balance of active buffer buckets (₱466,000), runway reads `"N.N months runway"` matching `/savings`, and the sparkline displays a smooth 12-month trajectory.
 
 **Acceptance Criteria**:
 1. `SAVINGS BUFFER` displays lifetime balance across active buckets with `countsTowardBuffer = true`.

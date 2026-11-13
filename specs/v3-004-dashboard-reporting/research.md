@@ -40,16 +40,16 @@ Analysis of `Money Tracker Hi-Fi.dc.html` (lines 50–205 and 830–985) establi
 ### 1.2 Burn Rate Gauge (Row 2 Left)
 - **Container**: Width 280px (fixed on desktop), border `#e3e7e8`, background white, radius 12px, padding 20px.
 - **Geometry**:
-  - Outer bounding box: `viewBox="0 0 200 200"`, center $(cx, cy) = (100, 100)$, radius $r = 75$, stroke width $14$.
+  - Outer bounding box: `viewBox="0 0 200 182"`, center $(cx, cy) = (100, 100)$, radius $r = 76$, value stroke width $18$ and outer status band stroke width $5$.
   - Sweep angle: 270° circular arc.
   - Angle definitions (in degrees, where 0° is 3 o'clock / East):
     - Arc starts at 135° (bottom-left) and sweeps clockwise 270° through 180°, 270° (top), 0° (right), to 45° (bottom-right).
-    - Track length: $L = 2 \pi r \times (270 / 360) = 2 \pi (75) \times 0.75 \approx 353.43\text{px}$.
-  - Background track: Stroke `#f0f2f3`, `stroke-dasharray="353.43 353.43"`, `stroke-linecap="round"`.
+    - Track length: $L = 2 \pi r \times (270 / 360) = 2 \pi (76) \times 0.75 \approx 358.14\text{px}$.
+  - Outer track: three static green, amber and red status bands matching the prototype paths.
   - Foreground value arc:
     - Angular progression: $\theta = 135^\circ + (\text{arcRatio} \times 270^\circ)$.
     - When `arcRatio = 0`: no foreground path rendered.
-    - When `0 < arcRatio <= 1.0`: SVG arc path with `stroke-dasharray="L L"` and `stroke-dashoffset="L * (1 - arcRatio)"`.
+    - When `0 < arcRatio <= 1.0`: clockwise SVG endpoint arc at angle θ, with large-arc flag set when `arcRatio > 2/3`; no dash-offset geometry.
 - **Status Thresholds & Display States**:
   The domain returns pure `state` and `statusTone` enums. The UI component formats center text and subtitle:
   - `"no_plan"`: neutral slate `#636f73`, `arcRatio = 0`. UI renders `"—"`, `"No plan applied"`.

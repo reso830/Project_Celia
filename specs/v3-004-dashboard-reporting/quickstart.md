@@ -61,15 +61,15 @@ npm run lint && npm run format:check && npm run typecheck && npm run test && npm
    - Burn rate gauge: `"—"` center text, subtitle `"No plan applied"`, neutral slate arc, and 0% sweep.
    - Actual vs budget: empty state `"No spending recorded for this period"`.
 5. Confirm Row 3 displays:
-   - Categories table: empty state `"No categories configured"`.
-   - Expense per member: empty state `"No members configured"`.
+   - Categories table: empty state `"No spending or budget this month"`.
+   - Expense per member: empty state `"No spending recorded for this month"`.
 6. Confirm Row 4 displays:
    - Goal progress: empty state `"No active savings goals"`.
    - Upcoming commitments: empty state `"No upcoming commitments"`.
 
 ### Test 2 — Seeded Overview & Runway Consistency (User Story 1 / Task T031)
 1. Run `npm run seed` and navigate to `http://127.0.0.1:3000/`.
-2. Verify `SAVINGS BUFFER` displays `₱470,000` with active 12-month sparkline.
+2. Verify `SAVINGS BUFFER` displays `₱466,000` with active 12-month sparkline.
 3. Verify `Runway` reads `"N.N months runway"` and matches the runway figure on `http://127.0.0.1:3000/savings`.
 4. Verify `INCOME`, `EXPENSES`, `SAVINGS`, and `UNALLOCATED` match the current month's applied budget plan and actual transaction totals.
 5. In another tab, open `/savings` and archive a non-default bucket with a balance. Refresh `/`. Confirm `SAVINGS BUFFER`, `SAVINGS`, and the buffer sparkline update consistently.

@@ -241,8 +241,9 @@ export function seedDemoData(
     const insertActivity = database.prepare(`INSERT INTO savings_activities
       (id,bucket_id,kind,amount,date,created_at,updated_at) VALUES (?,?,'contribution',?,?,?,?)`);
     let activityCount = 0;
+    const seedStart = Date.parse(`${months[0]}-01T00:00:00Z`);
     for (const [index, bucket] of data.buckets.entries()) {
-      const bucketTimestamp = new Date(now.getTime() + index).toISOString();
+      const bucketTimestamp = new Date(seedStart + index).toISOString();
       const id = demoId(`bucket:${bucket.id}`);
       bucketIds.set(bucket.id, id);
       const type: BucketType = bucket.isDefault
@@ -270,7 +271,7 @@ export function seedDemoData(
         Number(bucket.counts),
         Number(bucket.isDefault),
         bucketTimestamp,
-        bucketTimestamp,
+        timestamp,
       );
       if (bucket.funded > 0)
         for (const month of months) {

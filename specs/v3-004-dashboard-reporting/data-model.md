@@ -39,6 +39,10 @@ To eliminate ambiguity and prevent misleading financial metrics, the dashboard e
 | **Goal Highlight** | First active goal; household progress | First active goal; household progress (labeled `"Household goal"`) | First active goal; household progress | First active goal; household progress | First active goal; household progress |
 | **Upcoming Commitments** | Active commitments due $\ge$ selected month | Active commitments (labeled `"Household commitments"`) | Active commitments | Active commitments | Active commitments |
 
+### KPI Trend History
+
+`kpis.history` contains 12 oldest-first calendar-month samples ending in the selected month, independent of the trend chart range. Each sample applies the KPI rows of the scope matrix above, including combined owner/category filters. Inapplicable metrics are `null` and have no trend. Quiet months have zero amounts. Savings are gross contributions to currently active buckets, excluding withdrawals, opening balances and archived buckets. Unallocated is signed Income − Expenses − Savings for All members, and Income − Expenses for an owner filter. No plan is required for actual history. The UI draws the prototype’s 88×30 trend with min/max scaling, preserving negative values, a horizontal flat series, and a flat empty fallback. Plan deltas remain alongside the trends.
+
 ### Combined Filter Scope Matrix (Owner & Category Filters Together)
 
 When an owner filter (`memberFilter !== 'all'`) and a category filter (`categoryId !== 'all'`) are active simultaneously:
@@ -101,7 +105,16 @@ export type SavingsBufferHeroData = {
   readonly isHouseholdScope: boolean;
 };
 
+export type DashboardKpiHistoryMonth = {
+  readonly monthKey: string;
+  readonly incomeCentavos: Centavos | null;
+  readonly expensesCentavos: Centavos | null;
+  readonly savingsCentavos: Centavos | null;
+  readonly unallocatedCentavos: Centavos | null;
+};
+
 export type DashboardKpisData = {
+  readonly history: readonly DashboardKpiHistoryMonth[];
   readonly incomeCentavos: Centavos | null;
   readonly incomeDeltaCentavos: Centavos | null;
   readonly expensesCentavos: Centavos | null;
@@ -156,6 +169,7 @@ export type CategorySpendingRowData = {
   readonly progressRatio: number; // 0..1
   readonly deltaCentavos: Centavos; // favourable-positive: budget - spent
   readonly rolloverCentavos: Centavos | null; // current-month unspent or null
+  readonly progressTone: BurnRateData["statusTone"];
   readonly statusTone: "favourable" | "warning" | "critical" | "neutral";
   readonly isArchived: boolean;
   readonly isClickable: boolean; // false for archived categories
@@ -245,6 +259,7 @@ export type DashboardModalMember = {
 };
 
 export type DashboardViewData = {
+  readonly modelName: string | null; // applied plan for the selected month
   readonly filter: DashboardFilterState;
   readonly hero: SavingsBufferHeroData;
   readonly kpis: DashboardKpisData;

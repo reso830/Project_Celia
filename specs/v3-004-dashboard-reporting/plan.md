@@ -27,6 +27,7 @@ F04 implements Celia's primary **Dashboard & Reporting** screen (`/`), transform
    - Carries forward buffer balances across gap months without activity, and respects effective dates of backdated contributions/withdrawals.
    - Enforces the Card-by-Card Filter Scope Matrix for `member`, `household`, expense categories, income categories, and combined owner & category filters.
    - Computes KPI deltas against `MonthlyBudgetPlan` for the selected month under `"all"`. Under any owner filter (individual member or household, whether alone or combined with a category filter), the Owner filter wins and all KPI deltas are `null` (D2).
+   - Supplies 12 oldest-first monthly KPI samples ending in the selected month, following the KPI filter matrix and active-bucket gross contribution rule; keeps signed unallocated history for min/max-scaled 88×30 sparklines alongside plan deltas.
    - Supplies full `modalCategories` and `modalMembers` records to power `EntryModal`.
 3. **Preservation of F02 Filter Contract & Bounded Drill-Down**:
    - In "Expense per member", clicking an active member row **filters the dashboard in-place** (`?member=<id>`), and clicking it again clears the filter back to `"all"` (matching `HF#L974`). Clicking the Household row filters in-place to Household-owned transactions (`?member=household`). It does not navigate away to `/entries`.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.3.0 — 2026-11-14
+
+### Added
+
+- Dashboard at `/` with savings buffer and runway, monthly income, expenses, savings and unallocated funds, plus historical trends and plan variances.
+- Budget utilization gauge, 6- and 12-month spending comparisons, category variances and remaining allocations, and spending by member or Household.
+- Month, owner and category filters in the URL, category links to filtered Entries, and direct entry creation with refreshed dashboard totals.
+- `/entries` accepts `month`, `category`, and `owner` URL parameters, including a link-only “Household only” view for shared entries.
+- Savings goal progress and upcoming commitments derived from active savings buckets, with dedicated dashboard loading, empty and retry states.
+
 ## 3.2.0 — 2026-11-09
 
 ### Added

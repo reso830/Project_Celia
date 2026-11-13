@@ -13,6 +13,7 @@ const releaseDocuments = [
   "specs/v3-001-core-tracking/quickstart.md",
   "specs/v3-002-entries/quickstart.md",
   "specs/v3-003-budget-and-savings/quickstart.md",
+  "specs/v3-004-dashboard-reporting/quickstart.md",
 ];
 
 function documentText(file: string) {
@@ -30,9 +31,9 @@ describe("release documentation", () => {
       packages: { "": { version: string } };
     };
 
-    expect(packageJson.version).toBe("3.2.0");
-    expect(packageLock.version).toBe("3.2.0");
-    expect(packageLock.packages[""].version).toBe("3.2.0");
+    expect(packageJson.version).toBe("3.3.0");
+    expect(packageLock.version).toBe(packageJson.version);
+    expect(packageLock.packages[""].version).toBe(packageJson.version);
     for (const command of [
       "dev",
       "lint",
@@ -57,7 +58,6 @@ describe("release documentation", () => {
   });
 
   it("documents the F03 release and its implementation map", () => {
-    expect(documentText("README.md")).toContain("Version 3.2.0");
     for (const route of ["/savings", "/models"])
       expect(documentText("README.md")).toContain(route);
     expect(documentText("CHANGELOG.md")).toContain(
@@ -93,6 +93,27 @@ describe("release documentation", () => {
     ])
       expect(map).toContain(area);
   });
+  it("documents the F04 release and its implementation map", () => {
+    expect(documentText("README.md")).toContain("Version 3.3.0");
+    expect(documentText("README.md")).toContain("## Dashboard and reporting");
+    expect(documentText("CHANGELOG.md")).toMatch(
+      /^## 3\.3\.0 — \d{4}-\d{2}-\d{2}$/m,
+    );
+    expect(documentText("docs/feature_roadmap.md")).toMatch(
+      /F04[^\n]*✓ Complete[^\n]*features\/v3-004-dashboard-reporting\.md/,
+    );
+    for (const location of [
+      "src/app/(shell)/(dashboard)",
+      "src/domain/dashboard.ts",
+      "src/domain/dashboard-calculations.ts",
+      "src/server/dashboard-read.ts",
+      "src/components/dashboard/",
+    ]) {
+      expect(documentText("docs/REPO_MAP.md")).toContain(location);
+      expect(existsSync(path.join(root, location))).toBe(true);
+    }
+  });
+
   it("has resolving relative links in each release document", () => {
     for (const file of releaseDocuments) {
       const links = [

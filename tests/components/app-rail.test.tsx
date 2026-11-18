@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import AppRail from "@/components/shell/app-rail";
 import MonthPicker from "@/components/shell/month-picker";
-import DashboardPage from "@/app/(shell)/page";
 import EntriesPage from "@/app/(shell)/entries/page";
 import ForecasterPage from "@/app/(shell)/forecaster/page";
 import BudgetModelsPage from "@/app/(shell)/models/page";
@@ -135,14 +134,11 @@ describe("app shell", () => {
     );
   });
 
-  it.each([
-    ["Dashboard", DashboardPage],
-    ["Forecaster", ForecasterPage],
-  ])("renders the %s page as a title-only placeholder", (title, Page) => {
-    render(<Page />);
+  it("renders the Forecaster page as a title-only placeholder", () => {
+    render(<ForecasterPage />);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: title }),
+      screen.getByRole("heading", { level: 1, name: "Forecaster" }),
     ).toBeInTheDocument();
     expect(screen.queryAllByRole("button")).toHaveLength(0);
     expect(screen.queryAllByRole("link")).toHaveLength(0);

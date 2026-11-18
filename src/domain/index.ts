@@ -14,3 +14,5 @@ export * from "./savings";
 export * from "./savings-calculations";
 export * from "./budget";
 export * from "./budget-calculations";
+export * from "./dashboard";
+export * from "./dashboard-calculations";

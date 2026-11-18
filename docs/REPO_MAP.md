@@ -45,3 +45,14 @@
 - `src/components/savings/`: KPI row, bucket cards, forms, activity history, archive/restore and screen orchestration.
 - `src/components/models/`: two-mode model list, allocation table, charts, metadata modal and screen orchestration.
 - `specs/v3-003-budget-and-savings/`: [spec](../specs/v3-003-budget-and-savings/spec.md), [API contract](../specs/v3-003-budget-and-savings/contracts/api.md), [quickstart](../specs/v3-003-budget-and-savings/quickstart.md) and [deviations](../specs/v3-003-budget-and-savings/deviations.md).
+
+
+## F04 Dashboard & Reporting
+
+- `src/app/(shell)/(dashboard)`: dynamic root dashboard page with its loading skeleton and retry boundary.
+- `src/domain/dashboard.ts`: dashboard view and filter types.
+- `src/domain/dashboard-calculations.ts`: trend scaling, utilization, category and member comparisons, goals, and commitments.
+- `src/server/dashboard-read.ts`: validates filters, aggregates monthly entries and savings activity, and combines actuals with applied plans.
+- `src/components/dashboard/`: header filters, KPI sparklines, burn rate gauge, budget trend, category and member breakdowns, goals, commitments, and screen assembly with the shared entry modal.
+- `tests/components/dashboard/` and `tests/server/dashboard-read.test.ts`: reporting views, route filters, and entry workflow coverage.
+- `specs/v3-004-dashboard-reporting/`: [spec](../specs/v3-004-dashboard-reporting/spec.md), [API contract](../specs/v3-004-dashboard-reporting/contracts/api.md), [quickstart](../specs/v3-004-dashboard-reporting/quickstart.md) and [deviations](../specs/v3-004-dashboard-reporting/deviations.md).

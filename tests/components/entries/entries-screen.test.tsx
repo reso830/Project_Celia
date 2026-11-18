@@ -1,4 +1,15 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import EntriesPage from "@/app/(shell)/entries/page";
+import { parseHexColor } from "@/domain/color";
+vi.mock("@/server/entries-read", () => ({
+  getEntriesView: vi.fn(async () => drillDownView),
+}));
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import EntriesScreen from "@/components/entries/entries-screen";
@@ -598,5 +609,174 @@ describe("EntriesScreen", () => {
         screen.getByRole("button", { name: "Delete entry Salary" }),
       ).toHaveFocus(),
     );
+  });
+});
+
+const drillDownView: EntriesViewData = {
+  month: "2026-11",
+  defaults: { owner: "Household", currency: "PHP" },
+  categories: [
+    {
+      id: "food",
+      name: "Food",
+      umbrella: "expense",
+      color: parseHexColor("#123456"),
+      archived: false,
+      items: [{ id: "market", name: "Market" }],
+    },
+    {
+      id: "rent",
+      name: "Rent",
+      umbrella: "expense",
+      color: parseHexColor("#654321"),
+      archived: false,
+      items: [{ id: "lease", name: "Lease" }],
+    },
+  ],
+  members: [
+    { id: "ana", name: "Ana" },
+    { id: "miguel", name: "Miguel" },
+  ],
+  archivedMembers: [
+    { id: "archived-member", name: "Former member", archived: true },
+  ],
+  archivedCategories: [
+    {
+      id: "archived-category",
+      name: "Old category",
+      umbrella: "expense",
+      color: parseHexColor("#987654"),
+      archived: true,
+      items: [],
+    },
+  ],
+  entries: [
+    ["ana-food", "ana", "food", 10000],
+    ["shared-food", null, "food", 5000],
+    ["miguel-food", "miguel", "food", 20000],
+    ["shared-rent", null, "rent", 7000],
+  ].map(([id, owner, category, amount]) => ({
+    id: id as string,
+    itemId: category === "food" ? "market" : "lease",
+    ownerMemberId: owner as string | null,
+    amount: amount as number,
+    date: "2026-11-03",
+    note: null,
+    createdAt: "2026-11-03",
+    updatedAt: "2026-11-03",
+    type: "expense",
+    itemName: id as string,
+    categoryId: category as string,
+    categoryName: category === "food" ? "Food" : "Rent",
+    categoryColor: parseHexColor("#123456"),
+    categoryArchived: false,
+    ownerName:
+      owner === null ? "Household" : owner === "ana" ? "Ana" : "Miguel",
+    isHousehold: owner === null,
+    ownerArchived: false,
+  })),
+};
+const drillDownRows = () =>
+  screen
+    .getAllByRole("row")
+    .slice(1)
+    .map((row) => row.getAttribute("data-entry-id"));
+
+describe("Entries dashboard drill-down", () => {
+  it("preselects category and reconciles all-member category spending", async () => {
+    render(
+      await EntriesPage({
+        searchParams: Promise.resolve({ month: "2026-11", category: "food" }),
+      }),
+    );
+    expect(drillDownRows().sort()).toEqual([
+      "ana-food",
+      "miguel-food",
+      "shared-food",
+    ]);
+    expect(
+      screen.getByRole("group", { name: "Entry summaries" }),
+    ).toHaveTextContent("Expense ₱350");
+    expect(screen.getByRole("button", { name: /Food/ })).toBeInTheDocument();
+  });
+  it("preserves F02 own-plus-shared figures for individual members", async () => {
+    render(
+      await EntriesPage({
+        searchParams: Promise.resolve({ category: "food", owner: "ana" }),
+      }),
+    );
+    expect(drillDownRows().sort()).toEqual(["ana-food", "shared-food"]);
+    expect(
+      screen.getByRole("group", { name: "Entry summaries" }),
+    ).toHaveTextContent("₱100 own · ₱50 shared");
+  });
+  it("provides Household-only link view and exits through the unchanged owner dropdown", async () => {
+    const user = userEvent.setup();
+    render(
+      await EntriesPage({
+        searchParams: Promise.resolve({ category: "food", owner: "household" }),
+      }),
+    );
+    expect(drillDownRows()).toEqual(["shared-food"]);
+    const summaries = screen.getByRole("group", { name: "Entry summaries" });
+    expect(summaries).toHaveTextContent("Expense ₱50");
+    expect(within(summaries).queryByText(/own ·/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Household only ▾" }));
+    await user.click(screen.getByRole("button", { name: "Household" }));
+    expect(drillDownRows()).toHaveLength(3);
+    expect(
+      screen.getByRole("button", { name: "Household ▾" }),
+    ).toBeInTheDocument();
+  });
+  it.each(["unknown", "archived-member"])(
+    "falls back to all for owner ID %s",
+    async (owner) => {
+      render(
+        await EntriesPage({
+          searchParams: Promise.resolve({ category: "food", owner }),
+        }),
+      );
+      expect(drillDownRows()).toHaveLength(3);
+      expect(
+        screen.getByRole("button", { name: "Household ▾" }),
+      ).toBeInTheDocument();
+    },
+  );
+  it.each(["unknown", "archived-category"])(
+    "falls back to All categories for category ID %s",
+    async (category) => {
+      render(
+        await EntriesPage({ searchParams: Promise.resolve({ category }) }),
+      );
+      expect(
+        screen.getByRole("button", { name: "All categories ▾" }),
+      ).toBeInTheDocument();
+      expect(drillDownRows().sort()).toEqual([
+        "ana-food",
+        "miguel-food",
+        "shared-food",
+        "shared-rent",
+      ]);
+      expect(
+        screen.getByRole("group", { name: "Entry summaries" }),
+      ).toHaveTextContent("Expense ₱420");
+    },
+  );
+  it("supports direct initial props and the member URL alias", async () => {
+    const { unmount } = render(
+      <EntriesScreen
+        {...drillDownView}
+        initialCategoryId="food"
+        initialOwnerId="ana"
+      />,
+    );
+    expect(drillDownRows()).toHaveLength(2);
+    unmount();
+    render(
+      await EntriesPage({
+        searchParams: Promise.resolve({ category: "food", member: "ana" }),
+      }),
+    );
+    expect(drillDownRows()).toHaveLength(2);
   });
 });

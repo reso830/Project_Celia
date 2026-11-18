@@ -158,7 +158,6 @@ describe("Dashboard route and screen", () => {
     vi.mocked(getDashboardView).mockResolvedValue(populated);
     render(
       await DashboardPage({
-        params: Promise.resolve({}),
         searchParams: Promise.resolve({
           month,
           member: "ana",
@@ -179,7 +178,6 @@ describe("Dashboard route and screen", () => {
   it("ignores repeated filter values and invalid range values", async () => {
     vi.mocked(getDashboardView).mockResolvedValue(empty);
     await DashboardPage({
-      params: Promise.resolve({}),
       searchParams: Promise.resolve({
         month: [month, "2026-10"],
         member: ["ana", "household"],

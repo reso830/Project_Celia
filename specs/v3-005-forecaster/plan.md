@@ -29,7 +29,7 @@ F05 implements Celia's final planned core capability: the **Forecaster** screen 
      - `clearAllData` preserves the Baseline scenario row (`DELETE FROM scenarios WHERE is_baseline = 0`).
      - `getClearSummary` counts non-baseline scenarios only (`WHERE is_baseline = 0`).
      - `seedDemoData` requires an otherwise empty database (wiped via `npm run clear -- --yes`). It skips creating the baseline row (since Migration 4 creates it) and populates scenarios A, B, C using rewritten `scripts/seed.json` entries matching `data-model.md §3` with stable IDs (`a`, `b`, `c`), category name key `"dining out"`, and bucket `id: 'car'`.
-   - Updates `src/server/categories-service.ts` to invoke `mergeCategoryNudges` within the merge transaction. Base budgets for surviving categories fold in allocations from merged-away categories using a recursive CTE (transitive merge closure).
+   - Updates `src/server/categories-service.ts` to invoke `mergeCategoryNudges` within the merge transaction. The Phase 03 Forecaster read model owns the recursive query for applied budget allocations.
    - Implements `src/server/forecaster-store.ts` and `src/server/forecaster-service.ts` providing typed CRUD operations, baseline mutation guards (returning 409 `invalid_state`), and category merge re-pointing.
 3. **Optimized Server Read Model**:
    - Implements `src/server/forecaster-read.ts`, querying the database in a single synchronous pass with a performance design target of sub-10ms response (measured, non-failing):
@@ -96,7 +96,7 @@ F05 implements Celia's final planned core capability: the **Forecaster** screen 
   - Update `getClearSummary` to count non-baseline scenarios only (`SELECT COUNT(*) FROM scenarios WHERE is_baseline = 0`).
   - Update `seedDemoData` (requires an otherwise empty database wiped with `npm run clear -- --yes`): skips inserting baseline row, and seeds scenarios A, B, C from rewritten `scripts/seed.json` entries matching `data-model.md §3` with stable IDs (`a`, `b`, `c`), category name key `"dining out"`, bucket `id: 'car'`, and signed centavo deltas.
 - Update `src/server/categories-service.ts`:
-  - In `mergeCategories`, invoke `mergeCategoryNudges(db, sourceCategoryId, targetCategoryId, now)` inside the merge transaction. Base budgets for surviving categories fold in allocations from merged-away categories using a recursive CTE (transitive merge closure).
+  - In `mergeCategory`, invoke `mergeCategoryNudges(db, sourceCategoryId, targetCategoryId, now)` inside the merge transaction. The Phase 03 Forecaster read model owns the recursive query for applied budget allocations.
 - Create `src/server/forecaster-store.ts`:
   - Typed SQLite queries using `better-sqlite3`: scenario CRUD, event CRUD, nudge upserts, batch queries.
   - Implement `mergeCategoryNudges(database, sourceCategoryId, targetCategoryId, now)` for category merges.
@@ -117,6 +117,7 @@ F05 implements Celia's final planned core capability: the **Forecaster** screen 
     - Transitive base budget resolution: folds merged-away category allocations into surviving categories via recursive CTE.
     - Fetches all scenarios, events, and nudges.
     - Resolves target names and archived status for all nudged items.
+    - Includes all applied expense and savings allocation targets so the UI can create a first nudge. Existing scenario nudges also carry details for targets with no applied allocation.
     - Computes 24-month outlook geometry and comparison table rows.
     - Accepts UUIDs and stable IDs (`baseline`, `a`, `b`, `c`), falling back to `'baseline'` if invalid.
 - Create API route handlers adhering to `src/server/http.ts:72-99` error format:
@@ -126,6 +127,7 @@ F05 implements Celia's final planned core capability: the **Forecaster** screen 
   - `src/app/api/scenarios/[id]/events/route.ts` (`POST`)
   - `src/app/api/scenarios/[id]/events/[eventId]/route.ts` (`PATCH`, `DELETE`)
   - `src/app/api/scenarios/[id]/nudges/route.ts` (`PUT`) - returns 409 `archived` if target is archived.
+- Create `src/server/forecaster-http.ts` for typed JSON bodies with numeric centavos and nullable fields.
 - Add integration tests in `tests/server/forecaster-read.test.ts` and `tests/api/forecaster-routes.test.ts`. Measure sub-10ms performance target without hard assertions that fail CI.
 
 ### Phase 04 — Hi-Fi Output UI Components
@@ -159,6 +161,8 @@ F05 implements Celia's final planned core capability: the **Forecaster** screen 
   - Disabled controls with `(archived)` badge for archived targets.
   - Visual slider track (50% fill fallback for base = 0).
   - Sequential per-row queue: rapid clicks queue writes sequentially; if an older save fails while a newer edit is queued, the newer edit stays visible and is dispatched next; only if terminal save fails does the row roll back to confirmed server delta.
+  - Exposes `flushPendingSaves` for Phase 06 scenario switching.
+- Verify the three input components in `tests/components/forecaster/forecaster-input.test.tsx`.
 
 ### Phase 06 — Modals, Interactivity, Page Assembly, & Component Tests
 - Create modals:
@@ -190,6 +194,7 @@ F05 implements Celia's final planned core capability: the **Forecaster** screen 
 - Desktop visual verification pass at 1100px, 1280px, and 1440px against prototype.
 - Run complete verification gate:
   `npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build`
+- After browser acceptance and verification pass, mark F05 `✓ Complete` in `docs/feature_roadmap.md` and remove the pending acceptance note (T040).
 
 ---
 
@@ -224,6 +229,7 @@ F05 implements Celia's final planned core capability: the **Forecaster** screen 
 - `src/server/forecaster-store.ts`
 - `src/server/forecaster-service.ts`
 - `src/server/forecaster-read.ts`
+- `src/server/forecaster-http.ts`
 - `src/app/api/scenarios/route.ts`
 - `src/app/api/scenarios/[id]/route.ts`
 - `src/app/api/scenarios/[id]/duplicate/route.ts`
@@ -237,8 +243,11 @@ F05 implements Celia's final planned core capability: the **Forecaster** screen 
 - `src/components/forecaster/scenario-hero-cards.tsx`
 - `src/components/forecaster/outlook-chart.tsx`
 - `src/components/forecaster/scenario-comparison-table.tsx`
+- `src/components/forecaster/presentation.ts`
 - `src/components/forecaster/scenario-modal.tsx`
 - `src/components/forecaster/event-modal.tsx`
+- `src/components/forecaster/mutation-dialog.tsx` (shared modal submission and error state)
+- `src/components/ui/form-dialog.tsx` (shared native form dialog and control styles)
 - `src/app/(shell)/forecaster/loading.tsx`
 - `src/app/(shell)/forecaster/error.tsx`
 
@@ -248,7 +257,10 @@ F05 implements Celia's final planned core capability: the **Forecaster** screen 
 - `tests/server/forecaster-service.test.ts`
 - `tests/server/forecaster-read.test.ts`
 - `tests/api/forecaster-routes.test.ts`
+- `tests/components/forecaster/forecaster-output.test.tsx`
+- `tests/components/forecaster/forecaster-input.test.tsx`
 - `tests/components/forecaster/forecaster-screen.test.tsx`
+- `tests/components/app-rail.test.tsx` (Forecaster route and empty-state coverage)
 - `tests/release-docs.test.ts`
 
 ---

@@ -103,7 +103,7 @@ F05 delivers the **Forecaster** screen (`/forecaster`), allowing users to projec
       - `+ add event` dashed button opening Add Event modal (hidden on Baseline).
       - Net monthly impact summary line: `"Net monthly impact"` with bold mono total (e.g. `−₱26,430`).
     - **"Nudge the budget" Card**:
-      - Subtitle: `"drag to rebalance — 'freed' is money released"`.
+      - Subtitle: `"Use − or + to rebalance. “Freed” is money released."`.
       - Grouped list of all active and archived expense categories and savings buckets that have a base allocation in the applied plan or an existing nudge delta.
       - Category nudge row displaying category/bucket name, group (`EXPENSES` or `SAVINGS`), current value, and status text:
         - `+₱X freed` (green `#2c6647`) when spending is decreased (`delta < 0`).
@@ -145,7 +145,7 @@ F05 delivers the **Forecaster** screen (`/forecaster`), allowing users to projec
         6. `Verdict`: Formatted status badge for each scenario.
 - **Scenario Management & CRUD**:
   - Create Scenario Modal: Name, short label (uppercase badge text), start month offset (`0..23`), initial lump-sum buffer draw amount (₱, $\ge 0$), fixed palette selection (`teal`, `purple`, `gold`, `blue`, `slate`).
-  - Edit Scenario Modal: Edit existing scenario properties, or delete scenario (Baseline write attempts return 409 `invalid_state`).
+  - Edit Scenario Modal: Edit existing scenario properties or request deletion. A confirmation names the scenario and explains that its events and nudges will also be deleted. Baseline write attempts return 409 `invalid_state`.
   - Duplicate Scenario Action: Creates a full copy of an existing non-baseline scenario including all its events and nudges.
 - **Event Management Modal**:
   - Modal to create or edit an event: Name, type (`financed purchase`, `recurring`, `seasonal`), monthly amount (₱, integer $> 0$), optional description. Helper text explains that seasonal events represent the flat monthly equivalent of an annual cost.
@@ -264,7 +264,7 @@ As a user, I want to add, edit, and remove hypothetical financial cost events (s
    - `type`: Dropdown (`financed purchase`, `recurring`, `seasonal`).
    - `monthlyAmount`: Positive integer centavos (> 0).
    - `description`: Optional text.
-6. Clicking an event row opens the Edit Event modal with option to update or delete the event.
+6. Clicking an event row opens the Edit Event modal with options to update or delete the event. Deletion requires confirming a dialog that names the event. Cancelling returns to the editor. A failed delete keeps the event and displays the error in the confirmation.
 7. Baseline scenario hides `+ add event` and displays: `"No events — this is the baseline."`.
 
 ---
@@ -283,8 +283,8 @@ As a user, I want to create new scenarios from a fixed palette, duplicate existi
    - `startMonth`: Integer month offset (`0..23`).
    - `drawAmount`: Initial lump-sum capital drawn from savings buffer (default ₱0, $\ge 0$).
    - `paletteKey`: Fixed scenario palette selection (`teal`, `purple`, `gold`, `blue`, `slate`).
-3. Users can duplicate any non-baseline scenario. Duplicating creates a new scenario with `(Copy)` appended, cloning all child events and nudges.
-4. Users can delete custom scenarios.
+3. Users can duplicate any non-baseline scenario. Duplicating appends ` (Copy)` to the name and ` (COPY)` to the short label, cloning all child events and nudges. The generated short label may exceed 20 characters and can remain unchanged when editing other settings.
+4. Users can delete custom scenarios after confirming that the named scenario and its events and nudges will be deleted. Cancelling returns to the editor. A failed delete keeps the scenario and displays the error in the confirmation.
 5. Baseline row is protected: cannot be renamed, given a draw or events, nudged, duplicated, or deleted. Any write attempt returns 409 `invalid_state`.
 6. All scenarios, events, and nudges persist across browser reloads. Route accepts stable IDs (`baseline`, `a`, `b`, `c`) and UUIDs.
 

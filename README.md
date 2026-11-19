@@ -1,8 +1,16 @@
 # Celia
 
-Celia is a local-first household finance application. Version 3.3.0 includes household
+Celia is a local-first household finance application. Version 3.4.0 includes household
 members, Income/Expense categories and items, an Entries workspace, Savings Buckets,
-Budget Models, and Dashboard reporting. Amounts are stored as integer centavos so calculations remain exact.
+Budget Models, Dashboard reporting, and Forecaster. Amounts are stored as integer centavos so calculations remain exact.
+
+## Forecaster
+
+- `/forecaster` projects 24 months from the current month's applied budget plan and active savings buffer. Apply a budget in `/models` to get started.
+- Create or duplicate scenarios to compare a one-time buffer draw, hypothetical monthly costs, and expense or savings adjustments. Review the outlook chart, cash flow, runway, and verdict side by side.
+- Scenario changes leave actual entries, savings activity, and applied budgets intact.
+
+See the [F05 quickstart](specs/v3-005-forecaster/quickstart.md) for Forecaster flows.
 
 ## Dashboard and reporting
 
@@ -66,9 +74,9 @@ filesystem and native module support.
 With development dependencies installed, `npm run seed` adds a deterministic household
 and twelve rolling calendar months of entries ending in the current month, plus four
 savings buckets, 36 contributions dated on each month's first day, three reusable budget
-models, and 12 independent Baseline 2026 monthly plans from `scripts/seed.json`. Bucket
+models, 12 independent Baseline 2026 monthly plans, and three Forecaster alternatives from `scripts/seed.json`. Bucket
 balances are derived from opening balances and activity; target/due months retain the
-fixture's dates. Seed refuses to run if any of the ten user tables contains rows.
+fixture's dates. Seeding requires an otherwise empty database and retains the protected Forecaster baseline.
 These commands use `CELIA_DB_PATH` when set, or `./data/celia.db` otherwise.
 
 ```bash
@@ -78,10 +86,10 @@ npm run clear -- --yes # Delete all user records, including savings and budget d
 ```
 
 Dry run reports counts for savings buckets and activities, budget models and allocations,
-monthly plans and allocations, entries, items, categories, and members.
+monthly plans and allocations, entries, items, categories, members, alternative scenarios, events, and nudges.
 
 The confirmed clear is irreversible and removes real user data as well as demo data;
-household and umbrella configuration rows and the schema are retained.
+household and umbrella configuration rows, the Forecaster baseline, and the schema are retained.
 
 ## Verification
 
@@ -102,12 +110,12 @@ GitHub Actions runs these checks on every push and pull request.
   services map rows and enforce use-case rules.
 - `src/app/api` exposes thin JSON mutation handlers.
 - `src/app/(shell)` server pages read views and pass them to client components.
-- `src/components` renders the shell, household, categories, Entries, Savings, Models, Dashboard, and shared UI workflows.
+- `src/components` renders the shell, household, categories, Entries, Savings, Models, Dashboard, Forecaster, and shared UI workflows.
 - `src/server/dashboard-read.ts` assembles reporting views from entries, applied monthly plans, and savings activity.
 
 ## Scope
 
-Forecasting, authentication, and server deployment are outside
+Authentication and server deployment are outside
 the current feature scope.
 
 See the [changelog](CHANGELOG.md), [feature roadmap](docs/feature_roadmap.md), and

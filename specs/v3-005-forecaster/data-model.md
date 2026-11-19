@@ -110,18 +110,30 @@ export interface OutlookData {
   milestones: { index: number; monthKey: string }[];
 }
 
+export type ForecasterNudgeTarget = {
+  name: string;
+  isArchived: boolean;
+  baseAllocation: Centavos;
+} & (
+  | { targetType: "category"; categoryId: string; bucketId: null }
+  | { targetType: "bucket"; categoryId: null; bucketId: string }
+);
+
 export interface ForecasterViewData {
   baselineName: string;
   appliedMonthKey: string; // e.g. "2026-11"
   activeScenarioId: string;
   hasAppliedPlan: boolean;
   scenarios: ScenarioWithRelations[];
+  nudgeTargets: ForecasterNudgeTarget[];
   baselineMetrics: BaselineMetrics;
   selectedMetrics: ScenarioMetrics;
   comparisonMetrics: ScenarioMetrics[];
   outlook: OutlookData;
 }
 ```
+
+`nudgeTargets` lists the expense categories and savings buckets with allocations in the current month's plan, including archived targets and folded category merges. For the selected scenario, combine these targets with that scenario's existing nudges by target type and ID. A nudge with no applied allocation has a zero base and appears only when viewing its own scenario.
 
 ---
 
@@ -236,7 +248,7 @@ Auto-created by Migration 4 with `id: 'baseline'`, `is_baseline: 1`, `start_mont
     { "targetType": "category", "categoryNameKey": "groceries", "deltaAmount": -200000 },
     { "targetType": "category", "categoryNameKey": "dining out", "deltaAmount": -200000 },
     { "targetType": "category", "categoryNameKey": "transport", "deltaAmount": -450000 },
-    { "targetType": "bucket", "bucketId": "car", "bucketNameKey": "car down payment", "deltaAmount": 500000 }
+    { "targetType": "bucket", "bucketId": "car", "deltaAmount": 500000 }
   ]
 }
 ```

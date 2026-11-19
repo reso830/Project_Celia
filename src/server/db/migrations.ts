@@ -212,10 +212,89 @@ CREATE UNIQUE INDEX monthly_budget_allocations_bucket_unique
   },
 };
 
+const migrationFour: Migration = {
+  version: 4,
+  migrate(database) {
+    database.exec(`
+CREATE TABLE scenarios (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL CHECK (length(name) > 0),
+  short_label TEXT NOT NULL CHECK (length(short_label) > 0),
+  palette_key TEXT CHECK (
+    (is_baseline = 1 AND palette_key IS NULL) OR
+    (is_baseline = 0 AND palette_key IS NOT NULL AND palette_key IN ('teal', 'purple', 'gold', 'blue', 'slate'))
+  ),
+  start_month INTEGER NOT NULL DEFAULT 0 CHECK (
+    start_month >= 0 AND start_month <= 23 AND typeof(start_month) = 'integer'
+  ),
+  draw_amount INTEGER NOT NULL DEFAULT 0 CHECK (
+    draw_amount >= 0 AND typeof(draw_amount) = 'integer'
+  ),
+  is_baseline INTEGER NOT NULL DEFAULT 0 CHECK (
+    is_baseline IN (0, 1) AND typeof(is_baseline) = 'integer'
+  ),
+  display_order INTEGER NOT NULL DEFAULT 0 CHECK (
+    typeof(display_order) = 'integer'
+  ),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- Invariant: Exactly one baseline scenario
+CREATE UNIQUE INDEX scenarios_baseline_unique ON scenarios (is_baseline) WHERE is_baseline = 1;
+
+-- Hypothetical Scenario Events Table
+CREATE TABLE scenario_events (
+  id TEXT PRIMARY KEY,
+  scenario_id TEXT NOT NULL REFERENCES scenarios(id) ON DELETE CASCADE,
+  name TEXT NOT NULL CHECK (length(name) > 0),
+  type TEXT NOT NULL CHECK (type IN ('financed purchase', 'recurring', 'seasonal')),
+  monthly_amount INTEGER NOT NULL CHECK (
+    monthly_amount > 0 AND typeof(monthly_amount) = 'integer'
+  ),
+  description TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX idx_scenario_events_scenario_id ON scenario_events(scenario_id);
+
+-- Budget Nudges Table (Signed centavo delta)
+CREATE TABLE scenario_nudges (
+  id TEXT PRIMARY KEY,
+  scenario_id TEXT NOT NULL REFERENCES scenarios(id) ON DELETE CASCADE,
+  target_type TEXT NOT NULL CHECK (target_type IN ('category', 'bucket')),
+  category_id TEXT REFERENCES categories(id),
+  bucket_id TEXT REFERENCES savings_buckets(id),
+  delta_amount INTEGER NOT NULL CHECK (typeof(delta_amount) = 'integer'),
+  updated_at TEXT NOT NULL,
+  CHECK (
+    (target_type = 'category' AND category_id IS NOT NULL AND bucket_id IS NULL) OR
+    (target_type = 'bucket' AND bucket_id IS NOT NULL AND category_id IS NULL)
+  )
+);
+
+CREATE UNIQUE INDEX idx_scenario_nudges_category
+  ON scenario_nudges(scenario_id, category_id) WHERE category_id IS NOT NULL;
+CREATE UNIQUE INDEX idx_scenario_nudges_bucket
+  ON scenario_nudges(scenario_id, bucket_id) WHERE bucket_id IS NOT NULL;
+`);
+    const now = new Date().toISOString();
+    database
+      .prepare(
+        `INSERT INTO scenarios
+        (id, name, short_label, is_baseline, created_at, updated_at)
+        VALUES ('baseline', 'Baseline', 'BASELINE', 1, ?, ?)`,
+      )
+      .run(now, now);
+  },
+};
+
 export const migrations: readonly Migration[] = [
   migrationOne,
   migrationTwo,
   migrationThree,
+  migrationFour,
 ];
 
 export function runMigrations(database: Database.Database) {

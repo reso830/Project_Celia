@@ -146,7 +146,8 @@ Duplicates a scenario, cloning all its child events and nudges.
 - **Validation**:
   - Baseline scenario cannot be duplicated: returns `409 Conflict` `{ "error": { "code": "invalid_state", "message": "The baseline scenario cannot be duplicated." } }`.
 - **Behavior**:
-  - Sets name to `"${original.name} (Copy)"`.
+  - Sets name to `"${original.name} (Copy)"`. The copy can exceed 50 characters. The length limit applies to names supplied by the user on create or edit.
+  - Sets short label to `"${original.shortLabel} (COPY)"`. The copy's label can exceed 20 characters and can remain unchanged when editing other fields. New or changed labels must fit the 20-character limit.
   - Assigns fresh UUIDs to the scenario, all cloned events, and all cloned nudges.
   - Preserves `paletteKey`, `startMonth`, `drawAmount`, event types/amounts, and nudge deltas.
 - **Response `201 Created`**: Returns duplicated `ScenarioWithRelations` object.
@@ -213,7 +214,7 @@ Upserts a category or bucket budget nudge for a scenario.
   ```
 - **Validation**:
   - Baseline scenario cannot be nudged: returns `409 Conflict` `{ "error": { "code": "invalid_state", "message": "Budget nudges cannot be applied to the baseline scenario." } }`.
-  - Target archived check: If `categoryId` or `bucketId` references an archived entity, returns `409 Conflict` `{ "error": { "code": "archived", "message": "Cannot nudge an archived category or bucket." } }`.
+  - Inactive target check: An archived category or bucket, or a merged-away category, returns `409 Conflict` with code `archived`.
   - `targetType`: Strictly `"category"` or `"bucket"`.
   - If `targetType === "category"`: `categoryId` must be non-null and belong to an active expense category; `bucketId` must be null. (Nudges are never permitted on income categories).
   - If `targetType === "bucket"`: `bucketId` must be non-null and belong to an active savings bucket; `categoryId` must be null.

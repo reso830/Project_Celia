@@ -108,13 +108,13 @@ npm run lint && npm run format:check && npm run typecheck && npm run test && npm
 2. Enter Name: "Annual Insurance", Type: "seasonal", Monthly Amount: "1,200". (Modal helper text notes seasonal is the monthly equivalent of an annual cost).
 3. Save event. Confirm "Annual Insurance" appears in the "What changes" list.
 4. Confirm event count updates, net monthly impact updates, and runway updates.
-5. Click "Annual Insurance" in the event list, click "Delete event", and confirm it is removed and figures restore.
+5. Click "Annual Insurance" in the event list, click "Delete event", and choose "Confirm delete". Verify the event is removed and the figures return to their previous values.
 
 ### Test 6 — Scenario Creation, Duplication & Deletion (User Story 5)
 1. Select **A · Buy now, 5-yr loan**, open scenario settings modal, click "Duplicate".
-2. Confirm "A · Buy now, 5-yr loan (Copy)" appears in the scenario list with all 2 events and 4 nudges cloned.
+2. Confirm "A · Buy now, 5-yr loan (Copy)" appears with the short label "A · LOAN NOW (COPY)" and all 3 events and 4 nudges cloned.
 3. Click `+ scenario`.
 4. Enter Name: "D · Secondhand car", Short Label: "D · SECONDHAND", Start Month: 6, Buffer Draw: "50,000", select Palette Key: `purple`.
-5. Save scenario. Confirm "D · SECONDHAND" chip appears in the selector.
-6. Open scenario modal for "A · Buy now, 5-yr loan (Copy)" and click "Delete". Confirm it is removed.
+5. Save the scenario. Confirm the "D · Secondhand car" chip appears in the selector and "D · SECONDHAND" appears in the chart legend and comparison table.
+6. Open scenario settings for "A · Buy now, 5-yr loan (Copy)", click "Delete scenario", and choose "Confirm delete". Verify the copy is removed and Baseline is selected.
 7. Confirm the Baseline scenario has no delete or duplicate option, and write attempts return 409 `invalid_state`.

@@ -37,7 +37,7 @@ The handoff zip is `handoff/celia_v3_001.zip`, root folder `design_handoff_money
 | **05** | Hi-Fi Input UI Components (Scenario Chips, What Changes, Budget Nudges) | `T020–T022` | US2, US3, US4 |
 | **06** | Modals, Interactivity, Page Assembly, & Component Tests | `T023–T027` | US1–US6 |
 | **07** | Release Prep | `T028–T032` | — |
-| **08** | Browser Smoke Test & Visual Review | `T033–T039` | US1–US6 |
+| **08** | Browser Smoke Test & Visual Review | `T033–T040` | US1–US6 |
 
 ---
 
@@ -45,7 +45,7 @@ The handoff zip is `handoff/celia_v3_001.zip`, root folder `design_handoff_money
 
 Order: View Model Types → Pure Calculation Helpers → Comprehensive Unit Test Suite.
 
-- [ ] **T001 [P] [US1–US6] Create forecaster domain interfaces and types**
+- [x] **T001 [P] [US1–US6] Create forecaster domain interfaces and types**
   - Files: `src/domain/forecaster.ts` (new).
   - Expected behavior:
     - Declare TypeScript types per `data-model.md §1`: `ScenarioEventType` (`"financed purchase" | "recurring" | "seasonal"`), `ForecastVerdictTier`, `ForecastStatusTone`, `ForecastVerdict` (`tier`, `statusTone` only; zero hex colors), `PaletteKey` (`"teal" | "purple" | "gold" | "blue" | "slate"`), `Scenario` (`startMonth` 0..23, `drawAmount` integer centavos, `paletteKey: PaletteKey | null`), `ScenarioEvent` (`monthlyAmount > 0`, `description: string | null`), `ScenarioNudge` (`deltaAmount: Centavos` signed integer centavos; no `adjustedAmount` or `freedAmount`), `ScenarioNudgeDerived`, `ScenarioWithRelations`, `BaselineMetrics` (`modelName` from plan, `planId: string | null`), `ScenarioMetrics`, `OutlookBar` (flat unallocated, `heightRatioInContainer: number`, `isNegative: boolean`), `OutlookPolyline` (normalized points $(x, y) \in [0, 1] \times [0, 1]$), `OutlookData` (`milestones: { index: number; monthKey: string }[]`), and `ForecasterViewData`.
@@ -54,7 +54,7 @@ Order: View Model Types → Pure Calculation Helpers → Comprehensive Unit Test
   - Constraints: pure TypeScript types; exact centavo type adherence; strict nullability.
   - Validation: `npm run typecheck`.
 
-- [ ] **T002 [P] [US1, US2] Implement 3-tier verdict matrix calculation**
+- [x] **T002 [P] [US1, US2] Implement 3-tier verdict matrix calculation**
   - Files: `src/domain/forecaster-calculations.ts` (new).
   - Expected behavior:
     - Implement `calculateVerdict(runway: number | null, monthlyUnallocated: Centavos): ForecastVerdict`:
@@ -74,7 +74,7 @@ Order: View Model Types → Pure Calculation Helpers → Comprehensive Unit Test
   - Constraints: pure numerical/enum output; zero UI formatting; zero hex colors in domain layer.
   - Validation: `tests/domain/forecaster-calculations.test.ts`.
 
-- [ ] **T003 [P] [US1, US2] Implement scenario metrics calculation with overdrawn buffer priority**
+- [x] **T003 [P] [US1, US2] Implement scenario metrics calculation with overdrawn buffer priority**
   - Files: `src/domain/forecaster-calculations.ts`.
   - Expected behavior:
     - Implement `calculateScenarioMetrics(baseline: BaselineMetrics, scenario: ScenarioWithRelations): ScenarioMetrics`:
@@ -93,7 +93,7 @@ Order: View Model Types → Pure Calculation Helpers → Comprehensive Unit Test
   - Constraints: division-by-zero protection (`monthlyExpense === 0` with positive buffer yields `null` runway); overdrawn buffer yields `0.0 mo` and `Risky buffer`; runway rounded to 0.1 decimal place matching `calculateSavingsKpis`.
   - Validation: `tests/domain/forecaster-calculations.test.ts`.
 
-- [ ] **T004 [P] [US1, US2] Implement 24-month outlook chart data calculation**
+- [x] **T004 [P] [US1, US2] Implement 24-month outlook chart data calculation**
   - Files: `src/domain/forecaster-calculations.ts`.
   - Expected behavior:
     - Implement `calculate24MonthOutlook(baselineUnallocated: Centavos, scenarios: readonly ScenarioWithRelations[], startMonthKey: string): OutlookData`:
@@ -117,7 +117,7 @@ Order: View Model Types → Pure Calculation Helpers → Comprehensive Unit Test
   - Constraints: zero division by zero; output points strictly normalized $0..1$; handles negative baseline and all-negative/all-zero states.
   - Validation: `tests/domain/forecaster-calculations.test.ts`.
 
-- [ ] **T005 [P] [US3] Implement budget nudge derivation and stepping helpers**
+- [x] **T005 [P] [US3] Implement budget nudge derivation and stepping helpers**
   - Files: `src/domain/forecaster-calculations.ts`.
   - Expected behavior:
     - Implement `deriveNudgeAmounts(baseAllocation: Centavos, deltaAmount: Centavos): { adjustedAllocation: Centavos; freedAmount: Centavos }`:
@@ -133,7 +133,7 @@ Order: View Model Types → Pure Calculation Helpers → Comprehensive Unit Test
   - Constraints: allocation cannot drop below 0; exact centavo math; `+` raises allocation.
   - Validation: `tests/domain/forecaster-calculations.test.ts`.
 
-- [ ] **T006 [US1–US3] Add unit test suite for forecaster pure calculations**
+- [x] **T006 [US1–US3] Add unit test suite for forecaster pure calculations**
   - Files: `tests/domain/forecaster-calculations.test.ts` (new).
   - Expected behavior:
     - Test `calculateVerdict`:
@@ -162,7 +162,7 @@ Order: View Model Types → Pure Calculation Helpers → Comprehensive Unit Test
 
 Order: Migration 4 → SQLite Store Queries → Categories Merge Update → Forecaster Service → Demo Tooling Update → Integration Tests.
 
-- [ ] **T007 [P] [US1–US6] Implement SQLite Migration 4**
+- [x] **T007 [P] [US1–US6] Implement SQLite Migration 4**
   - Files: `src/server/db/migrations.ts`.
   - Expected behavior:
     - Add `migrationFour: Migration` with `version: 4`:
@@ -177,7 +177,7 @@ Order: Migration 4 → SQLite Store Queries → Categories Merge Update → Fore
   - Constraints: preserves existing migrations 1, 2, 3; runs in SQLite transaction; enforces `PRAGMA user_version = 4`; strict integer checks.
   - Validation: `tests/server/forecaster-store.test.ts`.
 
-- [ ] **T008 [P] [US1–US6] Implement SQLite forecaster store queries and category merge integration**
+- [x] **T008 [P] [US1–US6] Implement SQLite forecaster store queries and category merge integration**
   - Files: `src/server/forecaster-store.ts` (new), `src/server/categories-service.ts`.
   - Expected behavior:
     - In `src/server/forecaster-store.ts`, implement typed store functions:
@@ -192,12 +192,12 @@ Order: Migration 4 → SQLite Store Queries → Categories Merge Update → Fore
       - `upsertScenarioNudge(database, input)`: Inserts or replaces nudge in `scenario_nudges` with signed `delta_amount`.
       - `mergeCategoryNudges(database, sourceCategoryId, targetCategoryId, now)`: Re-points nudges from source to target category; if target already nudged, sums `delta_amount` and deletes source.
     - In `src/server/categories-service.ts`:
-      - In `mergeCategories`, invoke `mergeCategoryNudges(db, sourceCategoryId, targetCategoryId, now)` inside the merge transaction.
-      - Surviving category base budget folds allocations from merged-away categories using a recursive CTE (transitive merge closure).
+      - In `mergeCategory`, invoke `mergeCategoryNudges(db, sourceCategoryId, targetCategoryId, now)` inside the merge transaction.
+      - Re-point saved nudges without changing applied budget snapshots. T012 owns recursive resolution of applied budget allocations.
   - Constraints: server-only (`import "server-only"`); prepared statements; integer centavos.
   - Validation: `tests/server/forecaster-store.test.ts`.
 
-- [ ] **T009 [P] [US1–US6] Implement forecaster service business logic**
+- [x] **T009 [P] [US1–US6] Implement forecaster service business logic**
   - Files: `src/server/forecaster-service.ts` (new).
   - Expected behavior:
     - Implement service methods wrapping store functions with business validation:
@@ -208,7 +208,7 @@ Order: Migration 4 → SQLite Store Queries → Categories Merge Update → Fore
   - Constraints: server-only; throws typed domain errors (`ValidationError`, `NotFoundError`, `InvalidStateError`, `ArchivedError`).
   - Validation: `tests/server/forecaster-service.test.ts`.
 
-- [ ] **T010 [P] [US1–US6] Update seed and clear demo tooling**
+- [x] **T010 [P] [US1–US6] Update seed and clear demo tooling**
   - Files: `src/server/demo.ts`, `scripts/seed.json`.
   - Expected behavior:
     - In `src/server/demo.ts`:
@@ -222,7 +222,7 @@ Order: Migration 4 → SQLite Store Queries → Categories Merge Update → Fore
   - Constraints: preserves existing F01–F03 seed records; seeding requires an otherwise empty database (second run without clear fails as expected).
   - Validation: `npm run clear -- --yes && npm run seed`.
 
-- [ ] **T011 [US1–US6] Add integration tests for forecaster store, service, and category merges**
+- [x] **T011 [US1–US6] Add integration tests for forecaster store, service, and category merges**
   - Files: `tests/server/forecaster-store.test.ts` (new), `tests/server/forecaster-service.test.ts` (new).
   - Expected behavior:
     - Test Migration 4 on a populated database (Constitution IX): upgrades from version 3 to 4, inserts baseline row with ISO-8601 timestamp, verifies `PRAGMA user_version = 4`.
@@ -244,7 +244,7 @@ Order: Migration 4 → SQLite Store Queries → Categories Merge Update → Fore
 
 Order: Read Model Assembly → API Route Handlers → Integration Tests.
 
-- [ ] **T012 [P] [US1, US2, US6] Implement server read model query assembly**
+- [x] **T012 [P] [US1, US2, US6] Implement server read model query assembly**
   - Files: `src/server/forecaster-read.ts` (new).
   - Expected behavior:
     - Implement `getForecasterView(selectedScenarioId?: string): Promise<ForecasterViewData>`:
@@ -256,13 +256,15 @@ Order: Read Model Assembly → API Route Handlers → Integration Tests.
       - Transitive base budget resolution: folds merged-away category allocations into surviving category totals.
       - Loads all scenarios, events, and nudges via `forecaster-store.ts`.
       - Resolves target names and archived status for all nudged items.
+      - Returns `nudgeTargets` for all applied expense and savings allocations, including archived targets and merged category totals. Scenario nudges retain target details when their base allocation is zero.
       - Computes baseline metrics, selected scenario metrics, and comparison metrics.
       - Computes 24-month outlook geometry via `calculate24MonthOutlook`.
   - Constraints: single synchronous SQLite pass; performance design target < 10ms for household data; handles gap/empty states gracefully.
   - Validation: `tests/server/forecaster-read.test.ts`.
 
-- [ ] **T013 [P] [US1, US5] Implement scenario CRUD and duplicate API routes**
+- [x] **T013 [P] [US1, US5] Implement scenario CRUD and duplicate API routes**
   - Files: `src/app/api/scenarios/route.ts` (new), `src/app/api/scenarios/[id]/route.ts` (new), `src/app/api/scenarios/[id]/duplicate/route.ts` (new).
+  - Shared request parser for T013–T015: `src/server/forecaster-http.ts` handles numeric and nullable JSON fields.
   - Expected behavior:
     - Accepts UUIDs and stable IDs (`baseline`, `a`, `b`, `c`) for `[id]`.
     - `GET /api/scenarios`: Returns list of all scenarios.
@@ -273,7 +275,7 @@ Order: Read Model Assembly → API Route Handlers → Integration Tests.
   - Constraints: uses standard Celia error format `{ error: { code, message, field? } }` from `src/server/http.ts:72-99`.
   - Validation: `tests/api/forecaster-routes.test.ts`.
 
-- [ ] **T014 [P] [US4] Implement scenario events API routes**
+- [x] **T014 [P] [US4] Implement scenario events API routes**
   - Files: `src/app/api/scenarios/[id]/events/route.ts` (new), `src/app/api/scenarios/[id]/events/[eventId]/route.ts` (new).
   - Expected behavior:
     - Accepts UUIDs and stable IDs for `[id]`.
@@ -283,7 +285,7 @@ Order: Read Model Assembly → API Route Handlers → Integration Tests.
   - Constraints: validates event types (`financed purchase`, `recurring`, `seasonal`), positive amounts ($> 0$), and optional description.
   - Validation: `tests/api/forecaster-routes.test.ts`.
 
-- [ ] **T015 [P] [US3] Implement scenario budget nudges API route**
+- [x] **T015 [P] [US3] Implement scenario budget nudges API route**
   - Files: `src/app/api/scenarios/[id]/nudges/route.ts` (new).
   - Expected behavior:
     - Accepts UUIDs and stable IDs for `[id]`.
@@ -291,7 +293,7 @@ Order: Read Model Assembly → API Route Handlers → Integration Tests.
   - Constraints: validates target type, non-archived status, and signed integer centavos.
   - Validation: `tests/api/forecaster-routes.test.ts`.
 
-- [ ] **T016 [US1–US5] Add integration tests for read model and API routes**
+- [x] **T016 [US1–US5] Add integration tests for read model and API routes**
   - Files: `tests/server/forecaster-read.test.ts` (new), `tests/api/forecaster-routes.test.ts` (new).
   - Expected behavior:
     - Test `getForecasterView`:
@@ -300,6 +302,7 @@ Order: Read Model Assembly → API Route Handlers → Integration Tests.
       - Deleted source model: plan snapshot remains intact and readable.
       - Multiple models: selects current month's applied plan snapshot.
       - Revised plan: reflects mid-month revised allocations.
+      - Nudge target data includes unadjusted allocations, archived merged targets, and the IDs needed to create a nudge.
       - Measures read model execution against <10ms target (reported in benchmark, not hard assertion that fails CI).
     - Test API routes:
       - HTTP error format `{ error: { code, message, field? } }`.
@@ -318,7 +321,7 @@ Order: Read Model Assembly → API Route Handlers → Integration Tests.
 
 Order: Scenario Hero Cards → 24-Month Outlook Chart → Side-by-Side Comparison Table.
 
-- [ ] **T017 [P] [US1, US2] Implement Scenario Hero Cards (VERDICT, RUNWAY, MONTHLY UNALLOCATED)**
+- [x] **T017 [P] [US1, US2] Implement Scenario Hero Cards (VERDICT, RUNWAY, MONTHLY UNALLOCATED)**
   - Component: `src/components/forecaster/scenario-hero-cards.tsx` (new).
   - **Match**: `reference/Money Tracker Hi-Fi.dc.html#L441-L445` (prototype lines 441–445).
   - Breakpoints: Desktop grid `grid-template-columns: repeat(3, minmax(0, 1fr))` with 12px gap at $\ge 1100\text{px}$.
@@ -329,7 +332,7 @@ Order: Scenario Hero Cards → 24-Month Outlook Chart → Side-by-Side Compariso
   - Constraints: pure presentational component consuming `ScenarioMetrics`.
   - Validation: Visual check against prototype + RTL unit tests.
 
-- [ ] **T018 [P] [US1, US2] Implement 24-Month Outlook Chart with zero rule and polylines**
+- [x] **T018 [P] [US1, US2] Implement 24-Month Outlook Chart with zero rule and polylines**
   - Component: `src/components/forecaster/outlook-chart.tsx` (new).
   - **Match**: `reference/Money Tracker Hi-Fi.dc.html#L447-L467` (prototype lines 447–467).
   - Breakpoints: Container height 210px, relative positioning, full card width at $\ge 1100\text{px}$.
@@ -346,7 +349,7 @@ Order: Scenario Hero Cards → 24-Month Outlook Chart → Side-by-Side Compariso
   - Constraints: converts normalized coordinates to SVG viewBox space; preserves zero rule alignment.
   - Validation: Visual check against prototype + RTL unit tests.
 
-- [ ] **T019 [P] [US1, US2] Implement Scenarios Side by Side Comparison Table**
+- [x] **T019 [P] [US1, US2] Implement Scenarios Side by Side Comparison Table**
   - Component: `src/components/forecaster/scenario-comparison-table.tsx` (new).
   - **Match**: `reference/Money Tracker Hi-Fi.dc.html#L469-L487` (prototype lines 469–487).
   - Breakpoints: Wrapped in `overflow-x-auto` with inner `min-width: 520px` to eliminate window horizontal scroll; metric label column pinned with `sticky left-0 bg-white z-10`.
@@ -364,7 +367,7 @@ Order: Scenario Hero Cards → 24-Month Outlook Chart → Side-by-Side Compariso
 
 Order: Scenario Selector Chips → What Changes Event List → Budget Nudges Card.
 
-- [ ] **T020 [P] [US1, US2, US5] Implement Scenario Selector Chips bar**
+- [x] **T020 [P] [US1, US2, US5] Implement Scenario Selector Chips bar**
   - Component: `src/components/forecaster/scenario-chips.tsx` (new).
   - **Match**: `reference/Money Tracker Hi-Fi.dc.html#L398-L403` (prototype lines 398–403).
   - Breakpoints: Flex wrap with 9px gap, margin-bottom 16px.
@@ -374,7 +377,7 @@ Order: Scenario Selector Chips → What Changes Event List → Budget Nudges Car
   - Constraints: keyboard navigation (`Enter` / `Space`); triggers scenario switch callback.
   - Validation: Visual check against prototype + RTL unit tests.
 
-- [ ] **T021 [P] [US1, US4] Implement "What changes" Event List Card**
+- [x] **T021 [P] [US1, US4] Implement "What changes" Event List Card**
   - Component: `src/components/forecaster/what-changes-card.tsx` (new).
   - **Match**: `reference/Money Tracker Hi-Fi.dc.html#L408-L422` (prototype lines 408–422).
   - Breakpoints: Card in left column, width `minmax(260px, 320px)`.
@@ -388,19 +391,20 @@ Order: Scenario Selector Chips → What Changes Event List → Budget Nudges Car
   - Constraints: baseline scenario hides `+ add event` and shows baseline empty message.
   - Validation: Visual check against prototype + RTL unit tests.
 
-- [ ] **T022 [P] [US3] Implement "Nudge the budget" Steppers Card with sequential per-row queue**
+- [x] **T022 [P] [US3] Implement "Nudge the budget" Steppers Card with sequential per-row queue**
   - Component: `src/components/forecaster/budget-nudges-card.tsx` (new).
   - **Match**: `reference/Money Tracker Hi-Fi.dc.html#L424-L436` (prototype lines 424–436).
   - Breakpoints: Card in left column below "What changes".
   - Style provenance: lifted from prototype CSS.
     - Card: white background, border `#d5d8d8`, radius 14px, padding 18px.
-    - Title `"Nudge the budget"`, subtitle `"drag to rebalance — 'freed' is money released"`.
+    - Title `"Nudge the budget"`, subtitle `"Use − or + to rebalance. “Freed” is money released."`.
     - Category nudge row: lists every expense category and savings bucket with a base allocation or existing nudge. Group header (10.5px, letter-spacing .06em, `#5c6467`), name + value row with status badge:
       - `+₱X freed` in green `#2c6647` when `freed > 0`.
       - `−₱X funded` in accessible amber `#8a6516` when `freed < 0`.
       - `₱0 freed` when `freed = 0`.
       - Archived targets display `(archived)` badge and disabled controls.
     - Stepper controls: accessible `−` and `+` `<button>` elements (20x20px, radius 6px, border `#d5d8d8`, hover background `#f4f5f5`, cursor pointer). `+` raises allocation; `−` lowers allocation.
+    - Combine `ForecasterViewData.nudgeTargets` with the selected scenario's nudges by target type and ID to render both new and existing adjustments.
     - Slider track: height 18px, background track `#e2e4e4`, colored fill (teal `#2f7d78` for freed, amber `#d3a13f` for funded; 50% fallback for base = 0), visual knob circle (white with 2px solid `#14181a`).
     - Sequential per-row queue: rapid clicks update optimistic state immediately and queue writes sequentially per row; if an older save fails with a newer edit queued, the newer edit stays visible and is dispatched next; only if terminal save fails does the row roll back to confirmed server delta; flushes pending writes on scenario switch.
   - Constraints: stepper-only; knob is visual; allocation clamped at $\ge 0$.
@@ -412,28 +416,28 @@ Order: Scenario Selector Chips → What Changes Event List → Budget Nudges Car
 
 Order: Modals → Container Screen Assembly → Route Pages → End-to-End Component Tests.
 
-- [ ] **T023 [P] [US5] Implement Scenario Modal (Create, Edit, Delete)**
+- [x] **T023 [P] [US5] Implement Scenario Modal (Create, Edit, Delete)**
   - Component: `src/components/forecaster/scenario-modal.tsx` (new).
   - Expected behavior:
     - Modal dialog supporting creation and editing of scenarios:
       - Fields: Name (required), Short Label (required), Start Month offset (`0..23`), Draw Amount (₱, integer $\ge 0$), Palette selection (`teal`, `purple`, `gold`, `blue`, `slate`).
-      - Edit mode includes "Delete scenario" button (hidden for baseline).
+      - Edit mode includes a "Delete scenario" button (hidden for baseline) that opens a confirmation naming the scenario, events, and nudges affected.
       - Submitting executes `POST /api/scenarios` or `PATCH /api/scenarios/[id]`, triggers toast, and revalidates page data.
   - Constraints: accessible modal with focus trap and `Escape` key support; validates non-empty inputs.
   - Validation: `tests/components/forecaster/forecaster-screen.test.tsx`.
 
-- [ ] **T024 [P] [US4] Implement Event Modal (Add, Edit, Delete)**
+- [x] **T024 [P] [US4] Implement Event Modal (Add, Edit, Delete)**
   - Component: `src/components/forecaster/event-modal.tsx` (new).
   - Expected behavior:
     - Modal dialog supporting creation and editing of hypothetical financial events:
       - Fields: Event Name (required), Event Type dropdown (`financed purchase`, `recurring`, `seasonal`), Monthly Amount (₱, integer $> 0$), optional Description.
       - Helper text explains that seasonal events represent the flat monthly equivalent of an annual or irregular cost (e.g. ₱9,600/yr = ₱800/mo).
-      - Edit mode includes "Delete event" button.
+    - Edit mode includes a "Delete event" button that opens a confirmation naming the event.
       - Submitting executes `POST /api/scenarios/[id]/events` or `PATCH /api/scenarios/[id]/events/[eventId]`, triggers toast, and updates scenario.
   - Constraints: accessible modal; validates positive monetary amounts.
   - Validation: `tests/components/forecaster/forecaster-screen.test.tsx`.
 
-- [ ] **T025 [US1–US6] Implement ForecasterScreen interactive container**
+- [x] **T025 [US1–US6] Implement ForecasterScreen interactive container**
   - Component: `src/components/forecaster/forecaster-screen.tsx` (new).
   - Expected behavior:
     - Client component integrating:
@@ -447,7 +451,7 @@ Order: Modals → Container Screen Assembly → Route Pages → End-to-End Compo
   - Constraints: desktop-first responsive design; zero horizontal page scroll at $\ge 1100\text{px}$.
   - Validation: `tests/components/forecaster/forecaster-screen.test.tsx`.
 
-- [ ] **T026 [US1, US6] Assemble Forecaster Server Component page, loading, and error boundaries**
+- [x] **T026 [US1, US6] Assemble Forecaster Server Component page, loading, and error boundaries**
   - Files: `src/app/(shell)/forecaster/page.tsx`, `src/app/(shell)/forecaster/loading.tsx` (new), `src/app/(shell)/forecaster/error.tsx` (new).
   - Expected behavior:
     - `page.tsx`: Server Component reading `searchParams.scenario`, calling `getForecasterView(params.scenario)`, and passing view data to `<ForecasterScreen />`.
@@ -456,7 +460,7 @@ Order: Modals → Container Screen Assembly → Route Pages → End-to-End Compo
   - Constraints: Server Component; no client-only APIs in `page.tsx`.
   - Validation: `tests/components/forecaster/forecaster-screen.test.tsx`.
 
-- [ ] **T027 [US1–US6] Add comprehensive component tests for ForecasterScreen**
+- [x] **T027 [US1–US6] Add comprehensive component tests for ForecasterScreen**
   - Files: `tests/components/forecaster/forecaster-screen.test.tsx` (new).
   - Expected behavior:
     - Test initial rendering of Baseline scenario with hero cards, flat chart bars, comparison table, and empty baseline message.
@@ -477,30 +481,30 @@ Order: Modals → Container Screen Assembly → Route Pages → End-to-End Compo
 
 Order: Version Bump → Changelog → Roadmap Update → Repo Map & README → Docs Sanity Test.
 
-- [ ] **T028 [P] Bump project version in package.json and package-lock.json**
+- [x] **T028 [P] Bump project version in package.json and package-lock.json**
   - Files: `package.json`, `package-lock.json`.
   - Expected behavior: Bump version cleanly from `3.3.0` to `3.4.0`.
   - Constraints: lockfile matches `package.json` exactly.
   - Validation: `npm run lint`.
 
-- [ ] **T029 [P] Update CHANGELOG.md with F05 release notes**
+- [x] **T029 [P] Update CHANGELOG.md with F05 release notes**
   - Files: `CHANGELOG.md`.
   - Expected behavior: Document Feature 005 (Forecaster), detailing the 24-month projection engine, applied monthly plan baseline derivation, scenario management, budget nudges, hypothetical events, and prototype alignment.
   - Validation: manual review.
 
-- [ ] **T030 [P] Update docs/feature_roadmap.md**
+- [x] **T030 [P] Update docs/feature_roadmap.md**
   - Files: `docs/feature_roadmap.md`.
   - Expected behavior: Update row to `| F05 — Forecaster | In progress | [Brief](features/v3-005-forecaster.md) |` (during dev) then `✓ Complete`.
   - Validation: manual review.
 
-- [ ] **T031 [P] Update docs/REPO_MAP.md and README.md**
+- [x] **T031 [P] Update docs/REPO_MAP.md and README.md**
   - Files: `docs/REPO_MAP.md`, `README.md`.
   - Expected behavior:
     - Add new domain, server, and component forecaster files to `docs/REPO_MAP.md`.
     - Update `README.md` feature summary highlighting Forecaster availability.
   - Validation: manual review.
 
-- [ ] **T032 Run release documentation test suite**
+- [x] **T032 Run release documentation test suite**
   - Command: `npx vitest run tests/release-docs.test.ts`.
   - Expected behavior: All documentation tests pass cleanly.
   - Validation: `npx vitest run tests/release-docs.test.ts`.
@@ -509,9 +513,9 @@ Order: Version Bump → Changelog → Roadmap Update → Repo Map & README → D
 
 ## Phase 08 — Browser Smoke Test & Visual Review
 
-Order: Clean Install Test → Baseline Outlook → Scenario Switching → Budget Nudges → Events Management → Scenario CRUD → Visual Breakpoint Pass.
+Order: Clean Install Test → Baseline Outlook → Scenario Switching → Budget Nudges → Events Management → Scenario CRUD → Visual Breakpoint Pass → Roadmap Closeout.
 
-- [ ] **T033 [US6] Smoke Test 1 — Fresh Install & Empty States**
+- [x] **T033 [US6] Smoke Test 1 — Fresh Install & Empty States**
   - Walkthrough:
     1. Wipe database with `npm run clear -- --yes`.
     2. Open `http://127.0.0.1:3000/forecaster`.
@@ -519,7 +523,7 @@ Order: Clean Install Test → Baseline Outlook → Scenario Switching → Budget
     4. Click the link to `/models` and verify navigation.
   - Validation: Browser verification.
 
-- [ ] **T034 [US1] Smoke Test 2 — Baseline 24-Month Outlook**
+- [x] **T034 [US1] Smoke Test 2 — Baseline 24-Month Outlook**
   - Walkthrough:
     1. Seed demo dataset with `npm run seed`.
     2. Navigate to `http://127.0.0.1:3000/forecaster`.
@@ -531,7 +535,7 @@ Order: Clean Install Test → Baseline Outlook → Scenario Switching → Budget
     8. Confirm "What changes" card displays: `"No events — this is the baseline."` with `+ add event` hidden.
   - Validation: Browser verification.
 
-- [ ] **T035 [US2] Smoke Test 3 — Scenario Switching & Side-by-Side Comparison**
+- [x] **T035 [US2] Smoke Test 3 — Scenario Switching & Side-by-Side Comparison**
   - Walkthrough:
     1. Click chip for **A · Buy now, 5-yr loan**.
     2. Verify chip activates with teal border, tint, and ink.
@@ -544,7 +548,7 @@ Order: Clean Install Test → Baseline Outlook → Scenario Switching → Budget
        - C: Expense ₱84,200, Unallocated +₱15,300, Buffer after −₱52,500, Runway 0.0 mo, Verdict Risky buffer.
   - Validation: Browser verification.
 
-- [ ] **T036 [US3] Smoke Test 4 — Budget Nudges & Real-Time Rebalancing**
+- [x] **T036 [US3] Smoke Test 4 — Budget Nudges & Real-Time Rebalancing**
   - Walkthrough:
     1. Under Scenario A, locate the **Groceries** row in "Nudge the budget".
     2. Click `+` to raise the allocation by ₱500.
@@ -554,7 +558,7 @@ Order: Clean Install Test → Baseline Outlook → Scenario Switching → Budget
     6. Refresh browser (`F5`); verify updated nudge persists.
   - Validation: Browser verification.
 
-- [ ] **T037 [US4] Smoke Test 5 — Hypothetical Financial Events Management**
+- [x] **T037 [US4] Smoke Test 5 — Hypothetical Financial Events Management**
   - Walkthrough:
     1. Select Scenario A, click `+ add event`.
     2. Enter Name: "Annual Insurance", Type: "seasonal", Amount: "1,200". (Modal helper text notes seasonal is the monthly equivalent of an annual cost).
@@ -563,21 +567,26 @@ Order: Clean Install Test → Baseline Outlook → Scenario Switching → Budget
     5. Click "Annual Insurance" row, click "Delete event", and confirm it is removed and figures restore.
   - Validation: Browser verification.
 
-- [ ] **T038 [US5] Smoke Test 6 — Scenario Creation, Duplication, & Deletion**
+- [x] **T038 [US5] Smoke Test 6 — Scenario Creation, Duplication, & Deletion**
   - Walkthrough:
     1. Select **A · Buy now, 5-yr loan**, open scenario settings modal, click "Duplicate".
-    2. Confirm "A · Buy now, 5-yr loan (Copy)" appears with all 2 events and 4 nudges cloned.
+    2. Confirm "A · Buy now, 5-yr loan (Copy)" appears with the short label "A · LOAN NOW (COPY)" and all 3 events and 4 nudges cloned.
     3. Click `+ scenario`.
     4. Enter Name: "D · Secondhand car", Short Label: "D · SECONDHAND", Start Month: 6, Buffer Draw: "50,000", Palette Key: `purple`.
-    5. Save scenario. Confirm "D · SECONDHAND" chip appears in the selector.
+    5. Save the scenario. Confirm the "D · Secondhand car" chip appears in the selector and "D · SECONDHAND" appears in the chart legend and comparison table.
     6. Open scenario modal for "A · Buy now, 5-yr loan (Copy)" and click "Delete". Confirm it is removed.
     7. Confirm the Baseline scenario has no delete option and rejects write mutations with 409 `invalid_state`.
   - Validation: Browser verification.
 
-- [ ] **T039 Desktop Visual Verification Pass at 1100px, 1280px, and 1440px**
+- [x] **T039 Desktop Visual Verification Pass at 1100px, 1280px, and 1440px**
   - Walkthrough:
     1. Test screen layout at viewport widths 1100px, 1280px, and 1440px.
     2. Verify zero horizontal page scrolling occurs; comparison table scrolls inside its card with pinned label column.
     3. Verify text contrast on status badges meets WCAG AA standards (`#8a6516` contrast $\ge 4.5:1$).
     4. Compare visually with prototype `Money Tracker Hi-Fi.dc.html#L396-L491`.
   - Validation: Visual check against prototype.
+
+- [x] **T040 Close out the Forecaster roadmap entry**
+  - Files: `docs/feature_roadmap.md`.
+  - After T033–T039 and the Phase 08 verification gate pass, mark F05 `✓ Complete` and remove the pending browser acceptance note.
+  - Validation: Review the roadmap and run `npx vitest run tests/release-docs.test.ts`.

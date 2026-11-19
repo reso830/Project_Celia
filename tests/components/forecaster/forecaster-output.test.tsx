@@ -118,6 +118,8 @@ it("maps chart coordinates and dims alternative lines when the baseline is selec
     })),
     milestones: [
       { index: 0, monthKey: "2026-11" },
+      { index: 6, monthKey: "2027-05" },
+      { index: 12, monthKey: "2027-11" },
       { index: 23, monthKey: "2028-10" },
     ],
   };
@@ -136,8 +138,16 @@ it("maps chart coordinates and dims alternative lines when the baseline is selec
   expect(negativeRegion).toHaveStyle({ top: "50%", height: "50%" });
   expect(negativeRegion).toHaveClass("items-start");
   expect(negativeRegion?.nextElementSibling).toHaveStyle({ top: "50%" });
-  expect(screen.getByText("Nov 2026")).toBeInTheDocument();
-  expect(screen.getByText("Oct 2028")).toBeInTheDocument();
+  for (const [label, index] of [
+    ["Nov 2026", 0],
+    ["May 2027", 6],
+    ["Nov 2027", 12],
+    ["Oct 2028", 23],
+  ] as const) {
+    expect(screen.getByText(label)).toHaveStyle({
+      left: `${(index / 23) * 100}%`,
+    });
+  }
   expect(
     screen.getByText(/baseline unallocated is −₱1 per month/i),
   ).toBeInTheDocument();

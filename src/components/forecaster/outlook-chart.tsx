@@ -123,9 +123,18 @@ export function OutlookChart({
           })}
         </svg>
       </div>
-      <div className="flex justify-between gap-2 pt-[7px] text-[11.5px] text-celia-muted">
+      <div className="relative mt-[7px] h-[18px] text-[11.5px] text-celia-muted max-[520px]:h-[34px]">
         {milestones.map(({ index, monthKey }) => (
-          <span key={index}>{monthLabel(monthKey)}</span>
+          <span
+            key={index}
+            className={`absolute top-0 whitespace-nowrap ${index > 0 && index < bars.length - 1 ? "max-[520px]:top-4" : ""}`}
+            style={{
+              left: `${(index / Math.max(1, bars.length - 1)) * 100}%`,
+              transform: `translateX(${index === 0 ? 0 : index === bars.length - 1 ? -100 : -50}%)`,
+            }}
+          >
+            {monthLabel(monthKey)}
+          </span>
         ))}
       </div>
       <ul

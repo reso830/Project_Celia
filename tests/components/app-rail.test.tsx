@@ -8,6 +8,7 @@ import ForecasterPage from "@/app/(shell)/forecaster/page";
 import BudgetModelsPage from "@/app/(shell)/models/page";
 import SavingsBucketsPage from "@/app/(shell)/savings/page";
 import { getEntriesView } from "@/server/entries-read";
+import { getForecasterView } from "@/server/forecaster-read";
 
 const navigation = vi.hoisted(() => ({ pathname: "/" }));
 
@@ -24,6 +25,14 @@ vi.mock("@/server/models-read", () => ({
     appliedPlan: null,
     categories: [],
     buckets: [],
+  }),
+}));
+vi.mock("@/server/forecaster-read", () => ({
+  getForecasterView: vi.fn().mockResolvedValue({
+    hasAppliedPlan: false,
+    appliedMonthKey: "2026-11",
+    activeScenarioId: "baseline",
+    scenarios: [],
   }),
 }));
 vi.mock("@/server/savings-read", () => ({
@@ -134,15 +143,23 @@ describe("app shell", () => {
     );
   });
 
-  it("renders the Forecaster page as a title-only placeholder", () => {
-    render(<ForecasterPage />);
+  it("loads the Forecaster workspace with the scenario from the URL", async () => {
+    render(
+      await ForecasterPage({
+        searchParams: Promise.resolve({ scenario: "a" }),
+      }),
+    );
 
+    expect(getForecasterView).toHaveBeenCalledWith("a");
     expect(
       screen.getByRole("heading", { level: 1, name: "Forecaster" }),
     ).toBeInTheDocument();
-    expect(screen.queryAllByRole("button")).toHaveLength(0);
-    expect(screen.queryAllByRole("link")).toHaveLength(0);
-    expect(document.querySelectorAll("input")).toHaveLength(0);
+    expect(
+      screen.getByText("No budget applied for November 2026."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Open budget models" }),
+    ).toHaveAttribute("href", "/models");
   });
 
   it("renders the Budget models workspace", async () => {

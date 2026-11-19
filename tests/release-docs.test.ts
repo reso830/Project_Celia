@@ -14,6 +14,7 @@ const releaseDocuments = [
   "specs/v3-002-entries/quickstart.md",
   "specs/v3-003-budget-and-savings/quickstart.md",
   "specs/v3-004-dashboard-reporting/quickstart.md",
+  "specs/v3-005-forecaster/quickstart.md",
 ];
 
 function documentText(file: string) {
@@ -31,7 +32,10 @@ describe("release documentation", () => {
       packages: { "": { version: string } };
     };
 
-    expect(packageJson.version).toBe("3.3.0");
+    expect(packageJson.version).toBe("3.4.0");
+    expect(documentText("README.md")).toContain(
+      `Version ${packageJson.version}`,
+    );
     expect(packageLock.version).toBe(packageJson.version);
     expect(packageLock.packages[""].version).toBe(packageJson.version);
     for (const command of [
@@ -94,7 +98,6 @@ describe("release documentation", () => {
       expect(map).toContain(area);
   });
   it("documents the F04 release and its implementation map", () => {
-    expect(documentText("README.md")).toContain("Version 3.3.0");
     expect(documentText("README.md")).toContain("## Dashboard and reporting");
     expect(documentText("CHANGELOG.md")).toMatch(
       /^## 3\.3\.0 — \d{4}-\d{2}-\d{2}$/m,
@@ -110,6 +113,31 @@ describe("release documentation", () => {
       "src/components/dashboard/",
     ]) {
       expect(documentText("docs/REPO_MAP.md")).toContain(location);
+      expect(existsSync(path.join(root, location))).toBe(true);
+    }
+  });
+
+  it("documents the F05 release and its implementation map", () => {
+    expect(documentText("README.md")).toContain("## Forecaster");
+    expect(documentText("CHANGELOG.md")).toMatch(
+      /^## 3\.4\.0 — \d{4}-\d{2}-\d{2}$/m,
+    );
+    expect(documentText("docs/feature_roadmap.md")).toMatch(
+      /F05[^\n]*(?:In progress|✓ Complete)[^\n]*features\/v3-005-forecaster\.md/,
+    );
+    const map = documentText("docs/REPO_MAP.md");
+    for (const location of [
+      "src/app/(shell)/forecaster",
+      "src/app/api/scenarios",
+      "src/domain/forecaster.ts",
+      "src/domain/forecaster-calculations.ts",
+      "src/server/forecaster-read.ts",
+      "src/server/forecaster-store.ts",
+      "src/server/forecaster-service.ts",
+      "src/server/forecaster-http.ts",
+      "src/components/forecaster/",
+    ]) {
+      expect(map).toContain(location);
       expect(existsSync(path.join(root, location))).toBe(true);
     }
   });

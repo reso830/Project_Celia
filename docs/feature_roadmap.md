@@ -6,7 +6,7 @@
 | F02 — Entries | ✓ Complete | [Brief](features/v3-002-entries.md) |
 | F03 — Budget & Savings | ✓ Complete | [Brief](features/v3-003-budget-and-savings.md) |
 | F04 — Dashboard & Reporting | ✓ Complete | [Brief](features/v3-004-dashboard-reporting.md) |
-| Forecaster (number TBD) | Planned | Brief pending |
+| F05 — Forecaster | ✓ Complete | [Brief](features/v3-005-forecaster.md) |
 
 Future feature briefs are added under `docs/features/` when their scope is specified.
 

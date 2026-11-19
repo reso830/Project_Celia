@@ -31,10 +31,10 @@ afterEach(() => {
 });
 
 describe("database migrations", () => {
-  it("creates version three with the structural household, umbrellas, and entries table", () => {
+  it("creates version four with the structural household, umbrellas, and entries table", () => {
     const database = createDatabase();
 
-    expect(database.pragma("user_version", { simple: true })).toBe(3);
+    expect(database.pragma("user_version", { simple: true })).toBe(4);
     expect(
       database
         .prepare(
@@ -94,7 +94,7 @@ describe("database migrations", () => {
       )
       .run("item", "category", "Rice", "rice", now, now);
     runMigrations(database);
-    expect(database.pragma("user_version", { simple: true })).toBe(3);
+    expect(database.pragma("user_version", { simple: true })).toBe(4);
     expect(database.prepare("SELECT id FROM members").all()).toEqual([
       { id: "member" },
     ]);
@@ -387,7 +387,7 @@ describe("F03 migration", () => {
       `INSERT INTO members VALUES ('m','Ana','ana',NULL,'',''); INSERT INTO categories (id,umbrella_id,name,name_key,color,created_at,updated_at) VALUES ('c','expense','Food','food','#7d8ba8','',''); INSERT INTO items (id,category_id,name,name_key,created_at,updated_at) VALUES ('i','c','Rice','rice','',''); INSERT INTO entries VALUES ('e','i','m',101,'2026-09-01',NULL,'','');`,
     );
     runMigrations(db);
-    expect(db.pragma("user_version", { simple: true })).toBe(3);
+    expect(db.pragma("user_version", { simple: true })).toBe(4);
     expect(db.prepare("SELECT amount FROM entries").get()).toEqual({
       amount: 101,
     });

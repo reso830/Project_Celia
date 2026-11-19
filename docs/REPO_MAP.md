@@ -5,7 +5,7 @@
 - `src/domain`: pure entity types, validation, and domain errors.
 - `src/server`: read models, services, and SQLite store adapters.
 - `src/server/db`: database opening, migrations, and singleton access.
-- `src/server/demo.ts`: transactional F01/F02/F03 demo seed and guarded clear across all ten user tables.
+- `src/server/demo.ts`: transactional demo seeding and guarded clear, including alternative forecasts and their child records. Clear preserves the baseline scenario.
 - `src/components/shell`: navigation rail, page headers, and shared shell controls.
 - `src/components/household`: household and member-management UI.
 - `src/components/categories`: category, item, move, merge, and archive UI.
@@ -56,3 +56,19 @@
 - `src/components/dashboard/`: header filters, KPI sparklines, burn rate gauge, budget trend, category and member breakdowns, goals, commitments, and screen assembly with the shared entry modal.
 - `tests/components/dashboard/` and `tests/server/dashboard-read.test.ts`: reporting views, route filters, and entry workflow coverage.
 - `specs/v3-004-dashboard-reporting/`: [spec](../specs/v3-004-dashboard-reporting/spec.md), [API contract](../specs/v3-004-dashboard-reporting/contracts/api.md), [quickstart](../specs/v3-004-dashboard-reporting/quickstart.md) and [deviations](../specs/v3-004-dashboard-reporting/deviations.md).
+
+## F05 Forecaster
+
+- `src/app/(shell)/forecaster`: dynamic workspace with loading and retry states.
+- `src/app/api/scenarios`: scenario, event, and nudge endpoints.
+- `src/domain/forecaster.ts`: scenario, outlook, and view data types.
+- `src/domain/forecaster-calculations.ts`: scenario metrics, runway verdicts, chart geometry, and nudge calculations.
+- `src/server/forecaster-read.ts`: assembles the current applied plan, savings buffer, and scenario forecasts.
+- `src/server/forecaster-store.ts`: scenario persistence and transactional category nudge re-pointing.
+- `src/server/forecaster-service.ts`: scenario, event, and nudge validation, baseline protection, and duplication.
+- `src/server/forecaster-http.ts`: typed JSON request validation for scenario routes.
+- `src/components/forecaster/`: scenario inputs, chart, metric cards, comparison table, dialogs, and screen assembly.
+- `src/components/ui/form-dialog.tsx`: shared modal shell and control styles.
+- `src/server/db/migrations.ts`: Migration 4 initializes Forecaster tables and the protected baseline.
+- `tests/components/forecaster/`, `tests/api/forecaster-routes.test.ts`, and `tests/server/forecaster-*.test.ts`: interaction, API, and persistence coverage.
+- `specs/v3-005-forecaster/`: [spec](../specs/v3-005-forecaster/spec.md), [API contract](../specs/v3-005-forecaster/contracts/api.md), [quickstart](../specs/v3-005-forecaster/quickstart.md), and [deviations](../specs/v3-005-forecaster/deviations.md).

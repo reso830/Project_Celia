@@ -247,132 +247,110 @@
   ],
   "scenarios": [
     {
-      "id": "baseline",
-      "label": "Baseline 2026",
-      "short": "BASELINE",
-      "color": "#3a4145",
-      "tint": "#e8eaea",
-      "ink": "#14181a",
-      "dash": "",
-      "startMonth": 24,
-      "draw": 0,
-      "events": [],
-      "nudges": []
-    },
-    {
       "id": "a",
-      "label": "A · Buy now, 5-yr loan",
-      "short": "A · LOAN NOW",
-      "color": "#2f7d78",
-      "tint": "#e4efee",
-      "ink": "#26686a",
-      "dash": "",
+      "name": "A · Buy now, 5-yr loan",
+      "shortLabel": "A · LOAN NOW",
+      "paletteKey": "teal",
       "startMonth": 5,
-      "draw": 98500,
+      "drawAmount": 9850000,
+      "isBaseline": false,
+      "displayOrder": 1,
       "events": [
         {
           "name": "Car",
           "type": "financed purchase",
-          "monthly": 18430
+          "monthlyAmount": 1843000,
+          "description": null
         },
         {
           "name": "Running costs",
           "type": "recurring",
-          "monthly": 7200
+          "monthlyAmount": 720000,
+          "description": null
         },
         {
           "name": "Registration",
           "type": "seasonal",
-          "monthly": 800
+          "monthlyAmount": 80000,
+          "description": "Annual registration equivalent"
         }
       ],
       "nudges": [
         {
-          "name": "Groceries",
-          "group": "EXPENSES",
-          "value": 18000,
-          "freed": 2000,
-          "pct": 56
+          "targetType": "category",
+          "categoryNameKey": "groceries",
+          "deltaAmount": -200000
         },
         {
-          "name": "Dining out",
-          "group": "EXPENSES",
-          "value": 3000,
-          "freed": 2000,
-          "pct": 24
+          "targetType": "category",
+          "categoryNameKey": "dining out",
+          "deltaAmount": -200000
         },
         {
-          "name": "Transport",
-          "group": "EXPENSES",
-          "value": 2500,
-          "freed": 4500,
-          "pct": 18
+          "targetType": "category",
+          "categoryNameKey": "transport",
+          "deltaAmount": -450000
         },
         {
-          "name": "Car down payment",
-          "group": "SAVINGS",
-          "value": 5000,
-          "freed": -5000,
-          "pct": 34
+          "targetType": "bucket",
+          "bucketId": "car",
+          "deltaAmount": 500000
         }
       ]
     },
     {
       "id": "b",
-      "label": "B · Wait 6 months",
-      "short": "B · WAIT",
-      "color": "#7c6f9a",
-      "tint": "#efecf6",
-      "ink": "#5f5480",
-      "dash": "6 4",
+      "name": "B · Wait 6 months",
+      "shortLabel": "B · WAIT",
+      "paletteKey": "purple",
       "startMonth": 11,
-      "draw": 0,
+      "drawAmount": 0,
+      "isBaseline": false,
+      "displayOrder": 2,
       "events": [
         {
           "name": "Car",
           "type": "financed purchase",
-          "monthly": 15200
+          "monthlyAmount": 1520000,
+          "description": null
         },
         {
           "name": "Running costs",
           "type": "recurring",
-          "monthly": 7200
+          "monthlyAmount": 720000,
+          "description": null
         }
       ],
       "nudges": [
         {
-          "name": "Dining out",
-          "group": "EXPENSES",
-          "value": 4000,
-          "freed": 1000,
-          "pct": 32
+          "targetType": "category",
+          "categoryNameKey": "dining out",
+          "deltaAmount": -100000
         }
       ]
     },
     {
       "id": "c",
-      "label": "C · Pay cash",
-      "short": "C · CASH",
-      "color": "#a17c3f",
-      "tint": "#f6f0e4",
-      "ink": "#7a5c22",
-      "dash": "2 4",
+      "name": "C · Pay cash",
+      "shortLabel": "C · CASH",
+      "paletteKey": "gold",
       "startMonth": 5,
-      "draw": 518500,
+      "drawAmount": 51850000,
+      "isBaseline": false,
+      "displayOrder": 3,
       "events": [
         {
           "name": "Running costs",
           "type": "recurring",
-          "monthly": 7200
+          "monthlyAmount": 720000,
+          "description": null
         }
       ],
       "nudges": [
         {
-          "name": "Dining out",
-          "group": "EXPENSES",
-          "value": 3000,
-          "freed": 2000,
-          "pct": 24
+          "targetType": "category",
+          "categoryNameKey": "dining out",
+          "deltaAmount": -200000
         }
       ]
     }

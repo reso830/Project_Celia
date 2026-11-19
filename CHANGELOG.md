@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.4.0 — 2026-11-19
+
+### Added
+
+- Forecaster at `/forecaster` with a 24-month outlook based on the current month's applied budget plan and active savings buffer.
+- Create, edit, duplicate, and delete scenarios with one-time buffer draws, hypothetical monthly costs, and expense and savings nudges. Forecast changes leave actuals and applied plans intact.
+- Prototype-aligned verdict, runway, and unallocated cards, outlook chart, and side-by-side comparison, with keyboard-accessible controls.
+- SQLite Migration 4 persists scenarios and creates the protected baseline. Demo seeding adds three alternatives, and clearing user data preserves the baseline.
+
 ## 3.3.0 — 2026-11-14
 
 ### Added

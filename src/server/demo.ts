@@ -6,8 +6,18 @@ import { createHash, randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type { BucketType } from "@/domain/savings";
 import { nameKey } from "@/domain/names";
+import {
+  createScenario,
+  createScenarioEvent,
+  upsertScenarioNudge,
+  type EventFields,
+  type ScenarioFields,
+} from "./forecaster-store";
 
 export type ClearSummary = {
+  scenariosCount: number;
+  scenarioEventsCount: number;
+  scenarioNudgesCount: number;
   savingsBucketsCount: number;
   savingsActivitiesCount: number;
   budgetModelsCount: number;
@@ -20,6 +30,15 @@ export type ClearSummary = {
   membersCount: number;
 };
 export type SeedData = {
+  scenarios?: (ScenarioFields & {
+    id: string;
+    displayOrder: number;
+    events: EventFields[];
+    nudges: (
+      | { targetType: "category"; categoryNameKey: string; deltaAmount: number }
+      | { targetType: "bucket"; bucketId: string; deltaAmount: number }
+    )[];
+  })[];
   buckets: {
     id: string;
     name: string;
@@ -50,6 +69,7 @@ export type SeedData = {
 };
 export type SeedOptions = { seedJson?: SeedData; currentDate?: string };
 export type SeedResult = {
+  scenariosSeeded: number;
   savingsBucketsSeeded: number;
   savingsActivitiesSeeded: number;
   budgetModelsSeeded: number;
@@ -70,6 +90,15 @@ export function getClearSummary(database: Database.Database): ClearSummary {
       }
     ).count;
   return {
+    scenariosCount: (
+      database
+        .prepare(
+          "SELECT COUNT(*) AS count FROM scenarios WHERE is_baseline = 0",
+        )
+        .get() as { count: number }
+    ).count,
+    scenarioEventsCount: count("scenario_events"),
+    scenarioNudgesCount: count("scenario_nudges"),
     savingsBucketsCount: count("savings_buckets"),
     savingsActivitiesCount: count("savings_activities"),
     budgetModelsCount: count("budget_models"),
@@ -88,7 +117,10 @@ export function clearAllData(database: Database.Database): ClearSummary {
     const summary = getClearSummary(database);
     database.pragma("defer_foreign_keys = ON");
     database.exec(
-      `DELETE FROM monthly_budget_allocations;
+      `DELETE FROM scenario_nudges;
+      DELETE FROM scenario_events;
+      DELETE FROM scenarios WHERE is_baseline = 0;
+      DELETE FROM monthly_budget_allocations;
       DELETE FROM monthly_budget_plans;
       DELETE FROM budget_model_allocations;
       DELETE FROM budget_models;
@@ -361,7 +393,55 @@ export function seedDemoData(
           planCount++;
         }
     }
+    const scenarios = data.scenarios ?? [];
+    const categoryIdsByName = new Map(
+      data.categories.map((category) => [
+        nameKey(category.name),
+        categoryIds.get(category.id),
+      ]),
+    );
+    for (const scenario of [...scenarios].sort(
+      (a, b) => a.displayOrder - b.displayOrder,
+    )) {
+      const scenarioId = scenario.id;
+      createScenario(database, scenario, scenarioId, timestamp);
+      for (const [index, event] of scenario.events.entries()) {
+        createScenarioEvent(
+          database,
+          { ...event, scenarioId },
+          demoId(`scenario-event:${scenarioId}:${index}`),
+          timestamp,
+        );
+      }
+      for (const nudge of scenario.nudges) {
+        const targetKey =
+          nudge.targetType === "category"
+            ? nudge.categoryNameKey
+            : nudge.bucketId;
+        const targetId =
+          nudge.targetType === "category"
+            ? categoryIdsByName.get(targetKey)
+            : bucketIds.get(targetKey);
+        if (!targetId)
+          throw new Error(`Unknown seed nudge target: ${targetKey}.`);
+        upsertScenarioNudge(
+          database,
+          {
+            scenarioId,
+            targetType: nudge.targetType,
+            categoryId: nudge.targetType === "category" ? targetId : null,
+            bucketId: nudge.targetType === "bucket" ? targetId : null,
+            deltaAmount: nudge.deltaAmount,
+          },
+          demoId(
+            `scenario-nudge:${scenarioId}:${nudge.targetType}:${targetKey}`,
+          ),
+          timestamp,
+        );
+      }
+    }
     return {
+      scenariosSeeded: scenarios.length,
       savingsBucketsSeeded: data.buckets.length,
       savingsActivitiesSeeded: activityCount,
       budgetModelsSeeded: data.models.length,

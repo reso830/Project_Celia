@@ -22,6 +22,7 @@ import {
   updateItem as writeItem,
 } from "./categories-store";
 import { repointEntriesForItem } from "./entries-store";
+import { mergeCategoryNudges } from "./forecaster-store";
 
 function duplicateName() {
   return new DomainError(
@@ -305,6 +306,7 @@ export function mergeCategory(
       target.id,
       timestamp(),
     );
+    mergeCategoryNudges(database, source.id, target.id, timestamp());
     writeCategoryState(database, source, null, target.id);
     const updatedTarget = writeCategoryState(database, target, null, null);
     return { target: updatedTarget, movedItemIds, combined };

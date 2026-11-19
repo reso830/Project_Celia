@@ -15,6 +15,9 @@ import seed from "../../scripts/seed.json";
 
 const database = openDatabase(":memory:");
 const emptySummary = {
+  scenariosCount: 0,
+  scenarioEventsCount: 0,
+  scenarioNudgesCount: 0,
   entriesCount: 0,
   itemsCount: 0,
   categoriesCount: 0,
@@ -353,6 +356,9 @@ describe("demo seed and clear", () => {
   it("summarizes without changing data and clears only user records", () => {
     const seeded = seedDemoData(database, { currentDate: "2026-11-06" });
     const expected = {
+      scenariosCount: 3,
+      scenarioEventsCount: 6,
+      scenarioNudgesCount: 6,
       entriesCount: seeded.entriesSeeded,
       itemsCount: seeded.itemsSeeded,
       categoriesCount: seeded.categoriesSeeded,
